@@ -1,4 +1,6 @@
-# Version History
+# Upstream version history
+
+Release notes of the original [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest) (Bradley Grainger, MIT), kept for reference. This project's changes are in [CHANGELOG.md](CHANGELOG.md).
 
 ## 3.0.0 Beta 1
 

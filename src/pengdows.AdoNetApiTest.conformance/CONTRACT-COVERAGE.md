@@ -25,16 +25,16 @@ Primary API references:
 
 ## Result classification
 
-The suite has three outcomes:
+Nothing is recorded as not implemented. Every shared test ends in one of these outcomes (the README lists them all):
 
-1. **Hard failure** — a required contract member is missing or violates its
-   documented behavior.
-2. **Skip** — an optional capability is explicitly reported as unsupported.
-3. **Soft failure** — a common provider behavior differs from an
-   interoperability expectation, but the contract does not prohibit it. The
-   test remains in the diagnostic result set and writes `[SOFT WARNING]`; it is
-   not treated as a hard conformance failure and is never converted into a
-   capability skip.
+1. **Required** — the documented contract states the behavior. A failure is a hard failure.
+2. **Optional** — the behavior belongs to a capability a provider may decline. A provider that does not
+   implement the capability passes as `not-implemented`; one that does must pass the test
+   (`implemented-pass`, or `implemented-fail`, which is a hard failure).
+3. **Common** — interoperability behavior the contract does not require. A difference is recorded as
+   `different`, is advisory, and never affects the verdict.
+
+A test belongs in Required only when a quoted sentence on a learn.microsoft.com page states the behavior.
 
 ## Contract inventory
 
@@ -89,12 +89,12 @@ one portable result for the scenario; “review” is remaining work.
 | `DbParameterCollection`/`IDataParameterCollection` | count/indexing, add/remove/insert, `AddRange`, `CopyTo`, `Contains`, `IndexOf`, logical-name lookup | Covered in `ParameterTestBase`; null-argument policy is diagnostic because the base collection API does not specify one universal outcome. `IsFixedSize`, `IsReadOnly`, `IsSynchronized`, and `SyncRoot` are inherited `IList`/`ICollection` mechanics and are intentionally not conformance assertions because the provider contract does not define a portable mutability or synchronization policy for them |
 | `DbTransaction` | `Connection`, `IsolationLevel`, `Commit`, `Rollback`, savepoints, async equivalents, `Dispose` | Covered in `TransactionTestBase`; savepoint methods are checked against `SupportsSavepoints`, disposed connection invalidation follows the explicit interface contract, and unspecified completed-operation exception types remain diagnostics |
 | `DbProviderFactory` | connection, command, parameter, connection-string builder creation | Required creation coverage in `DbProviderFactoryTestBase` |
-| `DbProviderFactory` | command builder, data adapter, data-source enumerator, batch, data source | Capability-agreement coverage; unsupported optional members are skipped only when the factory advertises them as unavailable; an advertised capability that returns null, throws, or produces unusable metadata remains a diagnostic failure |
+| `DbProviderFactory` | command builder, data adapter, data-source enumerator, batch, data source | Capability-agreement coverage; unsupported optional members are recorded as not implemented only when the factory advertises them as unavailable; an advertised capability that returns null, throws, or produces unusable metadata remains a diagnostic failure |
 | `DbConnectionStringBuilder` | `ConnectionString` default/null behavior | Covered in `ConnectionStringTestBase`; provider-specific keyword grammar is intentionally supplied by the provider and not invented by the shared suite |
 | `DbCommandBuilder` | factory creation and optional capability flags | Capability agreement is covered in `DbProviderFactoryTestBase`; SQL generation, quoting, and schema discovery require provider-specific adapter/table fixtures and are not portable shared assertions |
-| `DbDataSourceEnumerator` | `GetDataSources` | Covered as an opt-in capability agreement in `DbProviderFactoryTestBase`; unimplemented enumeration is skipped, while advertised-but-unusable enumeration fails |
+| `DbDataSourceEnumerator` | `GetDataSources` | Covered as an opt-in capability agreement in `DbProviderFactoryTestBase`; unimplemented enumeration is recorded as not implemented, while advertised-but-unusable enumeration fails |
 | `DbDataReaderExtensions` | `CanGetColumnSchema`, `GetColumnSchema` | Covered through the reader schema tests; the extension delegates to the reader/provider schema implementation and is not separately duplicated |
-| `DbDataSource` (`net10.0`) | `ConnectionString`, `CreateConnection`, `OpenConnection`, `OpenConnectionAsync`, `CreateCommand`, `CreateBatch`, `DisposeAsync` | Covered by opt-in `DbDataSourceTestBase`; unsupported factory/data-source capabilities are explicitly skipped |
+| `DbDataSource` (`net10.0`) | `ConnectionString`, `CreateConnection`, `OpenConnection`, `OpenConnectionAsync`, `CreateCommand`, `CreateBatch`, `DisposeAsync` | Covered by opt-in `DbDataSourceTestBase`; unsupported factory/data-source capabilities are explicitly recorded as not implemented |
 
 The remaining `DbConnectionStringBuilder` dictionary, synchronization, and
 `ICustomTypeDescriptor` members are inherited framework plumbing whose useful
@@ -137,13 +137,13 @@ clear.
   `VisibleFieldCount`, parameter property round-trips, and parameter collection
   `AddRange`/`CopyTo` ordering.
 - Prepared commands are tested for successful execution, with an explicit
-  documented skip when a provider reports preparation as unsupported.
+  `not-implemented` outcome when a provider reports preparation as unsupported.
 - The shared project now also targets `net10.0`, where modern
   `DbProviderFactory` batch and data-source APIs are available for capability
   agreement testing.
 - Active-reader `GetSchemaTable` is reported as an optional schema capability;
   supported providers must return non-empty metadata, while unsupported
-  providers are explicitly skipped.
+  providers record `not-implemented`.
 - Output-parameter coverage now has an explicit `IOutputParameterFixture`
   capability boundary so providers can test the shared execution contract
   without imposing one SQL calling convention on every provider.
@@ -189,89 +189,19 @@ clear.
   CLR types are likewise retained as common-behavior diagnostics; only marker
   discovery, logical parameter names, and universal parameter properties are
   conformance requirements. When a provider's diagnostic behavior differs, the
-  test reports an explicit skip rather than turning that non-contract behavior
+  test records the difference rather than turning that non-contract behavior
   into a conformance failure.
 
 ## Verification status
 
-The shared library currently builds successfully for all supported target
-frameworks:
+Results are produced by the runner (`conformance run <Provider>`) into `conformance-results/matrix.json` and
+`matrix.xml`; they are not recorded in this file, because a number written here is out of date at the next run.
+Each provider failure is classified one of four ways:
 
-```text
-netstandard2.0
-netstandard2.1
-net10.0
-```
-
-The provider projects used during development are deliberately guinea pigs,
-not part of this package and not part of the change. Their results are useful
-for classifying the shared assertions:
-
-- DuckDB's native library is available from the DuckDB.NET build output and the
-  direct run succeeds when `LD_LIBRARY_PATH` includes
-  `DuckDB.NET.Bindings/obj/runtimes/linux-x64/native`. The current run is
-  `164 total, 1 failed, 14 skipped`; the only failure is
-  `ExecuteReader_supports_SchemaOnly_when_advertised`. The official
-  `CommandBehavior.SchemaOnly` contract requires column information without
-  returning rows, so this remains a DuckDB provider defect, not a reason to
-  weaken the shared assertion. The 14 skips are optional/provider-defined
-  diagnostics.
-- The exact filtered conformance commands used for the local guinea pigs were:
-
-  ```text
-  LD_LIBRARY_PATH=/home/alaricd/prj/pengdows/DuckDB.NET/DuckDB.NET.Bindings/obj/runtimes/linux-x64/native /home/alaricd/dotnet10/dotnet tests/DuckDB.Tests/bin/Debug/net10.0/DuckDB.Tests.dll -trait "Category=Common"
-  /home/alaricd/dotnet10/dotnet tests/FlatFile.Tests/bin/Debug/net10.0/FlatFile.Tests.dll -trait "Category=Common"
-  ```
-
-  DuckDB reported `95 total, 1 failed, 0 skipped` (the SchemaOnly provider
-  defect); FlatFile reported `103 total, 0 failed, 1 skipped` (the documented
-  parallel-writer limitation).
-- FlatFile executes the applicable shared tests, but rejects a valid positive
-  `CommandTimeout` assignment with `NotSupportedException`. The documented
-  property contract permits a provider to reject an unsupported timeout value,
-  but does not permit rejecting a valid non-negative value when the property is
-  exposed as supported; this needs provider-side classification or an explicit
-  capability boundary.
-- SQLite exposes useful diagnostics: its parameter collection `CopyTo`
-  implementation throws `NotImplementedException`, and completed transaction
-  operations use `ArgumentNullException` where the API documents
-  `InvalidOperationException`; its disposed transaction also throws
-  `ObjectDisposedException` when the documented `IDbTransaction.Connection`
-  property is read instead of returning null. These remain provider defects
-  unless the provider documents a narrower supported surface.
-- The last captured complete SQLite `net10.0` run, before the current
-  reclassification, reported 19 failures and 1,494 skips. The conversion
-  matrix accounted for most of those skips because provider-specific conversion
-  mismatches were incorrectly converted into `SkipException`. The current source
-  executes those assertions and only skips a conversion case when the fixture
-  explicitly reports that its database type is unsupported. The current source
-  reclassifies the no-command-text case, six closed-reader cases, and four completed-
-  transaction exception-type cases as diagnostics because their individual
-  API pages do not prescribe those exact outcomes. The remaining failures
-  (including `Prepare` with no connection/closed connection, parameter-name
-  default, collection `CopyTo`, disposed-transaction connection, and documented
-  ordinal behavior) remain strict provider-contract evidence. A fresh SQLite
-  binary run is pending because the local project currently cannot restore
-  `System.Data.SQLite` from its configured package feed.
-- The net8 provider-host run has a test-runner/discovery failure before tests
-  execute (`Test process did not return valid JSON`). That is an environment or
-  test-project runner problem, not a provider result. The shared project itself
-  still builds for net8-compatible targets (`netstandard2.0` and
-  `netstandard2.1`).
-
-Every provider run must report one of these outcomes for each failure:
-
-1. shared assertion contradicts the .NET contract — fix the test and document
-   the old assumption;
-2. provider violates a required contract — retain the test and report the
-   provider defect;
-3. optional capability is not advertised — skip through the fixture capability;
-4. provider/environment setup is unusable — report the setup failure without
-   changing the contract test.
-
-No provider-specific project is required to be committed to complete this
-work. A provider project may be used locally to prove that a shared test is
-portable, but the shared package must remain independent of it.
+1. the shared assertion contradicts the .NET contract: fix the test and record the old assumption in the changelog;
+2. the provider violates a required contract: keep the test and report the provider defect;
+3. the capability is optional and not implemented: the provider passes as `not-implemented`;
+4. the provider or environment cannot be set up: report it as `NOT RUN`, without changing the contract test.
 
 ## Remaining contract work
 
@@ -405,7 +335,7 @@ The following checklist is the definition of done for this effort:
   `DbFactoryTestBase.SelectSql` and related query hooks; intentionally invalid
   SQL and provider-specific DML remain explicit fixture/test inputs.
 - [x] Separate required behavior from optional behavior with explicit fixture
-  capabilities; an unsupported optional capability must be skipped, not
+  capabilities; an unsupported optional capability must be recorded as not implemented, not
   silently treated as a pass. Required, Optional and Common tests are
   tagged with `Category=Required`, `Category=Optional` and `Category=Common`.
 - [x] Complete the remaining `DbConnection`, `DbCommand`, `DbDataReader`,
@@ -416,7 +346,7 @@ The following checklist is the definition of done for this effort:
 - [x] Classify every observed provider failure before changing a shared
   assertion. Do not weaken a test merely to make a provider pass.
 - [x] Build and pack all target frameworks, run `git diff --check`, and keep
-  provider guinea-pig projects and credentials out of the commit.
+  provider provider projects and credentials out of the commit.
 
 ## Completion criteria
 
@@ -437,7 +367,7 @@ criteria are true:
 7. Provider failures are categorized as either a provider contract defect, an
    invalid shared assertion, an unsupported optional capability, or an
    environment/setup problem.
-8. Provider-specific guinea-pig projects remain outside the shared package and
+8. Provider-specific projects remain outside the shared package and
    are not committed as part of the specification-suite change.
 
 The final change should include test commands and results for the shared build

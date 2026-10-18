@@ -3,7 +3,8 @@ name: Build
 on:
   push:
     branches:
-    - 'master'
+    - 'main'
+  pull_request:
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -12,22 +13,40 @@ env:
 jobs:
 
   build:
-    runs-on: 'windows-latest'
+    runs-on: 'ubuntu-latest'
 
     steps:
     - uses: actions/checkout@v6
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
 
     - name: Restore
-      run: dotnet restore
+      run: dotnet restore pengdows.AdoNetApiTest.conformance.sln
 
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build pengdows.AdoNetApiTest.conformance.sln --configuration Release --no-restore
+
+    - name: Repository and runner tests
+      run: |
+        dotnet test tests/Repository.Tests/Repository.Tests.csproj --configuration Release --no-build
+        dotnet test tests/Runner.Tests/Runner.Tests.csproj --configuration Release --no-build
+
+    # Providers legitimately fail Required tests, so the matrix is published, not gated on.
+    - name: Conformance matrix (embedded providers)
+      continue-on-error: true
+      run: dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner --configuration Release --no-build -- run Sqlite MicrosoftSqlite8 --timeout 15
+
+    - name: Upload matrix
+      uses: actions/upload-artifact@v6
+      with:
+        name: conformance-results
+        path: conformance-results/
 
     - name: Pack
-      run: dotnet pack --configuration Release --no-build
+      run: dotnet pack src/pengdows.AdoNetApiTest.conformance/pengdows.AdoNetApiTest.conformance.csproj --configuration Release --no-build
 
     - name: Upload Package
       uses: actions/upload-artifact@v6

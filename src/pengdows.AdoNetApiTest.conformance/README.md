@@ -10,10 +10,9 @@ authoritative contract is the .NET API documentation and the referenced ADO.NET
 guidance. The complete coverage goal, classification rules, and remaining work
 are documented in [CONTRACT-COVERAGE.md](CONTRACT-COVERAGE.md).
 
-Many libraries (such as
-[Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient),
-[Npgsql](https://www.nuget.org/packages/Npgsql), and [MySqlConnector](https://www.nuget.org/packages/MySqlConnector))
-exhibit similar behavior.
+It began as [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest) (Bradley Grainger, MIT license),
+which tested what MySqlConnector and similar providers have in common. This suite tests the documented contract
+instead, so behavior that only some providers share is reported as advisory, never as a requirement.
 
 ### Usage
 
@@ -56,10 +55,8 @@ public sealed class ConnectionTests : ConnectionTestBase<DbFactoryFixture>
 	{
 	}
 
-	[Fact(Skip = "Override a method and provide a 'Skip' reason to opt out of a test.")]
-	public override void Set_ConnectionString_throws_when_invalid()
-	{
-	}
+	// Nothing is skipped. A test that does not apply to your provider is reported as "not applicable" or
+	// "not implemented" by the shared tests themselves, driven by what your fixture declares.
 }
 ```
 
@@ -102,8 +99,8 @@ exposed as the xUnit trait `Category`:
 | Group | Attribute | Folder | Meaning | Outcome |
 | --- | --- | --- | --- | --- |
 | Required | `[RequiredFact]` | `Required/` | The documented `System.Data.Common` contract requires this of every provider that exposes the API. | Failure is a hard conformance failure. |
-| Optional | `[OptionalFact]` | `Optional/` | The behavior belongs to a capability a provider may decline. | Skipped when the fixture reports the capability unsupported; when it runs, failure is a hard failure. |
-| Common | `[CommonFact]` | `Common/` | Interoperability behavior most providers share that the contract does not require, including the generated `GetValueConversionTestBase` matrix. | Advisory: reported (often as `[SOFT WARNING]`), never part of the hard result. |
+| Optional | `[OptionalFact]` | `Optional/` | The behavior belongs to a capability a provider may decline. | Passes as `not-implemented` when the provider does not offer the capability; when it does, failure is a hard failure (`implemented-fail`). |
+| Common | `[CommonFact]` | `Common/` | Interoperability behavior the contract does not require, including the generated `GetValueConversionTestBase` matrix. Providers legitimately differ here. | Advisory: a difference is reported as `different`, never part of the hard result. |
 
 Each attribute carries the documentation page it is based on (`Contract = "https://…"`), and `Because` records why a
 test sits in its group when that is not obvious. Tests for one API area are partial classes, so
@@ -125,9 +122,9 @@ dotnet test --filter "Category=Common"
 When invoking the xUnit v3 in-process runner directly, use `-trait "Category=Required" -trait "Category=Optional"`
 and `-trait "Category=Common"`.
 
-Common cases still execute; their differences must not be converted into skips or hard failures. The only
-conversion-matrix skips are for database types the fixture explicitly reports as unsupported. Required reader
+Common cases still execute; their differences are never converted into skips or hard failures. A conversion
+for a database type the fixture reports as unsupported is recorded as `not-applicable`. Required reader
 state, ordinal, null, schema, and valid-value behavior is in `Required/DataReaderTestBase.Required.cs`.
 
 `tests/Repository.Tests` enforces this: it fails if any shared test lacks a group attribute, sits in the wrong folder,
-names no documentation page, or if a Required test reports a soft warning.
+names no documentation page, or if a Required test reports a difference, or if anything is skipped.

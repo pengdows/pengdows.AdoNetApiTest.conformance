@@ -22,7 +22,7 @@ See [CONTRACT-COVERAGE.md](src/pengdows.AdoNetApiTest.conformance/CONTRACT-COVER
 ## How to Use
 
 The NuGet package is not published yet. Until it is, reference the `src/pengdows.AdoNetApiTest.conformance`
-project directly.
+project directly (the library is unsigned).
 
 Create a class that implements `IDbFactoryFixture`: the
 `Factory` property must return a `DbProviderFactory` for your ADO.NET implementation,
@@ -38,11 +38,13 @@ Create one public derived class from each `XTestBase<T>` test base class. Add a 
 constructor that takes an instance of your `IDbFactoryFixture` implementation and passes it
 to the base class.
 
-As necessary, override failing test methods to customize/skip them for your provider.
+Nothing is skipped: the shared tests report `not-applicable` or `not-implemented` themselves, based on what your
+fixture declares. If a Required test fails, the provider does not meet the documented contract.
 
 ## Version History
 
-See [Version History](VersionHistory.md).
+See the [changelog](CHANGELOG.md). The original project's release notes are in
+[UPSTREAM-VERSION-HISTORY.md](UPSTREAM-VERSION-HISTORY.md).
 
 ## Running the conformance check
 
@@ -59,7 +61,7 @@ dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 provider and an overall verdict:
 
 ```text
-Sqlite    FAIL     Required 146/154  |  Optional 18 implemented pass, 0 implemented fail, 6 not implemented  |  Common 275 differ
+Sqlite    FAIL     Required 146/156  |  Optional 19 implemented pass, 0 implemented fail, 6 not implemented  |  Common 275 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
 OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
@@ -146,6 +148,11 @@ and converts in the typed read, so a value there has an expected raw form and an
 8 bytes (15 significant digits), so decimals beyond that are the database's limit, not the provider's, and the catalog keeps
 decimals inside it. A fixture that implements `ITypeFidelityFixture` and a derived class are all another provider needs.
 
-## License
+## Origin and license
+
+This project is a derivative of [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest), created by
+Bradley Grainger and contributors (Brice Lambson, Shay Rojansky, Yoh Deadfall) under the MIT license. The upstream
+commit history is preserved in this repository, and the upstream copyright notice is kept in [LICENSE](LICENSE)
+as the MIT license requires. Changes since the fork are Copyright 2025-2026 Pengdows, under the same license.
 
 [MIT](LICENSE)

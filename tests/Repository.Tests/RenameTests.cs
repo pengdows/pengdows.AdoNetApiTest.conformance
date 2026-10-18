@@ -16,7 +16,7 @@ public class RenameTests
 		"AdoNet.Databases",
 	};
 
-	private static readonly string[] s_exemptFiles = { "VersionHistory.md", "LICENSE", "README.md", "RenameTests.cs" };
+	private static readonly string[] s_exemptFiles = { "UPSTREAM-VERSION-HISTORY.md", "LICENSE", "README.md", "RenameTests.cs" };
 
 	private static readonly string[] s_skippedDirectories = { ".git", "bin", "obj", "TestResults" };
 

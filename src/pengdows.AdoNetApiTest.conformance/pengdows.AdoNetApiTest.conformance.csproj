@@ -3,23 +3,20 @@
   <PropertyGroup>
     <AssemblyName>pengdows.AdoNetApiTest.conformance</AssemblyName>
     <PackageId>pengdows.AdoNetApiTest.conformance</PackageId>
-    <Title>ADO.NET Specification Tests</Title>
-    <Description>Shared test suite for ADO.NET providers.</Description>
-    <Copyright>Copyright 2017–2025 Bradley Grainger</Copyright>
+    <Title>ADO.NET Provider Conformance Tests</Title>
+    <Description>Conformance tests for ADO.NET providers: documented System.Data.Common contract behavior and type fidelity. Successor to mysql-net/AdoNetApiTest.</Description>
+    <Copyright>Copyright 2017 Bradley Grainger; Copyright 2025-2026 Pengdows</Copyright>
     <Version>3.0.0-beta.1</Version>
-    <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <AssemblyOriginatorKeyFile>..\..\MySqlConnector.snk</AssemblyOriginatorKeyFile>
-    <Authors>Bradley Grainger</Authors>
+    <Authors>Pengdows;Bradley Grainger</Authors>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>ado.net;database;test</PackageTags>
-    <PackageReleaseNotes>https://github.com/mysql-net/AdoNetApiTest/blob/master/VersionHistory.md</PackageReleaseNotes>
-    <PackageProjectUrl>https://mysql-net.github.io/AdoNetResults/</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/pengdows/pengdows.AdoNetApiTest.conformance</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/mysql-net/AdoNetApiTest.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/pengdows/pengdows.AdoNetApiTest.conformance.git</RepositoryUrl>
     <LangVersion>latest</LangVersion>
     <IsPackable>true</IsPackable>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

@@ -19,3 +19,6 @@ Thumbs.db
 .vs/
 *.xproj.user
 .vscode/
+
+# output of the conformance runner
+conformance-results/

@@ -3,7 +3,7 @@
 ## Project Structure
 
 - `src/pengdows.AdoNetApiTest.conformance/` contains reusable xUnit v3 base classes and fixtures for ADO.NET behavior.
-- `src/pengdows.AdoNetApiTest.conformance.Databases/` contains database setup and SQL helpers; `src/AdoNetApiTest/` contains the comparison-runner console application.
+- `src/pengdows.AdoNetApiTest.conformance.Databases/` contains database setup and SQL helpers; `src/pengdows.AdoNetApiTest.conformance.Runner/` contains the `conformance` command-line runner (`run`, `report`) that builds the results matrix.
 - `tests/<Provider>.Tests/` contains provider-specific fixtures and derived tests (for example, `tests/MySqlConnector.Tests/`).
 - `docker/` defines local MySQL, PostgreSQL, and SQL Server services. Solution-wide settings are in `Directory.Build.props`, `global.json`, and `pengdows.AdoNetApiTest.conformance.sln`.
 
@@ -16,7 +16,7 @@ dotnet restore pengdows.AdoNetApiTest.conformance.sln
 dotnet build pengdows.AdoNetApiTest.conformance.sln
 dotnet test tests/MySqlConnector.Tests/MySqlConnector.Tests.csproj
 docker compose -f docker/docker-compose.yml up
-dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner/pengdows.AdoNetApiTest.conformance.Runner.csproj
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 ```
 
 Run the individual provider test project relevant to a change. Database-backed suites need the matching service running and usually read `ConnectionString` from the environment. CI runs provider suites independently in Azure Pipelines and publishes test artifacts.

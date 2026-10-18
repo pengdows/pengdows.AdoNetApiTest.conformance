@@ -7,7 +7,8 @@ namespace pengdows.AdoNetApiTest.conformance;
 
 /// <summary>
 /// Base for the three groups every shared test belongs to. The group is exposed as the <c>Category</c> trait, so a run
-/// selects it with <c>--filter "Category=Required"</c>.
+/// selects it with <c>--filter "Category=Required"</c>. <see cref="Contract"/> and <see cref="Because"/> are traits too,
+/// so a result file says what each test checks.
 /// </summary>
 public abstract class ConformanceFactAttribute : FactAttribute, ITraitAttribute
 {
@@ -26,8 +27,21 @@ public abstract class ConformanceFactAttribute : FactAttribute, ITraitAttribute
 	public string Because { get; set; }
 
 	/// <inheritdoc />
-	public IReadOnlyCollection<KeyValuePair<string, string>> GetTraits() =>
-		new[] { new KeyValuePair<string, string>("Category", _group) };
+	public IReadOnlyCollection<KeyValuePair<string, string>> GetTraits()
+	{
+		var traits = new List<KeyValuePair<string, string>> { new("Category", _group) };
+		if (!string.IsNullOrEmpty(Contract))
+		{
+			traits.Add(new("Contract", Contract));
+		}
+
+		if (!string.IsNullOrEmpty(Because))
+		{
+			traits.Add(new("Because", Because));
+		}
+
+		return traits;
+	}
 }
 
 /// <summary>

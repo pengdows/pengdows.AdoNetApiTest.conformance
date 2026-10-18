@@ -44,25 +44,64 @@ As necessary, override failing test methods to customize/skip them for your prov
 
 See [Version History](VersionHistory.md).
 
-## How to Build a Comparison Chart
+## Running the conformance check
 
-Clone this repo.
+You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL) need that
+server running first; `docker/docker-compose.yml` starts them. SQLite and the other embedded providers need nothing.
 
-Run the required database servers locally:
+From the repository root:
 
+```text
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 ```
-cd docker
-docker compose up
+
+`run` builds and runs each named provider's test project (every provider if you name none), then prints one line per
+provider and an overall verdict:
+
+```text
+Sqlite    FAIL     Required 146/154  |  Optional 18 implemented pass, 0 implemented fail, 6 not implemented  |  Common 275 differ
+OVERALL: FAIL
+Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
 
-Run the `pengdows.AdoNetApiTest.conformance.Runner` program:
+The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it works in a script or CI job.
 
-1. In Visual Studio 2017, set it as the Start Up Project and press `Ctrl+F5` to launch, or
-2. From a command prompt: `dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner/pengdows.AdoNetApiTest.conformance.Runner.csproj`
+**A provider passes** when it has no failed Required test and no failed Optional test. Nothing is skipped:
 
-Note that some DB providers require the full .NET Framework 4.7; this program has only been tested on Windows (not with mono).
+| Outcome | Counts as | Meaning |
+| --- | --- | --- |
+| `pass` | pass | The test ran and passed. |
+| `fail` | fail | A Required test failed: the provider does not meet the documented contract. |
+| `implemented-pass` | pass | The provider implements this optional capability and the test passed. |
+| `implemented-fail` | fail | The provider implements this optional capability and the test failed. |
+| `not-implemented` | pass | The provider does not implement this optional capability. |
+| `not-applicable` | pass | The check does not apply, such as a data type the database does not have. |
+| `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
+| `not-run` | fail | No result was reported, so nothing is known. |
 
-The program will run all providers' test suites, then open the results in your default browser.
+A provider whose test project could not run at all (a server that is down, a build that failed, a timeout) is reported as
+`NOT RUN` with the reason, and it fails the overall verdict: a provider that could not be tested is never reported as
+passing. The provider's own output is kept next to the matrix as `conformance-results/<Provider>.log`.
+
+**The matrix** (`matrix.json` and `matrix.xml`, the same data) has a legend that defines every outcome, one entry per
+provider with its verdict and counts, and one entry per test with its area, group, the documentation page it checks, and
+each provider's outcome and failure message.
+
+Other commands and options:
+
+```text
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run                 # every provider
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite DuckDB   # these two
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite --no-build --json out/m.json --xml out/m.xml
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- report out/Sqlite.xml out/DuckDB.xml
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- --help
+```
+
+`report` builds the matrix from xUnit result files you already have (`dotnet run --project tests/Sqlite.Tests -- -xml
+out/Sqlite.xml`), naming each provider after its file.
+
+To see only the hard result without the runner, filter a provider's tests by group:
+`dotnet test tests/Sqlite.Tests --filter "Category=Required|Category=Optional"`.
 
 ## License
 

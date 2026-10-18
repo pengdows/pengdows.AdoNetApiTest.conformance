@@ -71,6 +71,26 @@ public class GroupTests
 	}
 
 	[Fact]
+	public void GroupAttributes_EmitTheGroupTheContractAndTheReasonAsTraits()
+	{
+		var attribute = new RequiredFactAttribute { Contract = "https://example.test/contract", Because = "a reason" };
+
+		var traits = ((Xunit.v3.ITraitAttribute) attribute).GetTraits().ToDictionary(t => t.Key, t => t.Value);
+
+		Assert.Equal("Required", traits["Category"]);
+		Assert.Equal("https://example.test/contract", traits["Contract"]);
+		Assert.Equal("a reason", traits["Because"]);
+	}
+
+	[Fact]
+	public void GroupAttributes_OmitTraitsThatAreNotSet()
+	{
+		var traits = ((Xunit.v3.ITraitAttribute) new CommonFactAttribute()).GetTraits().Select(t => t.Key).ToList();
+
+		Assert.Equal(new[] { "Category" }, traits);
+	}
+
+	[Fact]
 	public void RequiredTests_NeverReportSoftWarnings()
 	{
 		var required = Path.Combine(LibraryDirectory(), "Required");

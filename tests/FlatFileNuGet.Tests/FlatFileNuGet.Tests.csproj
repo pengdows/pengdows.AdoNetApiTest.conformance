@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The same tests as FlatFile.Tests, run against the published pengdows.flatfile package instead of a local checkout,
+    so a release is checked as shipped. The test sources are linked, not copied, so the two projects cannot drift.
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <UseAppHost>true</UseAppHost>
+    <RootNamespace>FlatFile.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FlatFile.Tests\*.cs" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
+    <PackageReference Include="pengdows.flatfile" Version="0.2.1-preview.2" />
+  </ItemGroup>
+
+</Project>

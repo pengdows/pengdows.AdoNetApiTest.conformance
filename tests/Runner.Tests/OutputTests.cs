@@ -137,6 +137,46 @@ public class OutputTests
 	}
 
 	[Fact]
+	public void Console_report_says_how_the_missing_required_tests_were_lost()
+	{
+		var full = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_state", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Batch_works", "Pass", "Required", XmlBuilder.Base("Command", "Required"));
+		var partial = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), failure: "bad");
+		var matrix = Matrix.Build(new[]
+		{
+			new ProviderInput("Full", "Full.Tests", XunitXml.Parse(full.ToString()), null),
+			new ProviderInput("Partial", "Partial.Tests", XunitXml.Parse(partial.ToString()), null),
+		});
+
+		var line = ConsoleReport.Render(matrix).Split('\n').Single(l => l.StartsWith("Partial", StringComparison.Ordinal));
+		Assert.Contains("Required 1/3 (1 failed, 1 not run)", line);
+		Assert.Contains("1 Required not covered", line);
+		Assert.DoesNotContain("failed", ConsoleReport.Render(matrix).Split('\n').Single(l => l.StartsWith("Full", StringComparison.Ordinal)));
+	}
+
+	[Fact]
+	public void Json_and_xml_carry_the_required_breakdown()
+	{
+		var partial = new XmlBuilder().Test("Connection_opens", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), failure: "bad");
+		var matrix = Matrix.Build(new[] { new ProviderInput("P", "P.Tests", XunitXml.Parse(partial.ToString()), null) });
+
+		using var json = JsonDocument.Parse(MatrixJson.Write(matrix));
+		var required = json.RootElement.GetProperty("providers")[0].GetProperty("required");
+		Assert.Equal(1, required.GetProperty("failed").GetInt32());
+		Assert.Equal(0, required.GetProperty("not-run").GetInt32());
+		Assert.Equal(0, required.GetProperty("not-covered").GetInt32());
+		var xml = MatrixXml.Write(matrix);
+		Assert.Contains("required-failed=\"1\"", xml);
+		Assert.Contains("required-not-run=\"0\"", xml);
+		Assert.Contains("required-not-covered=\"0\"", xml);
+	}
+
+	[Fact]
 	public void Console_report_shows_coverage_only_when_an_area_has_no_tests()
 	{
 		var full = new XmlBuilder().Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required")).Test("B", "Pass", "Required", XmlBuilder.Base("Command", "Required"));

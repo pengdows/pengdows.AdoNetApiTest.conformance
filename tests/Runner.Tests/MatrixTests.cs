@@ -135,6 +135,28 @@ public class MatrixTests
 	}
 
 	[Fact]
+	public void Required_tests_are_accounted_for_as_passed_failed_not_run_or_not_covered()
+	{
+		var full = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_state", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Batch_works", "Pass", "Required", XmlBuilder.Base("Command", "Required"));
+		var provider = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), failure: "bad");
+
+		var summary = Matrix.Build(new[] { Provider("Full", full), Provider("P", provider) }).Providers.Single(p => p.Id == "P");
+
+		Assert.Equal(1, summary.RequiredPassed);
+		Assert.Equal(1, summary.RequiredFailed);
+		Assert.Equal(1, summary.RequiredNotRun);
+		Assert.Equal(1, summary.RequiredNotCovered);
+		Assert.Equal(3, summary.RequiredTotal);
+		Assert.Equal(summary.RequiredTotal, summary.RequiredPassed + summary.RequiredFailed + summary.RequiredNotRun);
+	}
+
+	[Fact]
 	public void Coverage_counts_the_areas_the_provider_has_tests_for()
 	{
 		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));

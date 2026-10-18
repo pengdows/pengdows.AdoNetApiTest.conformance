@@ -5,6 +5,8 @@ project's release notes are in [UPSTREAM-VERSION-HISTORY.md](UPSTREAM-VERSION-HI
 
 ## Unreleased
 
+* The console line, `matrix.json` and `matrix.xml` account for every Required test: passed, failed, not run, and not
+  covered, so a crashed test host or a missing result can no longer hide inside "N/M".
 * Renamed to `pengdows.AdoNetApiTest.conformance`; copyright line for Pengdows added to the MIT license, upstream
   notice kept.
 * Every shared test is Required, Optional or Common, each naming the documentation page it is based on.

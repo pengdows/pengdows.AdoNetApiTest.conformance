@@ -19,8 +19,30 @@ internal static class ConsoleReport
 			else
 			{
 				var c = provider.Counts;
-				text.Append("Required ").Append(provider.RequiredPassed).Append('/').Append(provider.RequiredTotal)
-					.Append("  |  Optional ").Append(c[Outcome.ImplementedPass]).Append(" implemented pass, ")
+				text.Append("Required ").Append(provider.RequiredPassed).Append('/').Append(provider.RequiredTotal);
+				var lost = new List<string>();
+				if (provider.RequiredFailed > 0)
+				{
+					lost.Add(provider.RequiredFailed + " failed");
+				}
+
+				if (provider.RequiredNotRun > 0)
+				{
+					lost.Add(provider.RequiredNotRun + " not run");
+				}
+
+				if (lost.Count > 0)
+				{
+					text.Append(" (").Append(string.Join(", ", lost)).Append(')');
+				}
+
+				if (provider.RequiredNotCovered > 0)
+				{
+					text.Append(" + ").Append(provider.RequiredNotCovered).Append(" Required not covered");
+				}
+
+				text.Append("  |  Optional ")
+					.Append(c[Outcome.ImplementedPass]).Append(" implemented pass, ")
 					.Append(c[Outcome.ImplementedFail]).Append(" implemented fail, ")
 					.Append(c[Outcome.NotImplemented]).Append(" not implemented")
 					.Append("  |  Common ").Append(c[Outcome.Different]).Append(" differ");

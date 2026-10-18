@@ -61,10 +61,16 @@ dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 provider and an overall verdict:
 
 ```text
-Sqlite    FAIL     Required 146/156  |  Optional 19 implemented pass, 0 implemented fail, 6 not implemented  |  Common 275 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
+Sqlite    FAIL     Required 146/156 (10 failed)  |  Optional 19 implemented pass, 0 implemented fail, 6 not implemented  |  Common 275 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
 OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
+
+`Required 146/156` is passed over total. The parenthesis says what became of the rest: `failed` tests ran and failed;
+`not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result file from
+an older suite). `+ N Required not covered` counts Required tests in an area the provider has no tests for at all (such as
+`Dml` without a fixture); they are not in the total and do not fail the provider, but they are not passes either.
+`passed + failed + not run` always equals the total, and the same three figures are in `matrix.json` and `matrix.xml`.
 
 The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it works in a script or CI job.
 

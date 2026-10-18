@@ -15,7 +15,17 @@ internal sealed record ProviderSummary(
 	int RequiredTotal,
 	IReadOnlyDictionary<FidelityStatus, int> Fidelity,
 	int AreasCovered,
-	int AreasTotal);
+	int AreasTotal)
+{
+	/// <summary>Required tests whose result was a failure.</summary>
+	public int RequiredFailed { get; init; }
+
+	/// <summary>Required tests in an area the provider covers that reported nothing (a crashed host, a missing result). Counted in <see cref="RequiredTotal"/>.</summary>
+	public int RequiredNotRun { get; init; }
+
+	/// <summary>Required tests in an area the provider has no tests for. Not counted in <see cref="RequiredTotal"/>.</summary>
+	public int RequiredNotCovered { get; init; }
+}
 
 internal sealed record FidelityCell(FidelityStatus Status, string? Detail);
 
@@ -139,6 +149,9 @@ internal sealed partial class Matrix
 		var counts = Enum.GetValues<Outcome>().ToDictionary(o => o, _ => 0);
 		var requiredPassed = 0;
 		var requiredTotal = 0;
+		var requiredFailed = 0;
+		var requiredNotRun = 0;
+		var requiredNotCovered = 0;
 		foreach (var row in tests)
 		{
 			if (!row.Results.TryGetValue(provider.Id, out var cell))
@@ -147,12 +160,24 @@ internal sealed partial class Matrix
 			}
 
 			counts[cell.Outcome]++;
-			if (row.Group == Group.Required && cell.Outcome != Outcome.NotCovered)
+			if (row.Group == Group.Required && cell.Outcome == Outcome.NotCovered)
+			{
+				requiredNotCovered++;
+			}
+			else if (row.Group == Group.Required)
 			{
 				requiredTotal++;
 				if (OutcomeInfo.EffectOf(cell.Outcome) == Effect.Pass)
 				{
 					requiredPassed++;
+				}
+				else if (cell.Outcome == Outcome.NotRun)
+				{
+					requiredNotRun++;
+				}
+				else
+				{
+					requiredFailed++;
 				}
 			}
 		}
@@ -162,7 +187,12 @@ internal sealed partial class Matrix
 			? Verdict.NotRun
 			: counts.Any(c => OutcomeInfo.EffectOf(c.Key) == Effect.Fail && c.Value > 0) ? Verdict.Fail : Verdict.Pass;
 
-		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity, areasCovered, areasTotal);
+		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity, areasCovered, areasTotal)
+		{
+			RequiredFailed = requiredFailed,
+			RequiredNotRun = requiredNotRun,
+			RequiredNotCovered = requiredNotCovered,
+		};
 	}
 
 	// A test the provider overrides loses its group trait and source file, so those are learned from any provider that has the base test.

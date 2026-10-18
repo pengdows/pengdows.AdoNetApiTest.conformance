@@ -27,6 +27,9 @@ internal static class MatrixXml
 					new XAttribute("areas-total", p.AreasTotal),
 					new XAttribute("required-passed", p.RequiredPassed),
 					new XAttribute("required-total", p.RequiredTotal),
+					new XAttribute("required-failed", p.RequiredFailed),
+					new XAttribute("required-not-run", p.RequiredNotRun),
+					new XAttribute("required-not-covered", p.RequiredNotCovered),
 					new XElement("counts", p.Counts.Select(c =>
 						new XElement("count", new XAttribute("outcome", OutcomeInfo.CodeOf(c.Key)), c.Value))),
 					new XElement("fidelity-counts", p.Fidelity.Select(c =>

@@ -72,6 +72,9 @@ internal static class MatrixJson
 				json.WriteStartObject("required");
 				json.WriteNumber("passed", provider.RequiredPassed);
 				json.WriteNumber("total", provider.RequiredTotal);
+				json.WriteNumber("failed", provider.RequiredFailed);
+				json.WriteNumber("not-run", provider.RequiredNotRun);
+				json.WriteNumber("not-covered", provider.RequiredNotCovered);
 				json.WriteEndObject();
 				json.WriteEndObject();
 			}

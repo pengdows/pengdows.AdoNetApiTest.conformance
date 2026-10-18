@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using pengdows.AdoNetApiTest.conformance;
 using MySql.Data.MySqlClient;
@@ -7,5 +8,5 @@ namespace MySqlData.Tests;
 public class MySqlDataDbFactoryFixture : IDbFactoryFixture
 {
 	public DbProviderFactory Factory => MySqlClientFactory.Instance;
-	public string ConnectionString => "server=localhost;user id=root;password=test;characterset=utf8mb4;database=mysqldata";
+	public string ConnectionString => "server=localhost;user id=root;password=test;characterset=utf8mb4;database=mysqldata;port=" + (Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306");
 }

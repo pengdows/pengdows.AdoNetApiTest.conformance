@@ -99,6 +99,39 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.True(command.DesignTimeVisible);
 	}
 
+	/// <summary>
+	/// "The default is true."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Because = "the page states the default: true")]
+	public virtual void DesignTimeVisible_default_is_true()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.True(command.DesignTimeVisible);
+	}
+
+	/// <summary>
+	/// "The default is Both unless the command is automatically generated."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "the page states the default: Both")]
+	public virtual void UpdatedRowSource_default_is_Both()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.Equal(UpdateRowSource.Both, command.UpdatedRowSource);
+	}
+
+	/// <summary>
+	/// "Throws a ArgumentException if the value entered was not one of the UpdateRowSource values."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "the page states an ArgumentException for a value that is not an UpdateRowSource")]
+	public virtual void UpdatedRowSource_throws_for_a_value_that_is_not_defined()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.ThrowsAny<ArgumentException>(() => command.UpdatedRowSource = (UpdateRowSource) 99);
+	}
+
 #if NETSTANDARD2_1_OR_GREATER
 	/// <summary>
 	/// DisposeAsync must complete the command disposal contract without requiring

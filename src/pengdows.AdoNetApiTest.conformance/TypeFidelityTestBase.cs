@@ -49,7 +49,7 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 		using var connection = CreateOpenConnection();
 		foreach (var spec in Fixture.Types)
 		{
-			if (!Attempt(tally, spec.ColumnSql, "(column)", "read", () =>
+			if (!Attempt(tally, spec.Display, "(column)", "read", () =>
 			{
 				Execute(connection, Fixture.DropTableSql(Table));
 				Execute(connection, Fixture.CreateTableSql(Table, spec.ColumnSql));
@@ -87,14 +87,14 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 	{
 		Execute(connection, $"delete from {Table}");
 
-		var literalStored = Attempt(tally, spec.ColumnSql, value.Label, "read",
+		var literalStored = Attempt(tally, spec.Display, value.Label, "read",
 			() => Execute(connection, $"insert into {Table} (Id, V) values (1, {value.Literal})"));
 		if (literalStored && paths.HasFlag(Paths.Read))
 		{
-			Attempt(tally, spec.ColumnSql, value.Label, "read", () =>
+			Attempt(tally, spec.Display, value.Label, "read", () =>
 			{
 				var read = Read(connection, spec, "select V from " + Table + " where Id = 1", null);
-				Record(tally, spec, value, "read", FidelityComparer.Compare(value.Expected, read.Value));
+				Record(tally, spec, value, "read", RawCompare(spec, value, read.Value));
 			});
 		}
 
@@ -103,16 +103,20 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 			return;
 		}
 
-		var parameterStored = Attempt(tally, spec.ColumnSql, value.Label, paths.HasFlag(Paths.Write) ? "write" : "roundtrip", () =>
+		var parameterStored = Attempt(tally, spec.Display, value.Label, paths.HasFlag(Paths.Write) ? "write" : "roundtrip", () =>
 			Execute(connection, $"insert into {Table} (Id, V) values (2, {Fixture.ParameterMarker("p")})", command => Bind(command, spec, value)));
 		if (!parameterStored)
 		{
 			return;
 		}
 
-		if (paths.HasFlag(Paths.Write) && literalStored)
+		if (paths.HasFlag(Paths.Write) && !spec.WriteOracle)
 		{
-			Attempt(tally, spec.ColumnSql, value.Label, "write", () =>
+			Record(tally, spec, value, "write", new FidelityResult(FidelityStatus.NotApplicable, "the database defines no text for this stored value to compare against"));
+		}
+		else if (paths.HasFlag(Paths.Write) && literalStored)
+		{
+			Attempt(tally, spec.Display, value.Label, "write", () =>
 			{
 				var render = string.Format(CultureInfo.InvariantCulture, spec.RenderAsText, "V");
 				var fromLiteral = Convert.ToString(ReadScalar(connection, $"select {render} from {Table} where Id = 1"), CultureInfo.InvariantCulture);
@@ -128,19 +132,21 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 			return;
 		}
 
-		Attempt(tally, spec.ColumnSql, value.Label, "roundtrip", () =>
+		Attempt(tally, spec.Display, value.Label, "roundtrip", () =>
 		{
 			var read = Read(connection, spec, "select V from " + Table + " where Id = 2", null);
-			Record(tally, spec, value, "roundtrip", FidelityComparer.Compare(value.Expected, read.Value));
+			Record(tally, spec, value, "roundtrip", RawCompare(spec, value, read.Value));
 
 			if (value.Expected is not null)
 			{
-				Record(tally, spec, value, "type", read.FieldType == spec.ClrType && read.Value.GetType() == spec.ClrType
+				Record(tally, spec, value, "type", spec.RawFormatIsProviderDefined
+					? new FidelityResult(FidelityStatus.NotApplicable, "the storage form is the provider's own")
+					: read.FieldType == spec.ClrType && read.Value.GetType() == spec.ClrType
 					? new FidelityResult(FidelityStatus.Exact, null)
 					: new FidelityResult(FidelityStatus.WrongType, $"expected {spec.ClrType.Name} but GetFieldType is {read.FieldType?.Name} and GetValue is {read.Value?.GetType().Name}"));
 				Record(tally, spec, value, "typed", read.TypedFailure is not null
 					? new FidelityResult(FidelityStatus.Throws, read.TypedFailure)
-					: FidelityComparer.Compare(value.Expected, read.Typed));
+					: FidelityComparer.Compare(value.ExpectedTyped, read.Typed, spec.IgnoreCase));
 			}
 		});
 
@@ -150,7 +156,7 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 			return;
 		}
 
-		Attempt(tally, spec.ColumnSql, value.Label, "where", () =>
+		Attempt(tally, spec.Display, value.Label, "where", () =>
 		{
 			var expectedRows = literalStored ? 2 : 1;
 			var found = Convert.ToInt32(ReadScalar(connection, $"select count(*) from {Table} where V = {Fixture.ParameterMarker("p")}", command => Bind(command, spec, value)), CultureInfo.InvariantCulture);
@@ -159,6 +165,11 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 				: new FidelityResult(FidelityStatus.Lossy, $"WHERE V = parameter matched {found} of {expectedRows} rows"));
 		});
 	}
+
+	private static FidelityResult RawCompare(TypeSpec spec, TypeValue value, object actual) =>
+		spec.RawFormatIsProviderDefined
+			? new FidelityResult(FidelityStatus.NotApplicable, "the storage form is the provider's own")
+			: FidelityComparer.Compare(value.Expected, actual, spec.IgnoreCase);
 
 	/// <summary>Runs a step; an exception from the provider is a finding, not a test failure.</summary>
 	private bool Attempt(Tally tally, string type, string value, string path, Action step)
@@ -185,7 +196,7 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 			tally.NotExact++;
 		}
 
-		ConformanceOutcome.Finding(spec.ColumnSql, value.Label, path, result.Status, result.Detail);
+		ConformanceOutcome.Finding(spec.Display, value.Label, path, result.Status, result.Detail);
 	}
 
 	private static string FirstLine(string message)
@@ -263,7 +274,7 @@ public abstract partial class TypeFidelityTestBase<TFixture> : DbFactoryTestBase
 		{
 			try
 			{
-				result.Typed = s_getFieldValue.MakeGenericMethod(spec.ClrType).Invoke(reader, new object[] { 0 });
+				result.Typed = s_getFieldValue.MakeGenericMethod(spec.TypedClrType).Invoke(reader, new object[] { 0 });
 			}
 			catch (TargetInvocationException exception)
 			{

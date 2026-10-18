@@ -137,8 +137,13 @@ If the provider lists `DataTypes` among its schema collections (`GetSchema("Meta
 really returns and that every supported type is listed. Many providers do not offer `DataTypes` (Microsoft.Data.Sqlite,
 DuckDB.NET and pengdows.flatfile do not), which is why the catalog, not the metadata, is the source of the types.
 
-The first catalog is SQL Server's (`SqlServerTypes`, 24 types) and runs against Microsoft.Data.SqlClient 2 to 5 and
-System.Data.SqlClient; a fixture that implements `ITypeFidelityFixture` and a derived class are all another provider needs.
+Catalogs exist for SQL Server (`SqlServerTypes`, 24 types; Microsoft.Data.SqlClient 2 to 5 and System.Data.SqlClient) and
+for both SQLite clients (`SqliteTypes`). SQLite has no column types, only four storage classes and a declared name, so what
+a provider returns is its own contract and each client has its own catalog: System.Data.SQLite follows the mapping its
+`DataTypes` collection lists, and Microsoft.Data.Sqlite returns only `long`, `double`, `string` or `byte[]` from `GetValue`
+and converts in the typed read, so a value there has an expected raw form and an expected typed form. SQLite keeps a REAL in
+8 bytes (15 significant digits), so decimals beyond that are the database's limit, not the provider's, and the catalog keeps
+decimals inside it. A fixture that implements `ITypeFidelityFixture` and a derived class are all another provider needs.
 
 ## License
 

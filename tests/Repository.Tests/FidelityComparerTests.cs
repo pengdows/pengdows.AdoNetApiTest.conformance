@@ -91,6 +91,15 @@ public class FidelityComparerTests
 	}
 
 	[Fact]
+	public void Strings_can_be_compared_ignoring_case_when_the_type_does_not_define_one()
+	{
+		Assert.Equal(FidelityStatus.Lossy, FidelityComparer.Compare("AB-cd", "ab-CD").Status);
+		Assert.Equal(FidelityStatus.Exact, FidelityComparer.Compare("AB-cd", "ab-CD", ignoreCase: true).Status);
+		Assert.Equal(FidelityStatus.Lossy, FidelityComparer.Compare("AB-cd", "ab-CE", ignoreCase: true).Status);
+		Assert.Equal(FidelityStatus.WrongType, FidelityComparer.Compare("1", 1, ignoreCase: true).Status);
+	}
+
+	[Fact]
 	public void Time_spans_compare_by_ticks()
 	{
 		Assert.Equal(FidelityStatus.Exact, Status(TimeSpan.FromTicks(863999999999), TimeSpan.FromTicks(863999999999)));

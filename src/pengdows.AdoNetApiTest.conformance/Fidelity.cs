@@ -41,7 +41,7 @@ public sealed class FidelityResult
 /// <summary>Decides whether the value a provider returned is the value that was stored.</summary>
 public static class FidelityComparer
 {
-	public static FidelityResult Compare(object expected, object actual)
+	public static FidelityResult Compare(object expected, object actual, bool ignoreCase = false)
 	{
 		var expectedNull = expected is null || expected is DBNull;
 		var actualNull = actual is null || actual is DBNull;
@@ -63,6 +63,8 @@ public static class FidelityComparer
 
 		switch (expected)
 		{
+			case string text when ignoreCase:
+				return string.Equals(text, (string) actual, StringComparison.OrdinalIgnoreCase) ? Exact() : Lossy(expected, actual);
 			case byte[] bytes:
 				return bytes.SequenceEqual((byte[]) actual) ? Exact() : Lossy(expected, actual);
 			case float single:

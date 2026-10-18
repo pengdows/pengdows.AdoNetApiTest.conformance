@@ -20,8 +20,27 @@ public sealed class TypeValue
 	/// <summary>A SQL expression that produces the value on the database side, with no parameter involved.</summary>
 	public string Literal { get; }
 
-	/// <summary>The CLR value a correct provider returns for it. <c>null</c> means SQL NULL.</summary>
+	/// <summary>The CLR value <c>GetValue</c> returns for it. <c>null</c> means SQL NULL.</summary>
 	public object Expected { get; }
+
+	/// <summary>The value <c>GetFieldValue&lt;T&gt;</c> returns, for a provider whose <c>GetValue</c> hands back a storage form.</summary>
+	public object ExpectedTyped => HasTyped ? _typed : Expected;
+
+	private object _typed;
+
+	/// <summary>True when <see cref="ExpectedTyped"/> differs from <see cref="Expected"/>.</summary>
+	public bool HasTyped { get; private set; }
+
+	/// <summary>
+	/// For a provider whose <c>GetValue</c> returns the storage form (Microsoft.Data.Sqlite returns the text of a date),
+	/// the CLR value the typed read must produce.
+	/// </summary>
+	public TypeValue TypedAs(object typed)
+	{
+		_typed = typed;
+		HasTyped = true;
+		return this;
+	}
 
 	/// <summary>
 	/// The value to bind as a parameter when it differs from <see cref="Expected"/>: <c>"abc"</c> bound to a <c>char(10)</c>
@@ -62,8 +81,35 @@ public sealed class TypeSpec
 	/// <summary>The type as written in a column definition, such as <c>decimal(18,4)</c>.</summary>
 	public string ColumnSql { get; }
 
-	/// <summary>The CLR type a provider is expected to return for the column.</summary>
+	/// <summary>The CLR type <c>GetFieldType</c> and <c>GetValue</c> are expected to return for the column.</summary>
 	public Type ClrType { get; }
+
+	private Type _typedClrType;
+
+	/// <summary>The CLR type the typed read (<c>GetFieldValue&lt;T&gt;</c>) is expected to produce; <see cref="ClrType"/> unless set.</summary>
+	public Type TypedClrType
+	{
+		get => _typedClrType ?? ClrType;
+		set => _typedClrType = value;
+	}
+
+	private string _display;
+
+	/// <summary>The key a finding is reported under; the column definition unless set (one column type can be bound as several CLR types).</summary>
+	public string Display
+	{
+		get => _display ?? ColumnSql;
+		set => _display = value;
+	}
+
+	/// <summary>False when the database defines no text for the stored value, so the <c>write</c> path has nothing to compare against.</summary>
+	public bool WriteOracle { get; set; } = true;
+
+	/// <summary>True when the storage form of the value is the provider's own choice, so only the typed read is judged.</summary>
+	public bool RawFormatIsProviderDefined { get; set; }
+
+	/// <summary>True when the case of text is not significant (a GUID's hex digits).</summary>
+	public bool IgnoreCase { get; set; }
 
 	/// <summary>The <see cref="System.Data.DbType"/> to bind a parameter of this type with.</summary>
 	public DbType DbType { get; }

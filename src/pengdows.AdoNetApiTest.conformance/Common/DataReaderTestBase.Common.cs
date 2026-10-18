@@ -130,10 +130,12 @@ public partial class DataReaderTestBase<TFixture>
 		}
 		catch (Exception)
 		{
-			throw SkipException.ForSkip("The provider uses a provider-specific null-array policy for GetValues; the base ADO.NET contract does not specify the exception.");
+			ConformanceOutcome.Different("The provider uses a provider-specific null-array policy for GetValues; the base ADO.NET contract does not specify the exception.");
+			return;
 		}
 
-		throw SkipException.ForSkip("The provider accepts a null GetValues array; the base ADO.NET contract does not specify a required exception.");
+		ConformanceOutcome.Different("The provider accepts a null GetValues array; the base ADO.NET contract does not specify a required exception.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
@@ -272,7 +274,8 @@ public partial class DataReaderTestBase<TFixture>
 			return;
 		}
 
-		throw SkipException.ForSkip("The provider permits a buffer range beyond the available buffer; boundary behavior is not a portable contract.");
+		ConformanceOutcome.Different("The provider permits a buffer range beyond the available buffer; boundary behavior is not a portable contract.");
+		return;
 	});
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "negative dataOffset validation is not specified by DbDataReader")]
@@ -332,7 +335,8 @@ public partial class DataReaderTestBase<TFixture>
 			return;
 		}
 
-		throw SkipException.ForSkip("The provider does not use the fixture's null-value exception policy; null text materialization is not a portable ADO.NET contract.");
+		ConformanceOutcome.Different("The provider does not use the fixture's null-value exception policy; null text materialization is not a portable ADO.NET contract.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue", Because = "TextReader materialization is provider-dependent")]
@@ -350,7 +354,8 @@ public partial class DataReaderTestBase<TFixture>
 		}
 		catch (InvalidCastException)
 		{
-			throw SkipException.ForSkip("The provider does not expose text values as TextReader instances.");
+			ConformanceOutcome.Different("The provider does not expose text values as TextReader instances.");
+			return;
 		}
 
 		using (textReader)
@@ -374,7 +379,8 @@ public partial class DataReaderTestBase<TFixture>
 		}
 		catch (InvalidCastException)
 		{
-			throw SkipException.ForSkip("The provider does not expose text values as TextReader instances.");
+			ConformanceOutcome.Different("The provider does not expose text values as TextReader instances.");
+			return;
 		}
 
 		using (textReader)
@@ -436,7 +442,8 @@ public partial class DataReaderTestBase<TFixture>
 		}
 		catch (InvalidCastException)
 		{
-			throw SkipException.ForSkip("The provider does not expose binary values as Stream instances.");
+			ConformanceOutcome.Different("The provider does not expose binary values as Stream instances.");
+			return;
 		}
 
 		using (stream)
@@ -460,7 +467,8 @@ public partial class DataReaderTestBase<TFixture>
 		}
 		catch (InvalidCastException)
 		{
-			throw SkipException.ForSkip("The provider does not expose binary values as Stream instances.");
+			ConformanceOutcome.Different("The provider does not expose binary values as Stream instances.");
+			return;
 		}
 
 		using (stream)
@@ -656,7 +664,8 @@ public partial class DataReaderTestBase<TFixture>
 		if (column.DataTypeName is not null)
 			return;
 
-		throw SkipException.ForSkip("The provider does not expose a native DataTypeName for this result column.");
+		ConformanceOutcome.Different("The provider does not expose a native DataTypeName for this result column.");
+		return;
 	}
 
 	/// <summary>
@@ -676,9 +685,15 @@ public partial class DataReaderTestBase<TFixture>
 		var schema = reader.GetSchemaTable();
 
 		if (schema is null)
-			throw SkipException.ForSkip("The provider does not expose reader schema tables.");
+		{
+			ConformanceOutcome.Different("The provider does not expose reader schema tables.");
+			return;
+		}
 
 		Assert.NotEmpty(schema.Columns);
 		Assert.NotEmpty(schema.Rows);
 	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.gettextreader", Because = "the base implementation returns an empty reader for NULL, but providers may throw InvalidCastException instead")]
+	public virtual void GetTextReader_returns_empty_for_null_String() => TestGetTextReader(ValueKind.Null, "");
 }

@@ -19,7 +19,10 @@ public abstract partial class ParameterDirectionTestBase<TFixture> : DbFactoryTe
 	private void ExecuteAndAssert(ParameterDirection direction)
 	{
 		if (!Fixture.SupportsParameterDirection(direction))
-			throw SkipException.ForSkip($"The provider does not support {direction} parameters.");
+		{
+			ConformanceOutcome.NotImplemented($"The provider does not support {direction} parameters.");
+			return;
+		}
 
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();

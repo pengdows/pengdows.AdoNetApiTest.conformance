@@ -26,7 +26,8 @@ public abstract partial class CommandTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw SkipException.ForSkip("The provider does not support command timeouts.");
+			ConformanceOutcome.NotImplemented("The provider does not support command timeouts.");
+			return;
 		}
 		Assert.Equal(17, command.CommandTimeout);
 	}
@@ -55,7 +56,61 @@ public abstract partial class CommandTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw SkipException.ForSkip("The provider does not support CommandBehavior.SchemaOnly.");
+			ConformanceOutcome.NotImplemented("The provider does not support CommandBehavior.SchemaOnly.");
+			return;
 		}
 	}
+
+	/// <summary>
+	/// A provider that supports preparation must leave a valid command executable
+	/// after Prepare. Providers that do not support preparation may report that
+	/// explicitly with NotSupportedException.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepare.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepare")]
+	public virtual void Prepare_valid_command_remains_executable_or_reports_not_supported()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		try
+		{
+			command.Prepare();
+		}
+		catch (NotSupportedException)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
+			return;
+		}
+
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
+	}
+
+#if NETSTANDARD2_1_OR_GREATER
+	/// <summary>
+	/// PrepareAsync follows the same valid-command contract as Prepare. A provider
+	/// may explicitly report that preparation is unsupported.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepareasync.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepareasync")]
+	public virtual async Task PrepareAsync_valid_command_remains_executable_or_reports_not_supported()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		try
+		{
+			await command.PrepareAsync().ConfigureAwait(false);
+		}
+		catch (NotSupportedException)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
+			return;
+		}
+
+		Assert.Equal(1, Convert.ToInt32(await command.ExecuteScalarAsync().ConfigureAwait(false)));
+	}
+#endif
 }

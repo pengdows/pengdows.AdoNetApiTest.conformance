@@ -27,10 +27,85 @@ public partial class DataReaderTestBase<TFixture>
 		var schema = await reader.GetSchemaTableAsync().ConfigureAwait(false);
 
 		if (schema is null)
-			throw SkipException.ForSkip("The provider does not expose reader schema tables asynchronously.");
+		{
+			ConformanceOutcome.NotImplemented("The provider does not expose reader schema tables asynchronously.");
+			return;
+		}
 
 		Assert.NotEmpty(schema.Columns);
 		Assert.NotEmpty(schema.Rows);
 	}
+
+	/// <summary>
+	/// The asynchronous column-schema API must preserve the column metadata
+	/// exposed synchronously.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getcolumnschemaasync.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getcolumnschemaasync")]
+	public virtual async Task GetColumnSchemaAsync_returns_column_metadata()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneAsIdSql;
+		using var reader = command.ExecuteReader();
+		System.Collections.ObjectModel.ReadOnlyCollection<DbColumn> columns;
+		try
+		{
+			columns = await reader.GetColumnSchemaAsync().ConfigureAwait(false);
+		}
+		catch (NotSupportedException)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not support GetColumnSchemaAsync.");
+			return;
+		}
+
+
+		var column = Assert.Single(columns);
+		Assert.Equal("id", column.ColumnName);
+	}
 #endif
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	public virtual void GetColumnSchema_ColumnName()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneAsIdSql;
+		using var reader = command.ExecuteReader();
+		if (!TryGetColumnSchema(reader, out var columns))
+		{
+			return;
+		}
+
+		var column = Assert.Single(columns);
+		Assert.Equal("id", column.ColumnName);
+	}
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	public virtual void GetColumnSchema_DataType()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneAsIdSql;
+		using var reader = command.ExecuteReader();
+		if (!TryGetColumnSchema(reader, out var columns))
+		{
+			return;
+		}
+
+		var column = Assert.Single(columns);
+		switch (Type.GetTypeCode(column.DataType))
+		{
+		case TypeCode.Byte:
+		case TypeCode.Int16:
+		case TypeCode.Int32:
+		case TypeCode.Int64:
+		case TypeCode.SByte:
+		case TypeCode.UInt16:
+		case TypeCode.UInt32:
+		case TypeCode.UInt64:
+			return;
+		}
+		Assert.Fail("DataType isn't numeric");
+	}
 }

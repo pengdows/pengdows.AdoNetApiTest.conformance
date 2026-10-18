@@ -19,7 +19,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.connectionstring")]
 	public virtual void ConnectionString_returns_value()
 	{
-		using var dataSource = CreateDataSourceOrSkip();
+		using var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		Assert.NotNull(dataSource.ConnectionString);
 	}
 
@@ -31,7 +35,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.createconnection")]
 	public virtual void CreateConnection_returns_closed_connection()
 	{
-		using var dataSource = CreateDataSourceOrSkip();
+		using var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		using var connection = dataSource.CreateConnection();
 		Assert.NotNull(connection);
 		Assert.Equal(ConnectionState.Closed, connection.State);
@@ -44,7 +52,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.openconnection")]
 	public virtual void OpenConnection_returns_open_connection()
 	{
-		using var dataSource = CreateDataSourceOrSkip();
+		using var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		using var connection = dataSource.OpenConnection();
 		Assert.NotNull(connection);
 		Assert.Equal(ConnectionState.Open, connection.State);
@@ -58,7 +70,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.openconnectionasync")]
 	public virtual async Task OpenConnectionAsync_returns_open_connection()
 	{
-		using var dataSource = CreateDataSourceOrSkip();
+		using var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		await using var connection = await dataSource.OpenConnectionAsync().ConfigureAwait(false);
 		Assert.NotNull(connection);
 		Assert.Equal(ConnectionState.Open, connection.State);
@@ -72,7 +88,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.createcommand")]
 	public virtual void CreateCommand_returns_command_with_command_text()
 	{
-		using var dataSource = CreateDataSourceOrSkip();
+		using var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		using var command = dataSource.CreateCommand(SelectOneSql);
 		Assert.NotNull(command);
 		Assert.Equal(SelectOneSql, command.CommandText);
@@ -87,7 +107,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.createbatch")]
 	public virtual void CreateBatch_returns_batch_when_supported()
 	{
-		using var dataSource = CreateDataSourceOrSkip();
+		using var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		try
 		{
 			using var batch = dataSource.CreateBatch();
@@ -95,7 +119,8 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not expose data-source batch creation.");
+			ConformanceOutcome.NotImplemented("The provider does not expose data-source batch creation.");
+			return;
 		}
 	}
 
@@ -107,7 +132,11 @@ public abstract partial class DbDataSourceTestBase<TFixture>
 	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatasource.disposeasync")]
 	public virtual async Task DisposeAsync_works()
 	{
-		var dataSource = CreateDataSourceOrSkip();
+		var dataSource = TryCreateDataSource();
+		if (dataSource is null)
+		{
+			return;
+		}
 		await dataSource.DisposeAsync().ConfigureAwait(false);
 	}
 }

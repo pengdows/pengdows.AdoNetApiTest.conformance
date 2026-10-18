@@ -10,9 +10,4 @@ public sealed class MySqlConnectorParameterTests : ParameterTestBase<MySqlConnec
 	{
 	}
 
-	[Fact(Skip = "Allows `null` as well as `DBNull.Value` for backwards compatibility.")]
-	public override void Bind_requires_set_value()
-	{
-	}
-
 }

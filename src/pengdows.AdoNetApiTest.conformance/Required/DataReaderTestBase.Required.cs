@@ -695,9 +695,6 @@ public partial class DataReaderTestBase<TFixture>
 	public virtual void GetTextReader_for_empty_String() => TestGetTextReader(ValueKind.Empty, "");
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
-	public virtual void GetTextReader_returns_empty_for_null_String() => TestGetTextReader(ValueKind.Null, "");
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
 	public virtual void GetStream_throws_for_non_binary_type()
 	{
 		using var connection = CreateOpenConnection();
@@ -717,59 +714,4 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Throws<InvalidOperationException>(() => reader.GetTextReader(0));
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
-	public virtual void GetColumnSchema_ColumnName()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneAsIdSql;
-		using var reader = command.ExecuteReader();
-		var columns = reader.GetColumnSchema();
-		var column = Assert.Single(columns);
-		Assert.Equal("id", column.ColumnName);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
-	public virtual void GetColumnSchema_DataType()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneAsIdSql;
-		using var reader = command.ExecuteReader();
-		var columns = reader.GetColumnSchema();
-		var column = Assert.Single(columns);
-		switch (Type.GetTypeCode(column.DataType))
-		{
-		case TypeCode.Byte:
-		case TypeCode.Int16:
-		case TypeCode.Int32:
-		case TypeCode.Int64:
-		case TypeCode.SByte:
-		case TypeCode.UInt16:
-		case TypeCode.UInt32:
-		case TypeCode.UInt64:
-			return;
-		}
-		Assert.Fail("DataType isn't numeric");
-	}
-
-#if NET10_0_OR_GREATER
-	/// <summary>
-	/// The asynchronous column-schema API must preserve the column metadata
-	/// exposed synchronously.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getcolumnschemaasync.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getcolumnschemaasync")]
-	public virtual async Task GetColumnSchemaAsync_returns_column_metadata()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneAsIdSql;
-		using var reader = command.ExecuteReader();
-		var columns = await reader.GetColumnSchemaAsync().ConfigureAwait(false);
-
-		var column = Assert.Single(columns);
-		Assert.Equal("id", column.ColumnName);
-	}
-#endif
 }

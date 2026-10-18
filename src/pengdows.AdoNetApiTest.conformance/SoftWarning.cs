@@ -9,5 +9,5 @@ namespace pengdows.AdoNetApiTest.conformance;
 /// </summary>
 internal static class SoftWarning
 {
-	public static void Report(string message) => Console.WriteLine($"[SOFT WARNING] {message}");
+	public static void Report(string message) => ConformanceOutcome.Different(message);
 }

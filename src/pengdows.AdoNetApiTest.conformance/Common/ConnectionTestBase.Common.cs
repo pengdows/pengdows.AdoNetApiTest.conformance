@@ -18,7 +18,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		if (string.IsNullOrEmpty(connection.ConnectionString))
 			return;
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider uses a non-empty default connection string.");
+		ConformanceOutcome.Different("The provider uses a non-empty default connection string.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.connectionstring", Because = "null-to-empty connection-string coercion is not universal")]
@@ -31,12 +32,14 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 		catch (ArgumentNullException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider rejects a null connection string; null coercion is not a portable ADO.NET contract.");
+			ConformanceOutcome.Different("The provider rejects a null connection string; null coercion is not a portable ADO.NET contract.");
+			return;
 		}
 		if (string.IsNullOrEmpty(connection.ConnectionString))
 			return;
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider preserves a non-empty connection string after assigning null.");
+		ConformanceOutcome.Different("The provider preserves a non-empty connection string after assigning null.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.database", Because = "closed-connection Database values are provider-specific")]
@@ -47,7 +50,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		if (string.IsNullOrEmpty(database))
 			return;
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider reports a database name while closed; an empty value is not required by the ADO.NET contract.");
+		ConformanceOutcome.Different("The provider reports a database name while closed; an empty value is not required by the ADO.NET contract.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource", Because = "closed-connection DataSource values are provider-specific")]
@@ -57,7 +61,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		if (string.IsNullOrEmpty(connection.DataSource))
 			return;
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider reports a data source while closed; an empty value is not universally required.");
+		ConformanceOutcome.Different("The provider reports a data source while closed; an empty value is not universally required.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.serverversion", Because = "the base DbConnection contract documents the value but not closed-state behavior")]
@@ -73,7 +78,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 			return;
 		}
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider exposes ServerVersion while closed; the base ADO.NET contract does not require a closed-state exception.");
+		ConformanceOutcome.Different("The provider exposes ServerVersion while closed; the base ADO.NET contract does not require a closed-state exception.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.open", Because = "empty-connection-string exception type is provider-specific")]
@@ -93,7 +99,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 			return;
 		}
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider accepts an empty connection string; this is outside the shared ADO.NET conformance contract.");
+		ConformanceOutcome.Different("The provider accepts an empty connection string; this is outside the shared ADO.NET conformance contract.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.connectionstring", Because = "providers may defer connection-string validation until Open")]
@@ -109,7 +116,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 			return;
 		}
 
-		throw Xunit.Sdk.SkipException.ForSkip("The provider defers connection-string validation; setter rejection is not a universal ADO.NET requirement.");
+		ConformanceOutcome.Different("The provider defers connection-string validation; setter rejection is not a universal ADO.NET requirement.");
+		return;
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.open", Because = "the generic DbConnection contract does not prescribe repeated-open behavior for every provider; the Microsoft docs give SqlConnection as an example that rejects it.")]

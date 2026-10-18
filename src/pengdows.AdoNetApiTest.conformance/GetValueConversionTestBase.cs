@@ -89,7 +89,10 @@ public abstract partial class GetValueConversionTestBase<TFixture> : DbFactoryTe
 	protected virtual void DoTest(DbType dbType, ValueKind kind, Action<DbDataReader> action)
 	{
 		if (!Fixture.SupportedDbTypes.Contains(dbType))
-			throw Xunit.Sdk.SkipException.ForSkip("Database doesn't support this data type");
+		{
+			ConformanceOutcome.NotApplicable("Database doesn't support this data type");
+			return;
+		}
 
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
@@ -102,7 +105,10 @@ public abstract partial class GetValueConversionTestBase<TFixture> : DbFactoryTe
 	protected virtual async Task DoTestAsync(DbType dbType, ValueKind kind, Func<DbDataReader, Task> action)
 	{
 		if (!Fixture.SupportedDbTypes.Contains(dbType))
-			throw Xunit.Sdk.SkipException.ForSkip("Database doesn't support this data type");
+		{
+			ConformanceOutcome.NotApplicable("Database doesn't support this data type");
+			return;
+		}
 
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();

@@ -26,7 +26,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		if (!connection.CanCreateBatch)
 		{
 			Assert.Throws<NotSupportedException>(() => connection.CreateBatch());
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not implement connection-level batches.");
+			ConformanceOutcome.NotImplemented("The provider does not implement connection-level batches.");
+			return;
 		}
 
 		using var batch = connection.CreateBatch();
@@ -45,7 +46,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not support GetSchema metadata collections.");
+			ConformanceOutcome.NotImplemented("The provider does not support GetSchema metadata collections.");
+			return;
 		}
 	}
 
@@ -60,7 +62,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not support named GetSchema metadata collections.");
+			ConformanceOutcome.NotImplemented("The provider does not support named GetSchema metadata collections.");
+			return;
 		}
 	}
 
@@ -81,7 +84,8 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not support asynchronous schema metadata.");
+			ConformanceOutcome.NotImplemented("The provider does not support asynchronous schema metadata.");
+			return;
 		}
 	}
 #endif
@@ -105,15 +109,22 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 		catch (NotSupportedException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not expose DataSourceInformation.");
+			ConformanceOutcome.NotImplemented("The provider does not expose DataSourceInformation.");
+			return;
 		}
 
 		if (table.Rows.Count == 0 || !table.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerFormat))
-			throw Xunit.Sdk.SkipException.ForSkip("DataSourceInformation does not expose ParameterMarkerFormat.");
+		{
+			ConformanceOutcome.NotImplemented("DataSourceInformation does not expose ParameterMarkerFormat.");
+			return;
+		}
 
 		var format = table.Rows[0][DbMetaDataColumnNames.ParameterMarkerFormat] as string;
 		if (string.IsNullOrWhiteSpace(format))
-			throw Xunit.Sdk.SkipException.ForSkip("DataSourceInformation exposes an empty ParameterMarkerFormat.");
+		{
+			ConformanceOutcome.NotImplemented("DataSourceInformation exposes an empty ParameterMarkerFormat.");
+			return;
+		}
 
 		if (format != "?")
 			Assert.Contains("{0}", format, StringComparison.Ordinal);

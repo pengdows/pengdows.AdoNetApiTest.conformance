@@ -42,6 +42,25 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		action(reader);
 	}
 
+	/// <summary>
+	/// <c>GetColumnSchema</c> is an optional capability: a reader that does not implement it throws
+	/// <see cref="NotSupportedException"/>. That is recorded as "not implemented" and the calling test ends as a pass.
+	/// </summary>
+	private static bool TryGetColumnSchema(DbDataReader reader, out System.Collections.ObjectModel.ReadOnlyCollection<DbColumn> columns)
+	{
+		try
+		{
+			columns = reader.GetColumnSchema();
+			return true;
+		}
+		catch (NotSupportedException)
+		{
+			columns = null;
+			ConformanceOutcome.NotImplemented("The provider does not support GetColumnSchema.");
+			return false;
+		}
+	}
+
 	private static void AssertBufferBoundaryPolicy(Action action, string operation)
 	{
 		try
@@ -58,10 +77,11 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		}
 		catch (InvalidOperationException)
 		{
-			throw SkipException.ForSkip($"The provider rejects {operation} with a provider-specific state exception.");
+			ConformanceOutcome.Different($"The provider rejects {operation} with a provider-specific state exception.");
+			return;
 		}
 
-		throw SkipException.ForSkip($"The provider accepts {operation}; buffer-boundary behavior is not a portable ADO.NET contract.");
+		ConformanceOutcome.Different($"The provider accepts {operation}; buffer-boundary behavior is not a portable ADO.NET contract.");
 	}
 
 
@@ -135,16 +155,12 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		{
 			action(reader);
 		}
-		catch (SkipException)
-		{
-			throw;
-		}
 		catch (Exception)
 		{
 			return;
 		}
 
-		throw SkipException.ForSkip($"The provider does not throw for {behavior}; closed-reader exception behavior is not a portable ADO.NET contract.");
+		ConformanceOutcome.Different($"The provider does not throw for {behavior}; closed-reader exception behavior is not a portable ADO.NET contract.");
 	}
 
 	private void X_diagnostic(Action action, string behavior)
@@ -153,16 +169,12 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		{
 			action();
 		}
-		catch (SkipException)
-		{
-			throw;
-		}
 		catch (Exception)
 		{
 			return;
 		}
 
-		throw SkipException.ForSkip($"The provider does not throw for {behavior}; out-of-range exception behavior is not a portable ADO.NET contract.");
+		ConformanceOutcome.Different($"The provider does not throw for {behavior}; out-of-range exception behavior is not a portable ADO.NET contract.");
 	}
 
 	private void Test_X_after_Delete(Action<DbDataReader> action)
@@ -177,7 +189,7 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		}
 		catch (XunitException)
 		{
-			throw SkipException.ForSkip("Post-delete reader state is provider-specific and is not an ADO.NET conformance requirement.");
+			ConformanceOutcome.Different("Post-delete reader state is provider-specific and is not an ADO.NET conformance requirement.");
 		}
 	}
 
@@ -193,7 +205,7 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		}
 		catch (XunitException)
 		{
-			throw SkipException.ForSkip("Post-delete reader state is provider-specific and is not an ADO.NET conformance requirement.");
+			ConformanceOutcome.Different("Post-delete reader state is provider-specific and is not an ADO.NET conformance requirement.");
 		}
 	}
 }

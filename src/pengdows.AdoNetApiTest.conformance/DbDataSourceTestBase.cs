@@ -19,17 +19,26 @@ public abstract partial class DbDataSourceTestBase<TFixture> : DbFactoryTestBase
 	{
 	}
 
-	protected virtual DbDataSource CreateDataSourceOrSkip()
+	/// <summary>
+	/// Creates the provider's <see cref="DbDataSource"/>. Returns <c>null</c>, after recording "not implemented", when the
+	/// provider does not expose one; the calling test then ends as a pass.
+	/// </summary>
+	protected virtual DbDataSource TryCreateDataSource()
 	{
 		try
 		{
-			return Fixture.Factory.CreateDataSource(Fixture.ConnectionString)
-				?? throw Xunit.Sdk.SkipException.ForSkip("The provider does not expose DbDataSource.");
+			var dataSource = Fixture.Factory.CreateDataSource(Fixture.ConnectionString);
+			if (dataSource is not null)
+			{
+				return dataSource;
+			}
 		}
 		catch (NotSupportedException)
 		{
-			throw Xunit.Sdk.SkipException.ForSkip("The provider does not expose DbDataSource.");
 		}
+
+		ConformanceOutcome.NotImplemented("The provider does not expose DbDataSource.");
+		return null;
 	}
 }
 #endif

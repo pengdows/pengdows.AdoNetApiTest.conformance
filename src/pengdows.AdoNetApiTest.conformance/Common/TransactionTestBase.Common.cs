@@ -23,7 +23,8 @@ public partial class TransactionTestBase<TFixture>
 				return;
 			}
 
-			throw Xunit.Sdk.SkipException.ForSkip("The provider permits parallel transactions; the base ADO.NET contract does not require rejection.");
+			ConformanceOutcome.Different("The provider permits parallel transactions; the base ADO.NET contract does not require rejection.");
+			return;
 		}
 	}
 

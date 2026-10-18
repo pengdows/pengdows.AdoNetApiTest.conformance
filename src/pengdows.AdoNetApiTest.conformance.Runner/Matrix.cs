@@ -13,7 +13,9 @@ internal sealed record ProviderSummary(
 	IReadOnlyDictionary<Outcome, int> Counts,
 	int RequiredPassed,
 	int RequiredTotal,
-	IReadOnlyDictionary<FidelityStatus, int> Fidelity);
+	IReadOnlyDictionary<FidelityStatus, int> Fidelity,
+	int AreasCovered,
+	int AreasTotal);
 
 internal sealed record FidelityCell(FidelityStatus Status, string? Detail);
 
@@ -69,6 +71,11 @@ internal sealed partial class Matrix
 			}
 		}
 
+		var allAreas = rows.Values.Select(r => r.Info.Area ?? "Other").Distinct(StringComparer.Ordinal).ToList();
+		var covered = providers.ToDictionary(
+			p => p.Id,
+			p => rows.Values.Where(r => r.Raw.ContainsKey(p.Id)).Select(r => r.Info.Area ?? "Other").ToHashSet(StringComparer.Ordinal));
+
 		var tests = new List<TestRow>();
 		foreach (var row in rows.Values.OrderBy(r => r.Info.Area ?? "Other", StringComparer.Ordinal).ThenBy(r => r.Info.Group).ThenBy(r => r.Info.Method, StringComparer.Ordinal))
 		{
@@ -85,7 +92,10 @@ internal sealed partial class Matrix
 				}
 				else if (row.Info.Group != Group.Unclassified)
 				{
-					cells[provider.Id] = new Cell(Outcome.NotRun, "the provider's result file has no result for this test");
+					var area = row.Info.Area ?? "Other";
+					cells[provider.Id] = covered[provider.Id].Contains(area)
+						? new Cell(Outcome.NotRun, "the provider's result file has no result for this test")
+						: new Cell(Outcome.NotCovered, $"the provider has no tests for the {area} area");
 				}
 			}
 
@@ -93,7 +103,7 @@ internal sealed partial class Matrix
 		}
 
 		var fidelity = BuildFidelity(providers);
-		return new Matrix(providers.Select(p => Summarize(p, tests, fidelity)).ToList(), tests, fidelity);
+		return new Matrix(providers.Select(p => Summarize(p, tests, fidelity, covered[p.Id].Count, allAreas.Count)).ToList(), tests, fidelity);
 	}
 
 	private static List<FidelityRow> BuildFidelity(IEnumerable<ProviderInput> providers)
@@ -118,7 +128,7 @@ internal sealed partial class Matrix
 		return order.Select(key => new FidelityRow(key.Item1, key.Item2, key.Item3, rows[key])).ToList();
 	}
 
-	private static ProviderSummary Summarize(ProviderInput provider, IReadOnlyList<TestRow> tests, IReadOnlyList<FidelityRow> fidelityRows)
+	private static ProviderSummary Summarize(ProviderInput provider, IReadOnlyList<TestRow> tests, IReadOnlyList<FidelityRow> fidelityRows, int areasCovered, int areasTotal)
 	{
 		var fidelity = Enum.GetValues<FidelityStatus>().ToDictionary(s => s, _ => 0);
 		foreach (var cell in fidelityRows.Select(r => r.Results.GetValueOrDefault(provider.Id)).Where(c => c is not null))
@@ -137,7 +147,7 @@ internal sealed partial class Matrix
 			}
 
 			counts[cell.Outcome]++;
-			if (row.Group == Group.Required)
+			if (row.Group == Group.Required && cell.Outcome != Outcome.NotCovered)
 			{
 				requiredTotal++;
 				if (OutcomeInfo.EffectOf(cell.Outcome) == Effect.Pass)
@@ -152,7 +162,7 @@ internal sealed partial class Matrix
 			? Verdict.NotRun
 			: counts.Any(c => OutcomeInfo.EffectOf(c.Key) == Effect.Fail && c.Value > 0) ? Verdict.Fail : Verdict.Pass;
 
-		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity);
+		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity, areasCovered, areasTotal);
 	}
 
 	// A test the provider overrides loses its group trait and source file, so those are learned from any provider that has the base test.

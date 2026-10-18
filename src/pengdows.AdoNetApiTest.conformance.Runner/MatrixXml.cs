@@ -23,6 +23,8 @@ internal static class MatrixXml
 					new XAttribute("project", XmlText.Escape(p.Project)),
 					new XAttribute("verdict", OutcomeInfo.Text(p.Verdict)),
 					p.Reason is null ? null : new XAttribute("reason", XmlText.Escape(p.Reason)),
+					new XAttribute("areas-covered", p.AreasCovered),
+					new XAttribute("areas-total", p.AreasTotal),
 					new XAttribute("required-passed", p.RequiredPassed),
 					new XAttribute("required-total", p.RequiredTotal),
 					new XElement("counts", p.Counts.Select(c =>

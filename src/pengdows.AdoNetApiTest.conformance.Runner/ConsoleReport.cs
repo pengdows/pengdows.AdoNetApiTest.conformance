@@ -24,6 +24,11 @@ internal static class ConsoleReport
 					.Append(c[Outcome.ImplementedFail]).Append(" implemented fail, ")
 					.Append(c[Outcome.NotImplemented]).Append(" not implemented")
 					.Append("  |  Common ").Append(c[Outcome.Different]).Append(" differ");
+				if (provider.AreasCovered < provider.AreasTotal)
+				{
+					text.Append("  |  Coverage ").Append(provider.AreasCovered).Append(" of ").Append(provider.AreasTotal).Append(" areas");
+				}
+
 				var f = provider.Fidelity;
 				if (f.Values.Sum() > 0)
 				{

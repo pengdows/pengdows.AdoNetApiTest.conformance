@@ -137,6 +137,19 @@ public class OutputTests
 	}
 
 	[Fact]
+	public void Console_report_shows_coverage_only_when_an_area_has_no_tests()
+	{
+		var full = new XmlBuilder().Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required")).Test("B", "Pass", "Required", XmlBuilder.Base("Command", "Required"));
+		var partial = new XmlBuilder().Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+		var matrix = Matrix.Build(new[] { new ProviderInput("Full", "Full.Tests", XunitXml.Parse(full.ToString()), null), new ProviderInput("Partial", "Partial.Tests", XunitXml.Parse(partial.ToString()), null) });
+
+		var lines = ConsoleReport.Render(matrix).Split('\n');
+
+		Assert.Contains("Coverage 1 of 2 areas", lines.Single(l => l.StartsWith("Partial", StringComparison.Ordinal)));
+		Assert.DoesNotContain("Coverage", lines.Single(l => l.StartsWith("Full", StringComparison.Ordinal)));
+	}
+
+	[Fact]
 	public void Console_report_says_why_a_provider_did_not_run()
 	{
 		var matrix = Matrix.Build(new[] { new ProviderInput("Down", "Down.Tests", null, "no result file (exit code 1)") });

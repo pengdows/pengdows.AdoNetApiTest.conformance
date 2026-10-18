@@ -78,6 +78,7 @@ The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it wor
 | `not-applicable` | pass | The check does not apply, such as a data type the database does not have. |
 | `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
 | `not-run` | fail | No result was reported, so nothing is known. |
+| `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Not counted against the provider; the console line says `Coverage N of M areas`. |
 
 A provider whose test project could not run at all (a server that is down, a build that failed, a timeout) is reported as
 `NOT RUN` with the reason, and it fails the overall verdict: a provider that could not be tested is never reported as

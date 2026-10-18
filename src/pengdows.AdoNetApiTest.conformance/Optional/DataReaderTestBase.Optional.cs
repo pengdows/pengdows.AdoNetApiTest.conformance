@@ -81,7 +81,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal("id", column.ColumnName);
 	}
 
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "the docs name no CLR type for a literal; any numeric type (integer, decimal or floating point) describes SELECT 1")]
 	public virtual void GetColumnSchema_DataType()
 	{
 		using var connection = CreateOpenConnection();
@@ -104,8 +104,11 @@ public partial class DataReaderTestBase<TFixture>
 		case TypeCode.UInt16:
 		case TypeCode.UInt32:
 		case TypeCode.UInt64:
+		case TypeCode.Decimal:
+		case TypeCode.Double:
+		case TypeCode.Single:
 			return;
 		}
-		Assert.Fail("DataType isn't numeric");
+		Assert.Fail($"DataType {column.DataType} isn't numeric");
 	}
 }

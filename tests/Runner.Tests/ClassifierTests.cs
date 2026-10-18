@@ -76,6 +76,7 @@ public class ClassifierTests
 	[InlineData(Outcome.ImplementedFail, Effect.Fail)]
 	[InlineData(Outcome.Different, Effect.Advisory)]
 	[InlineData(Outcome.NotRun, Effect.Fail)]
+	[InlineData(Outcome.NotCovered, Effect.Advisory)]
 	public void Every_outcome_counts_one_way(Outcome outcome, Effect effect) => Assert.Equal(effect, OutcomeInfo.EffectOf(outcome));
 
 	[Fact]

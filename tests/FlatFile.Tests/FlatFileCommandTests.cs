@@ -18,3 +18,19 @@ public sealed class FlatFileDmlTests : DmlTestBase<FlatFileDbFactoryFixture>
     {
     }
 }
+
+public sealed class FlatFileDataReaderTests : DataReaderTestBase<FlatFileSelectValueFixture>
+{
+	public FlatFileDataReaderTests(FlatFileSelectValueFixture fixture)
+		: base(fixture)
+	{
+	}
+}
+
+public sealed class FlatFileGetValueConversionTests : GetValueConversionTestBase<FlatFileSelectValueFixture>
+{
+	public FlatFileGetValueConversionTests(FlatFileSelectValueFixture fixture)
+		: base(fixture)
+	{
+	}
+}

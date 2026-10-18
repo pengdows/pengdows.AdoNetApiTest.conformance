@@ -65,6 +65,10 @@ internal static class MatrixJson
 				}
 
 				json.WriteEndObject();
+				json.WriteStartObject("coverage");
+				json.WriteNumber("areas-covered", provider.AreasCovered);
+				json.WriteNumber("areas-total", provider.AreasTotal);
+				json.WriteEndObject();
 				json.WriteStartObject("required");
 				json.WriteNumber("passed", provider.RequiredPassed);
 				json.WriteNumber("total", provider.RequiredTotal);

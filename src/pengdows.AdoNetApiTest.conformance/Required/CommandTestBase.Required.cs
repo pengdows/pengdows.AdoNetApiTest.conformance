@@ -166,32 +166,6 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Throws<InvalidOperationException>(() => command.ExecuteReader());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.transaction")]
-	public virtual void ExecuteReader_throws_when_transaction_mismatched()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		using var otherConnection = CreateOpenConnection();
-		using var otherTransaction = otherConnection.BeginTransaction();
-		try
-		{
-			command.Transaction = otherTransaction;
-		}
-		catch (ArgumentException)
-		{
-			return;
-		}
-
-		Assert.Throws<InvalidOperationException>(() =>
-		{
-			using (command.ExecuteReader())
-			{
-			}
-		});
-	}
-
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
 	public virtual void ExecuteReader_throws_when_reader_open()
 	{
@@ -253,17 +227,17 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Throws<InvalidOperationException>(() => command.ExecuteScalar());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executescalar", Because = "the first column of the first row, as an object; no CLR type is named")]
 	public virtual void ExecuteScalar_returns_integer()
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneSql;
 		var result = command.ExecuteScalar();
-		if (result is int)
-			Assert.Equal(1, result);
-		else
-			Assert.Equal(1L, result);
+		// The page says "the first column of the first row" as an object; it names no CLR type, so any numeric type holding 1 is correct.
+		Assert.NotNull(result);
+		Assert.IsNotType<DBNull>(result);
+		Assert.Equal(1m, Convert.ToDecimal(result, System.Globalization.CultureInfo.InvariantCulture));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]

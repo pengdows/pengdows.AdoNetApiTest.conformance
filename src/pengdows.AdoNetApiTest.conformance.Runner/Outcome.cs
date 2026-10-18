@@ -20,6 +20,7 @@ public enum Outcome
 	NotApplicable,
 	Different,
 	NotRun,
+	NotCovered,
 }
 
 /// <summary>How an outcome counts toward the provider's verdict.</summary>
@@ -65,6 +66,7 @@ internal static class OutcomeInfo
 		Outcome.NotApplicable => "not-applicable",
 		Outcome.Different => "different",
 		Outcome.NotRun => "not-run",
+		Outcome.NotCovered => "not-covered",
 		_ => throw new ArgumentOutOfRangeException(nameof(outcome)),
 	};
 
@@ -78,13 +80,14 @@ internal static class OutcomeInfo
 		Outcome.NotApplicable => "The check does not apply, such as a data type the database does not have. This is a pass.",
 		Outcome.Different => "The provider departs from a common expectation that the contract does not require. Advisory only: it never fails the provider.",
 		Outcome.NotRun => "The test reported no result for this provider, so nothing is known. This is a failure.",
+		Outcome.NotCovered => "The provider's test project has no tests for this area, so nothing is known about it. Not counted against the provider; the coverage line says how much is missing.",
 		_ => throw new ArgumentOutOfRangeException(nameof(outcome)),
 	};
 
 	public static Effect EffectOf(Outcome outcome) => outcome switch
 	{
 		Outcome.Pass or Outcome.ImplementedPass or Outcome.NotImplemented or Outcome.NotApplicable => Effect.Pass,
-		Outcome.Different => Effect.Advisory,
+		Outcome.Different or Outcome.NotCovered => Effect.Advisory,
 		_ => Effect.Fail,
 	};
 

@@ -336,4 +336,37 @@ public abstract partial class CommandTestBase<TFixture>
 			SoftWarning.Report("The provider permits execution without assigning the active local transaction; the base ADO.NET contract does not require rejection.");
 		}
 	}
+
+	/// <summary>
+	/// Some providers (SqlClient, for one) reject a command whose <see cref="System.Data.Common.DbCommand.Transaction"/> belongs to
+	/// another connection. The <c>DbCommand.Transaction</c> page states only that the default is null, so a provider that accepts it is
+	/// reported as different. The test needs two connections that each hold a transaction, which a database with a single writer
+	/// cannot give it.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.transaction.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.transaction", Because = "the docs state only the default for DbCommand.Transaction; rejecting a transaction from another connection is SqlClient behavior")]
+	public virtual void ExecuteReader_throws_when_transaction_mismatched()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		using var otherConnection = CreateOpenConnection();
+		using var otherTransaction = otherConnection.BeginTransaction();
+		try
+		{
+			command.Transaction = otherTransaction;
+		}
+		catch (ArgumentException)
+		{
+			return;
+		}
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			using (command.ExecuteReader())
+			{
+			}
+		});
+	}
 }

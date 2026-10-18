@@ -91,16 +91,58 @@ public class MatrixTests
 		Assert.Equal(Outcome.Pass, row.Results["B"].Outcome);
 	}
 
+	private static XmlBuilder FullProvider() => PassingProvider()
+		.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
 	[Fact]
-	public void A_test_a_provider_did_not_report_is_not_run_in_that_provider()
+	public void A_test_in_an_area_the_provider_covers_but_did_not_report_is_not_run_and_fails()
 	{
 		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
 
-		var matrix = Matrix.Build(new[] { Provider("Full", PassingProvider()), Provider("Partial", partial) });
+		var matrix = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) });
 
-		var row = matrix.Tests.Single(t => t.Name == "Batch_works");
+		var row = matrix.Tests.Single(t => t.Name == "Connection_closes");
 		Assert.Equal(Outcome.NotRun, row.Results["Partial"].Outcome);
 		Assert.Equal(Verdict.Fail, matrix.Providers.Single(p => p.Id == "Partial").Verdict);
+	}
+
+	[Fact]
+	public void An_area_the_provider_has_no_tests_for_is_not_covered_and_does_not_fail_it()
+	{
+		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
+		var matrix = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) });
+
+		var row = matrix.Tests.Single(t => t.Name == "Batch_works");
+		Assert.Equal(Outcome.NotCovered, row.Results["Partial"].Outcome);
+		Assert.Contains("Command", row.Results["Partial"].Detail);
+		Assert.Equal(Verdict.Pass, matrix.Providers.Single(p => p.Id == "Partial").Verdict);
+	}
+
+	[Fact]
+	public void A_provider_verdict_does_not_depend_on_the_providers_it_is_run_with()
+	{
+		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
+		var alone = Matrix.Build(new[] { Provider("Partial", partial) }).Providers.Single();
+		var together = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) }).Providers.Single(p => p.Id == "Partial");
+
+		Assert.Equal(alone.Verdict, together.Verdict);
+		Assert.Equal(alone.RequiredPassed, together.RequiredPassed);
+		Assert.Equal(alone.RequiredTotal, together.RequiredTotal);
+	}
+
+	[Fact]
+	public void Coverage_counts_the_areas_the_provider_has_tests_for()
+	{
+		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
+		var summary = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) }).Providers.Single(p => p.Id == "Partial");
+
+		Assert.Equal(1, summary.AreasCovered);
+		Assert.Equal(3, summary.AreasTotal);
 	}
 
 	[Fact]

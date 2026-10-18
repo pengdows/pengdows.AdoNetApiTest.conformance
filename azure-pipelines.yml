@@ -294,7 +294,7 @@ jobs:
       - task: DotNetCoreCLI@2
         inputs:
           command: 'run'
-          workingDirectory: src/AdoNetApiTest
+          workingDirectory: src/pengdows.AdoNetApiTest.conformance.Runner
           publishTestResults: false
           arguments: '$(Agent.BuildDirectory)/tests $(Build.ArtifactStagingDirectory)'
       - script: 'git -c http.https://github.com.extraheader="AUTHORIZATION: basic $(GitHubAuthorization)" clone --depth 1 --branch gh-pages https://github.com/mysql-net/AdoNetResults.git ../AdoNetResults'

@@ -1,4 +1,4 @@
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 using Xunit;
 
 namespace Npgsql4.Tests;

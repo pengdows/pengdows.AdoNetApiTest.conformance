@@ -1,5 +1,5 @@
 using System.Data.Common;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 using MySql.Data.MySqlClient;
 
 namespace MySqlData8.Tests;

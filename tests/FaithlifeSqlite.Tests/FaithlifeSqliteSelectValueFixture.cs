@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using AdoNet.Databases;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance.Databases;
+using pengdows.AdoNetApiTest.conformance;
 
 namespace FaithlifeSqlite.Tests;
 

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AdoNet.Specification.Tests\AdoNet.Specification.Tests.csproj" />
+    <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
     <ProjectReference Include="../../../pengdows.flatfile/pengdows.flatfile/pengdows.flatfile.csproj" />
   </ItemGroup>
 

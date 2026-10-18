@@ -33,4 +33,4 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: ${{ github.event.repository.name }}.nupkg
-        path: 'src/AdoNet.Specification.Tests/**/*.nupkg'
+        path: 'src/pengdows.AdoNetApiTest.conformance/**/*.nupkg'

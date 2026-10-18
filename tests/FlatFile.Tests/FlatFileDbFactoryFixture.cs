@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using pengdows.flatfile;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 
 namespace FlatFile.Tests;
 

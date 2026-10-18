@@ -1,5 +1,5 @@
 using System.Data.Common;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 using Devart.Data.MySql;
 
 namespace DotConnectMySql.Tests;

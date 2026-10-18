@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 
 namespace MySqlConnector.Tests;
 

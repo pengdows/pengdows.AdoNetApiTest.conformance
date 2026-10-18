@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using DuckDB.NET.Data;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 
 namespace DuckDB.Tests;
 

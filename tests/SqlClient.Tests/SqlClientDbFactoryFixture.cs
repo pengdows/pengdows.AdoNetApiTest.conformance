@@ -1,6 +1,6 @@
 using System.Data.Common;
 using System.Data.SqlClient;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 
 namespace SqlClient.Tests;
 

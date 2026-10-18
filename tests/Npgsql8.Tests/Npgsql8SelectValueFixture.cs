@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using AdoNet.Databases;
+using pengdows.AdoNetApiTest.conformance.Databases;
 
 namespace Npgsql8.Tests;
 

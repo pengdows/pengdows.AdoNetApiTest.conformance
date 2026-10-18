@@ -2,28 +2,28 @@
 
 ## Project Structure
 
-- `src/AdoNet.Specification.Tests/` contains reusable xUnit v3 base classes and fixtures for ADO.NET behavior.
-- `src/AdoNet.Databases/` contains database setup and SQL helpers; `src/AdoNetApiTest/` contains the comparison-runner console application.
+- `src/pengdows.AdoNetApiTest.conformance/` contains reusable xUnit v3 base classes and fixtures for ADO.NET behavior.
+- `src/pengdows.AdoNetApiTest.conformance.Databases/` contains database setup and SQL helpers; `src/AdoNetApiTest/` contains the comparison-runner console application.
 - `tests/<Provider>.Tests/` contains provider-specific fixtures and derived tests (for example, `tests/MySqlConnector.Tests/`).
-- `docker/` defines local MySQL, PostgreSQL, and SQL Server services. Solution-wide settings are in `Directory.Build.props`, `global.json`, and `AdoNetApiTest.sln`.
+- `docker/` defines local MySQL, PostgreSQL, and SQL Server services. Solution-wide settings are in `Directory.Build.props`, `global.json`, and `pengdows.AdoNetApiTest.conformance.sln`.
 
 ## Build, Test, and Development Commands
 
 Use the SDK version pinned by `global.json` (currently .NET 10.0.101):
 
 ```bash
-dotnet restore AdoNetApiTest.sln
-dotnet build AdoNetApiTest.sln
+dotnet restore pengdows.AdoNetApiTest.conformance.sln
+dotnet build pengdows.AdoNetApiTest.conformance.sln
 dotnet test tests/MySqlConnector.Tests/MySqlConnector.Tests.csproj
 docker compose -f docker/docker-compose.yml up
-dotnet run --project src/AdoNetApiTest/AdoNetApiTest.csproj
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner/pengdows.AdoNetApiTest.conformance.Runner.csproj
 ```
 
 Run the individual provider test project relevant to a change. Database-backed suites need the matching service running and usually read `ConnectionString` from the environment. CI runs provider suites independently in Azure Pipelines and publishes test artifacts.
 
 ## Coding Style & Naming
 
-Use four-space indentation, standard C# formatting, nullable-safe code where applicable, and the existing file-scoped/project conventions. Name types and public members in `PascalCase`, locals and parameters in `camelCase`, and provider test classes with the provider prefix plus the behavior under test (for example, `SqliteDataReaderTests`). Keep shared behavior in `src/AdoNet.Specification.Tests`; put provider-specific exceptions or overrides in that provider’s test project.
+Use four-space indentation, standard C# formatting, nullable-safe code where applicable, and the existing file-scoped/project conventions. Name types and public members in `PascalCase`, locals and parameters in `camelCase`, and provider test classes with the provider prefix plus the behavior under test (for example, `SqliteDataReaderTests`). Keep shared behavior in `src/pengdows.AdoNetApiTest.conformance`; put provider-specific exceptions or overrides in that provider’s test project.
 
 ## Testing Guidelines
 

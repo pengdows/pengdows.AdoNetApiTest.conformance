@@ -1,5 +1,5 @@
 using System.Data.Common;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 using Microsoft.Data.SqlClient;
 
 namespace MicrosoftSqlClient5.Tests;

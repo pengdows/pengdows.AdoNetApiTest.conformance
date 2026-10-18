@@ -1,7 +1,7 @@
 using System;
 using System.Data.Common;
 using System.Data.SQLite;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 
 namespace FaithlifeSqlite.Tests;
 

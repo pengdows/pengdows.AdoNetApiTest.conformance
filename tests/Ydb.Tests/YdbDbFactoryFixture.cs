@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 using Ydb.Sdk.Ado;
 
 namespace Ydb.Tests;

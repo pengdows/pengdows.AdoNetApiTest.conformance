@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Data.Common;
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
 using Informix.Net.Core;
 
 namespace Informix.Tests;

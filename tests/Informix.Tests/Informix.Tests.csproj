@@ -7,6 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Informix.Net.Core-lnx" Version="4.1501.2.2026" />
-    <ProjectReference Include="..\..\src\AdoNet.Specification.Tests\AdoNet.Specification.Tests.csproj" />
+    <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
   </ItemGroup>
 </Project>

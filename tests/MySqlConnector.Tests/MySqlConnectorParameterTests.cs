@@ -1,4 +1,5 @@
-using AdoNet.Specification.Tests;
+using pengdows.AdoNetApiTest.conformance;
+using Xunit;
 
 namespace MySqlConnector.Tests;
 

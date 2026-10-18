@@ -180,9 +180,9 @@ clear.
   `GetValueConversionTestBase` matrix are explicitly classified as
   common-behavior diagnostics. They are useful for exposing provider
   interoperability differences, but their outcomes are not universal
-  `System.Data.Common` requirements. These tests use the
-  `Category=Diagnostic` trait; run the conformance suite with
-  `Category!=Diagnostic` and run diagnostics separately. The required
+  `System.Data.Common` requirements. These tests are
+  `[CommonFact]` (`Category=Common`); the hard result is
+  `Category=Required|Category=Optional`, and Common is run separately. The required
   reader-state, ordinal, null, and valid-value tests remain strict in
   `DataReaderTestBase`.
 - Parameter binding/value-conversion examples that depend on provider-supported
@@ -219,8 +219,8 @@ for classifying the shared assertions:
 - The exact filtered conformance commands used for the local guinea pigs were:
 
   ```text
-  LD_LIBRARY_PATH=/home/alaricd/prj/pengdows/DuckDB.NET/DuckDB.NET.Bindings/obj/runtimes/linux-x64/native /home/alaricd/dotnet10/dotnet tests/DuckDB.Tests/bin/Debug/net10.0/DuckDB.Tests.dll -trait- "Category=Diagnostic"
-  /home/alaricd/dotnet10/dotnet tests/FlatFile.Tests/bin/Debug/net10.0/FlatFile.Tests.dll -trait- "Category=Diagnostic"
+  LD_LIBRARY_PATH=/home/alaricd/prj/pengdows/DuckDB.NET/DuckDB.NET.Bindings/obj/runtimes/linux-x64/native /home/alaricd/dotnet10/dotnet tests/DuckDB.Tests/bin/Debug/net10.0/DuckDB.Tests.dll -trait "Category=Common"
+  /home/alaricd/dotnet10/dotnet tests/FlatFile.Tests/bin/Debug/net10.0/FlatFile.Tests.dll -trait "Category=Common"
   ```
 
   DuckDB reported `95 total, 1 failed, 0 skipped` (the SchemaOnly provider
@@ -406,8 +406,8 @@ The following checklist is the definition of done for this effort:
   SQL and provider-specific DML remain explicit fixture/test inputs.
 - [x] Separate required behavior from optional behavior with explicit fixture
   capabilities; an unsupported optional capability must be skipped, not
-  silently treated as a pass. Diagnostic and optional tests are tagged
-  `Category=Diagnostic`.
+  silently treated as a pass. Required, Optional and Common tests are
+  tagged with `Category=Required`, `Category=Optional` and `Category=Common`.
 - [x] Complete the remaining `DbConnection`, `DbCommand`, `DbDataReader`,
   `DbParameter`, `DbTransaction`, and `DbProviderFactory` items listed above.
 - [x] Run at least one positional-marker provider and one named-marker provider

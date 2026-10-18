@@ -1,0 +1,684 @@
+using System;
+using System.Data;
+using System.Data.Common;
+using System.IO;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Sdk;
+
+namespace pengdows.AdoNetApiTest.conformance;
+
+public partial class DataReaderTestBase<TFixture>
+	where TFixture : class, ISelectValueFixture, IDeleteFixture
+{
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void Dispose_command_before_reader()
+	{
+		using var connection = CreateOpenConnection();
+		DbDataReader reader;
+		using (var command = connection.CreateCommand())
+		{
+			command.CommandText = SelectTextSql;
+			reader = command.ExecuteReader();
+		}
+
+		try
+		{
+			Assert.True(reader.Read());
+			Assert.Equal("test", reader.GetString(0));
+			Assert.False(reader.Read());
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider closes a reader when its command is disposed: {ex.GetType().Name}.");
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.fieldcount", Because = "the base API does not prescribe closed-reader exception behavior for FieldCount")]
+	public virtual void FieldCount_throws_when_closed()
+		=> X_diagnostic_when_closed(
+			r =>
+			{
+				var x = r.FieldCount;
+			},
+			"FieldCount on a closed reader");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getdatatypename", Because = "GetDataTypeName does not define a portable out-of-range exception")]
+	public virtual void GetDataTypeName_throws_when_ordinal_out_of_range()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		X_diagnostic(() => reader.GetDataTypeName(1), "GetDataTypeName out-of-range handling");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getdatatypename", Because = "the base API does not prescribe closed-reader exception behavior for GetDataTypeName")]
+	public virtual void GetDataTypeName_throws_when_closed()
+		=> X_diagnostic_when_closed(r => r.GetDataTypeName(0), "GetDataTypeName on a closed reader");
+
+	[CommonFact(Because = "the API does not prescribe the exact out-of-range exception for GetFieldType.")]
+	public virtual void GetFieldType_throws_when_ordinal_out_of_range()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		X_diagnostic(() => reader.GetFieldType(1), "GetFieldType out-of-range handling");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldtype", Because = "the base API does not prescribe closed-reader exception behavior for GetFieldType")]
+	public virtual void GetFieldType_throws_when_closed()
+		=> X_diagnostic_when_closed(r => r.GetFieldType(0), "GetFieldType on a closed reader");
+
+	[CommonFact(Because = "the API does not prescribe the exact out-of-range exception for GetName.")]
+	public virtual void GetName_throws_when_ordinal_out_of_range()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		X_diagnostic(() => reader.GetName(1), "GetName out-of-range handling");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getname", Because = "the base API does not prescribe closed-reader exception behavior for GetName")]
+	public virtual void GetName_throws_when_closed()
+		=> X_diagnostic_when_closed(r => r.GetName(0), "GetName on a closed reader");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetString_works_utf8_two_bytes() => GetX_works(SelectSql("'Ä'"), r => r.GetString(0), "Ä");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetString_works_utf8_three_bytes() => GetX_works(SelectSql("'Ḁ'"), r => r.GetString(0), "Ḁ");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetString_works_utf8_four_bytes() => GetX_works(SelectSql("'😀'"), r => r.GetString(0), "😀");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldValue_works_utf8_two_bytes() => GetX_works(SelectSql("'Ä'"), r => r.GetFieldValue<string>(0), "Ä");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldValue_works_utf8_three_bytes() => GetX_works(SelectSql("'Ḁ'"), r => r.GetFieldValue<string>(0), "Ḁ");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldValue_works_utf8_four_bytes() => GetX_works(SelectSql("'😀'"), r => r.GetFieldValue<string>(0), "😀");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetValue_to_string_works_utf8_two_bytes() => GetX_works(SelectSql("'Ä'"), r => r.GetValue(0) as string, "Ä");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetValue_to_string_works_utf8_three_bytes() => GetX_works(SelectSql("'Ḁ'"), r => r.GetValue(0) as string, "Ḁ");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetValue_to_string_works_utf8_four_bytes() => GetX_works(SelectSql("'😀'"), r => r.GetValue(0) as string, "😀");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "null-array exception policy is not specified by DbDataReader")]
+	public virtual void GetValues_throws_for_null()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		reader.Read();
+		try
+		{
+			reader.GetValues(default(object[]));
+		}
+		catch (ArgumentNullException)
+		{
+			return;
+		}
+		catch (Exception)
+		{
+			throw SkipException.ForSkip("The provider uses a provider-specific null-array policy for GetValues; the base ADO.NET contract does not specify the exception.");
+		}
+
+		throw SkipException.ForSkip("The provider accepts a null GetValues array; the base ADO.NET contract does not specify a required exception.");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void HasRows_works_when_batching()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectNoRowsThenOneSql;
+		using var reader = command.ExecuteReader();
+		Assert.False(reader.HasRows);
+
+		reader.NextResult();
+
+		Assert.True(reader.HasRows);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void NextResult_works()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectTwoResultsSql;
+		using var reader = command.ExecuteReader();
+		var hasData = reader.Read();
+		Assert.True(hasData);
+		Assert.Equal(1L, reader.GetInt64(0));
+
+		var hasResults = reader.NextResult();
+		Assert.True(hasResults);
+
+		hasData = reader.Read();
+		Assert.True(hasData);
+		Assert.Equal(2L, reader.GetInt64(0));
+
+		hasResults = reader.NextResult();
+		Assert.False(hasResults);
+	}
+
+	/// <summary>
+	/// `SingleRow` is a provider hint; the API documentation does not require a
+	/// provider to truncate a result set after one row. This preserves the
+	/// historical interoperability diagnostic but must not be treated as a
+	/// conformance failure.
+	/// The old assertion was an INVALID CONTRACT TEST. See
+	/// https://learn.microsoft.com/dotnet/api/system.data.commandbehavior.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	public virtual void SingleRow_returns_one_row()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectTwoRowsSql;
+
+		using var reader = command.ExecuteReader(CommandBehavior.SingleRow);
+		var hasData = reader.Read();
+		Assert.True(hasData);
+		Assert.Equal(1L, Convert.ToInt64(reader.GetValue(0)));
+	}
+
+	/// <summary>
+	/// `SingleRow` does not require providers to suppress additional result sets;
+	/// it is a hint described by CommandBehavior. This is retained as a diagnostic,
+	/// not as a universal contract test.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.commandbehavior.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	public virtual void SingleRow_returns_one_result_set()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectThreeResultsSql;
+
+		using var reader = command.ExecuteReader(CommandBehavior.SingleRow);
+		var hasData = reader.Read();
+		Assert.True(hasData);
+		Assert.Equal(1L, Convert.ToInt64(reader.GetValue(0)));
+	}
+
+	/// <summary>
+	/// `SingleResult` is also a provider hint rather than a requirement to discard
+	/// all later result sets. Retain the observation for interoperability testing,
+	/// but do not use it as an ADO.NET conformance gate.
+	/// The former assertion was an INVALID CONTRACT TEST. See
+	/// https://learn.microsoft.com/dotnet/api/system.data.commandbehavior.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	public virtual void SingleResult_returns_one_result_set()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectThreeResultsSql;
+
+		using var reader = command.ExecuteReader(CommandBehavior.SingleResult);
+		var hasData = reader.Read();
+		Assert.True(hasData);
+		Assert.Equal(1L, Convert.ToInt64(reader.GetValue(0)));
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.read", Because = "the base API does not prescribe closed-reader exception behavior for Read")]
+	public virtual void Read_throws_when_closed() => X_diagnostic_when_closed(r => r.Read(), "Read on a closed reader");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.nextresult", Because = "the base API does not prescribe closed-reader exception behavior for NextResult")]
+	public virtual void NextResult_throws_when_closed() => X_diagnostic_when_closed(r => r.NextResult(), "NextResult on a closed reader");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getbytes", Because = "negative dataOffset handling is not specified by DbDataReader")]
+	public virtual void GetBytes_throws_when_dataOffset_is_negative() => TestGetBytes(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetBytes(0, -1, new byte[4], 0, 4), "GetBytes negative dataOffset");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getbytes", Because = "bufferOffset validation is not specified by DbDataReader")]
+	public virtual void GetBytes_throws_when_bufferOffset_is_negative() => TestGetBytes(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetBytes(0, 0, new byte[4], -1, 4), "GetBytes negative bufferOffset");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getbytes", Because = "bufferOffset validation is not specified by DbDataReader")]
+	public virtual void GetBytes_throws_when_bufferOffset_is_too_large() => TestGetBytes(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetBytes(0, 0, new byte[4], 5, 0), "GetBytes oversized bufferOffset");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getbytes", Because = "buffer-boundary handling is provider-specific")]
+	public virtual void GetBytes_throws_when_bufferOffset_plus_length_is_too_long() => TestGetBytes(reader =>
+	{
+		try
+		{
+			reader.GetBytes(0, 0, new byte[4], 2, 3);
+		}
+		catch (ArgumentException)
+		{
+			return;
+		}
+		catch (IndexOutOfRangeException)
+		{
+			return;
+		}
+
+		throw SkipException.ForSkip("The provider permits a buffer range beyond the available buffer; boundary behavior is not a portable contract.");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "negative dataOffset validation is not specified by DbDataReader")]
+	public virtual void GetChars_throws_when_dataOffset_is_negative() => TestGetChars(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetChars(0, -1, new char[4], 0, 4), "GetChars negative dataOffset");
+	});
+
+	[CommonFact(Because = "GetChars does not prescribe behavior when dataOffset exceeds the value length.")]
+	public virtual void GetChars_reads_nothing_when_dataOffset_is_too_large() => TestGetChars(reader =>
+	{
+		try
+		{
+			if (reader.GetChars(0, 6, new char[4], 0, 4) != 0)
+			{
+				SoftWarning.Report("The provider returns characters for a dataOffset beyond the value length.");
+			}
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} for a dataOffset beyond the value length.");
+		}
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "bufferOffset validation is not specified by DbDataReader")]
+	public virtual void GetChars_throws_when_bufferOffset_is_negative() => TestGetChars(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetChars(0, 0, new char[4], -1, 4), "GetChars negative bufferOffset");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "bufferOffset validation is not specified by DbDataReader")]
+	public virtual void GetChars_throws_when_bufferOffset_is_too_large() => TestGetChars(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetChars(0, 0, new char[4], 5, 0), "GetChars oversized bufferOffset");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "bufferOffset validation is not specified by DbDataReader")]
+	public virtual void GetChars_throws_when_bufferOffset_plus_length_is_too_long() => TestGetChars(reader =>
+	{
+		AssertBufferBoundaryPolicy(() => reader.GetChars(0, 0, new char[4], 2, 3), "GetChars buffer range");
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "null text materialization/exception policy is provider-specific")]
+	public virtual void GetTextReader_throws_for_null_String()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.String, ValueKind.Null);
+		using var reader = command.ExecuteReader();
+		reader.Read();
+		try
+		{
+			using var textReader = reader.GetTextReader(0);
+		}
+		catch (Exception exception) when (exception.GetType() == Fixture.NullValueExceptionType)
+		{
+			return;
+		}
+
+		throw SkipException.ForSkip("The provider does not use the fixture's null-value exception policy; null text materialization is not a portable ADO.NET contract.");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue", Because = "TextReader materialization is provider-dependent")]
+	public virtual void GetFieldValue_for_TextReader()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.String, ValueKind.One);
+		using var reader = command.ExecuteReader();
+		reader.Read();
+		TextReader textReader;
+		try
+		{
+			textReader = reader.GetFieldValue<TextReader>(0);
+		}
+		catch (InvalidCastException)
+		{
+			throw SkipException.ForSkip("The provider does not expose text values as TextReader instances.");
+		}
+
+		using (textReader)
+		{
+		Assert.Equal("1", textReader.ReadToEnd());
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalueasync", Because = "async TextReader materialization is provider-dependent")]
+	public virtual async Task GetFieldValueAsync_for_TextReader()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.String, ValueKind.One);
+		using var reader = await command.ExecuteReaderAsync();
+		await reader.ReadAsync();
+		TextReader textReader;
+		try
+		{
+			textReader = await reader.GetFieldValueAsync<TextReader>(0);
+		}
+		catch (InvalidCastException)
+		{
+			throw SkipException.ForSkip("The provider does not expose text values as TextReader instances.");
+		}
+
+		using (textReader)
+		{
+		Assert.Equal("1", textReader.ReadToEnd());
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldValue_for_TextReader_throws_for_null_String()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.String, ValueKind.Null);
+		using var reader = command.ExecuteReader();
+		reader.Read();
+		try
+		{
+			reader.GetFieldValue<TextReader>(0);
+			SoftWarning.Report("The provider materializes a null text value as TextReader; null conversion behavior is provider-specific.");
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} for null TextReader conversion; null conversion behavior is provider-specific.");
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual async Task GetFieldValueAsync_for_TextReader_throws_for_null_String()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.String, ValueKind.Null);
+		using var reader = await command.ExecuteReaderAsync();
+		await reader.ReadAsync();
+		try
+		{
+			await reader.GetFieldValueAsync<TextReader>(0);
+			SoftWarning.Report("The provider materializes a null text value as TextReader asynchronously; null conversion behavior is provider-specific.");
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} for async null TextReader conversion; null conversion behavior is provider-specific.");
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue", Because = "provider-specific stream materialization")]
+	public virtual void GetFieldValue_for_Stream()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.Binary, ValueKind.One);
+		using var reader = command.ExecuteReader();
+		reader.Read();
+		Stream stream;
+		try
+		{
+			stream = reader.GetFieldValue<Stream>(0);
+		}
+		catch (InvalidCastException)
+		{
+			throw SkipException.ForSkip("The provider does not expose binary values as Stream instances.");
+		}
+
+		using (stream)
+		{
+		Assert.Equal(0x11, stream.ReadByte());
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalueasync", Because = "async provider-specific stream materialization")]
+	public virtual async Task GetFieldValueAsync_for_Stream()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.Binary, ValueKind.One);
+		using var reader = await command.ExecuteReaderAsync();
+		await reader.ReadAsync();
+		Stream stream;
+		try
+		{
+			stream = await reader.GetFieldValueAsync<Stream>(0);
+		}
+		catch (InvalidCastException)
+		{
+			throw SkipException.ForSkip("The provider does not expose binary values as Stream instances.");
+		}
+
+		using (stream)
+		{
+		Assert.Equal(0x11, stream.ReadByte());
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldValue_for_Stream_throws_for_null_Binary()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.Binary, ValueKind.Null);
+		using var reader = command.ExecuteReader();
+		reader.Read();
+		try
+		{
+			reader.GetFieldValue<Stream>(0);
+			SoftWarning.Report("The provider materializes a null binary value as Stream; null conversion behavior is provider-specific.");
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} for null Stream conversion; null conversion behavior is provider-specific.");
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual async Task GetFieldValueAsync_for_Stream_throws_for_null_Binary()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.Binary, ValueKind.Null);
+		using var reader = await command.ExecuteReaderAsync();
+		await reader.ReadAsync();
+		try
+		{
+			await reader.GetFieldValueAsync<Stream>(0);
+			SoftWarning.Report("The provider materializes a null binary value as Stream asynchronously; null conversion behavior is provider-specific.");
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} for async null Stream conversion; null conversion behavior is provider-specific.");
+		}
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void FieldCount_is_zero_after_Delete() => Test_X_after_Delete(x => Assert.Equal(0, x.FieldCount));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void IsDBNull_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.IsDBNull(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual async Task IsDBNullAsync_throws_after_Delete() => await Test_X_after_Delete(async x => await Assert.ThrowsAsync<InvalidOperationException>(async () => await x.IsDBNullAsync(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void Read_returns_false_after_Delete() => Test_X_after_Delete(x => Assert.False(x.Read()));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void NextResult_returns_false_after_Delete() => Test_X_after_Delete(x => Assert.False(x.NextResult()));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetDataTypeName_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDataTypeName(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldType_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetFieldType(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFieldValue_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetFieldValue<object>(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual async Task GetFieldValueAsync_throws_after_Delete() => await Test_X_after_Delete(async x => await Assert.ThrowsAsync<InvalidOperationException>(async () => await x.GetFieldValueAsync<object>(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetBoolean_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetBoolean(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetByte_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetByte(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetBytes_throws_after_Delete()
+	{
+		Test_X_after_Delete(x =>
+		{
+			var bytes = new byte[1];
+			Assert.Throws<InvalidOperationException>(() => x.GetBytes(0, 0, bytes, 0, 1));
+		});
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetChar_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetChar(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetChars_throws_after_Delete()
+	{
+		Test_X_after_Delete(x =>
+		{
+			var chars = new char[1];
+			Assert.Throws<InvalidOperationException>(() => x.GetChars(0, 0, chars, 0, 1));
+		});
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetColumnSchema_is_empty_after_Delete() => Test_X_after_Delete(x =>
+	{
+		try
+		{
+			if (x.GetColumnSchema().Count != 0)
+			{
+				SoftWarning.Report("The provider retains column schema after the reader has no current row.");
+			}
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} when column schema is requested without a current row.");
+		}
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetDataTime_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDateTime(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetDecimal_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDecimal(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetDouble_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDouble(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetFloat_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetFloat(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetGuid_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetGuid(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetInt16_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetInt16(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetInt32_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetInt32(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetInt64_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetInt64(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetSchemaTable_is_null_after_Delete() => Test_X_after_Delete(x =>
+	{
+		try
+		{
+			if (x.GetSchemaTable() is not null)
+			{
+				SoftWarning.Report("The provider returns a schema table after the reader has no current row.");
+			}
+		}
+		catch (Exception ex)
+		{
+			SoftWarning.Report($"The provider throws {ex.GetType().Name} when schema table is requested without a current row.");
+		}
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetStream_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetStream(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetString_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetString(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetTextReader_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetTextReader(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetName_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetName(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetValue_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() =>x.GetValue(0)));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
+	public virtual void GetValues_throws_after_Delete()
+	{
+		Test_X_after_Delete(x =>
+		{
+			var values = new object[1];
+			Assert.Throws<InvalidOperationException>(() => x.GetValues(values));
+		});
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcolumn.datatypename", Because = "native DataTypeName metadata may be unavailable")]
+	public virtual void GetColumnSchema_DataTypeName()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneAsIdSql;
+		using var reader = command.ExecuteReader();
+		var columns = reader.GetColumnSchema();
+		var column = Assert.Single(columns);
+		if (column.DataTypeName is not null)
+			return;
+
+		throw SkipException.ForSkip("The provider does not expose a native DataTypeName for this result column.");
+	}
+
+	/// <summary>
+	/// Providers that implement GetSchemaTable should return metadata for an
+	/// active result. The API permits providers without schema-table support to
+	/// return null, so that capability is reported as a skip rather than treated
+	/// as a conformance failure.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getschematable.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getschematable", Because = "optional reader-schema capability")]
+	public virtual void GetSchemaTable_returns_metadata_when_supported()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneAsIdSql;
+		using var reader = command.ExecuteReader();
+		var schema = reader.GetSchemaTable();
+
+		if (schema is null)
+			throw SkipException.ForSkip("The provider does not expose reader schema tables.");
+
+		Assert.NotEmpty(schema.Columns);
+		Assert.NotEmpty(schema.Rows);
+	}
+}

@@ -94,32 +94,40 @@ On `net10.0`, providers that expose `DbProviderFactory.CreateDataSource` can
 derive `DbDataSourceTestBase<TFixture>` to cover the modern data-source
 connection, open, async-open, and command-creation contract.
 
-### Conformance versus diagnostics
+### Required, Optional and Common tests
 
-Provider-defined defaults, optional capabilities, and the generated
-`GetValueConversionTestBase<TFixture>` matrix are tagged with the xUnit trait
-`Category=Diagnostic`. They record useful interoperability differences, but
-are not required contract assertions. The `System.Data.Common` contract does
-not require one universal conversion result for every native type and typed
-getter. Run the provider's conformance suite with diagnostics excluded:
+Every shared test belongs to exactly one group, declared by its attribute, listed under the matching folder, and
+exposed as the xUnit trait `Category`:
+
+| Group | Attribute | Folder | Meaning | Outcome |
+| --- | --- | --- | --- | --- |
+| Required | `[RequiredFact]` | `Required/` | The documented `System.Data.Common` contract requires this of every provider that exposes the API. | Failure is a hard conformance failure. |
+| Optional | `[OptionalFact]` | `Optional/` | The behavior belongs to a capability a provider may decline. | Skipped when the fixture reports the capability unsupported; when it runs, failure is a hard failure. |
+| Common | `[CommonFact]` | `Common/` | Interoperability behavior most providers share that the contract does not require, including the generated `GetValueConversionTestBase` matrix. | Advisory: reported (often as `[SOFT WARNING]`), never part of the hard result. |
+
+Each attribute carries the documentation page it is based on (`Contract = "https://…"`), and `Because` records why a
+test sits in its group when that is not obvious. Tests for one API area are partial classes, so
+`CommandTestBase<TFixture>` is spread over `Required/`, `Optional/` and `Common/` files and provider projects derive
+from it as before.
+
+**The hard pass or failure** for a provider is Required plus Optional:
 
 ```text
-dotnet test --filter "Category!=Diagnostic"
+dotnet test --filter "Category=Required|Category=Optional"
 ```
 
-When invoking the xUnit v3 in-process runner directly, use its equivalent
-`-trait- "Category=Diagnostic"` option.
-
-Run the diagnostic matrix separately when investigating interoperability or a
-provider regression:
+A provider conforms when that run has no failures. Common differences are investigated separately:
 
 ```text
-dotnet test --filter "Category=Diagnostic"
+dotnet test --filter "Category=Common"
 ```
 
-Diagnostic cases are still executed and their assertions produce soft warnings;
-they must not be converted into skips or hard failures. The only
-conversion-matrix skips are for database types the fixture explicitly reports
-as unsupported. Required reader
-state, ordinal, null, schema, and valid-value behavior remains in
-`DataReaderTestBase<TFixture>` and is intentionally not tagged as diagnostic.
+When invoking the xUnit v3 in-process runner directly, use `-trait "Category=Required" -trait "Category=Optional"`
+and `-trait "Category=Common"`.
+
+Common cases still execute; their differences must not be converted into skips or hard failures. The only
+conversion-matrix skips are for database types the fixture explicitly reports as unsupported. Required reader
+state, ordinal, null, schema, and valid-value behavior is in `Required/DataReaderTestBase.Required.cs`.
+
+`tests/Repository.Tests` enforces this: it fails if any shared test lacks a group attribute, sits in the wrong folder,
+names no documentation page, or if a Required test reports a soft warning.

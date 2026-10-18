@@ -10,7 +10,7 @@ internal sealed class XmlBuilder
 
 	public XmlBuilder Test(string method, string result, string? group = "Required", string? sourceFile = null, string? contract = null,
 		string? because = null, string? outcome = null, string? output = null, string? failure = null, string? skipReason = null,
-		string type = "Provider.Tests.ProviderCommandTests")
+		string type = "Provider.Tests.ProviderCommandTests", params (string Type, string Value, string Path, string Status, string Detail)[] findings)
 	{
 		var test = new XElement("test",
 			new XAttribute("name", type + "." + method),
@@ -48,9 +48,23 @@ internal sealed class XmlBuilder
 			test.Add(new XElement("output", new XCData(output)));
 		}
 
+		var attachments = new XElement("attachments");
 		if (outcome is not null)
 		{
-			test.Add(new XElement("attachments", new XElement("attachment", new XAttribute("name", "conformance-outcome"), new XCData(outcome))));
+			attachments.Add(new XElement("attachment", new XAttribute("name", "conformance-outcome"), new XCData(outcome)));
+		}
+
+		var number = 0;
+		foreach (var finding in findings ?? Array.Empty<(string, string, string, string, string)>())
+		{
+			var fields = new[] { finding.Type, finding.Value, finding.Path, finding.Status, finding.Detail ?? string.Empty };
+			attachments.Add(new XElement("attachment", new XAttribute("name", "conformance-finding-" + (++number).ToString("D6")),
+				new XCData(string.Join("|", fields.Select(Uri.EscapeDataString)))));
+		}
+
+		if (attachments.HasElements)
+		{
+			test.Add(attachments);
 		}
 
 		if (failure is not null)

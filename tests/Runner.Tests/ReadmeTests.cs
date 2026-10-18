@@ -24,9 +24,27 @@ public class ReadmeTests
 
 		foreach (var outcome in Enum.GetValues<Outcome>())
 		{
-			var row = readme.Split('\n').SingleOrDefault(l => l.StartsWith($"| `{OutcomeInfo.CodeOf(outcome)}` |", StringComparison.Ordinal));
+			// the outcome table comes first; a code such as not-applicable also appears later, as a fidelity status
+			var row = readme.Split('\n').FirstOrDefault(l => l.StartsWith($"| `{OutcomeInfo.CodeOf(outcome)}` |", StringComparison.Ordinal));
 			Assert.True(row is not null, $"README has no table row for the outcome '{OutcomeInfo.CodeOf(outcome)}'.");
 			Assert.Contains($"| {OutcomeInfo.CountsAs(outcome)} |", row);
+		}
+	}
+
+	[Fact]
+	public void Every_fidelity_status_is_explained()
+	{
+		var readme = Readme();
+
+		foreach (var status in Enum.GetValues<FidelityStatus>())
+		{
+			Assert.True(readme.Split('\n').Any(l => l.StartsWith($"| `{FidelityInfo.CodeOf(status)}` |", StringComparison.Ordinal)),
+				$"README has no table row for the fidelity status '{FidelityInfo.CodeOf(status)}'.");
+		}
+
+		foreach (var path in new[] { "read", "write", "roundtrip" })
+		{
+			Assert.Contains($"| `{path}` |", readme);
 		}
 	}
 

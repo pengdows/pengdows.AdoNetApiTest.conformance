@@ -30,6 +30,16 @@ public enum Effect
 	Advisory,
 }
 
+/// <summary>How faithfully a value survived the trip through a provider.</summary>
+public enum FidelityStatus
+{
+	Exact,
+	Lossy,
+	WrongType,
+	Throws,
+	NotApplicable,
+}
+
 public enum Verdict
 {
 	Pass,
@@ -86,4 +96,30 @@ internal static class OutcomeInfo
 		Verdict.Fail => "FAIL",
 		_ => "NOT RUN",
 	};
+}
+
+internal static class FidelityInfo
+{
+	public static string CodeOf(FidelityStatus status) => status switch
+	{
+		FidelityStatus.Exact => "exact",
+		FidelityStatus.Lossy => "lossy",
+		FidelityStatus.WrongType => "wrong-type",
+		FidelityStatus.Throws => "throws",
+		FidelityStatus.NotApplicable => "not-applicable",
+		_ => throw new ArgumentOutOfRangeException(nameof(status)),
+	};
+
+	public static string MeaningOf(FidelityStatus status) => status switch
+	{
+		FidelityStatus.Exact => "The value, and its CLR type, came back unchanged.",
+		FidelityStatus.Lossy => "The type is right but the value changed: truncated, rounded, padded or shifted.",
+		FidelityStatus.WrongType => "The value came back as a different CLR type than expected.",
+		FidelityStatus.Throws => "The provider threw instead of returning the value.",
+		FidelityStatus.NotApplicable => "The check does not apply to this type.",
+		_ => throw new ArgumentOutOfRangeException(nameof(status)),
+	};
+
+	public static bool TryParse(string? text, out FidelityStatus status) =>
+		Enum.TryParse(text, ignoreCase: false, out status) && Enum.IsDefined(status);
 }

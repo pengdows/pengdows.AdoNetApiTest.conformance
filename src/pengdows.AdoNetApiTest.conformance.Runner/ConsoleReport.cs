@@ -24,6 +24,14 @@ internal static class ConsoleReport
 					.Append(c[Outcome.ImplementedFail]).Append(" implemented fail, ")
 					.Append(c[Outcome.NotImplemented]).Append(" not implemented")
 					.Append("  |  Common ").Append(c[Outcome.Different]).Append(" differ");
+				var f = provider.Fidelity;
+				if (f.Values.Sum() > 0)
+				{
+					text.Append("  |  Types ").Append(f[FidelityStatus.Exact]).Append(" exact, ")
+						.Append(f[FidelityStatus.Lossy]).Append(" lossy, ")
+						.Append(f[FidelityStatus.WrongType]).Append(" wrong type, ")
+						.Append(f[FidelityStatus.Throws]).Append(" throws");
+				}
 			}
 
 			text.Append('\n');

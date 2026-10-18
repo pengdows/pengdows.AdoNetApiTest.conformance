@@ -3,6 +3,9 @@ using System.Xml.Linq;
 
 namespace pengdows.AdoNetApiTest.conformance.Runner;
 
+/// <summary>How one value of one type fared on one path, as a type-fidelity test attached it.</summary>
+internal sealed record Finding(string Type, string Value, string Path, FidelityStatus Status, string? Detail);
+
 /// <summary>One test as an xUnit v3 result file reports it.</summary>
 internal sealed record RawResult(
 	string Type,
@@ -14,12 +17,14 @@ internal sealed record RawResult(
 	string? Failure,
 	string? SkipReason,
 	string? MarkerOutcome,
-	string? MarkerReason);
+	string? MarkerReason,
+	IReadOnlyList<Finding> Findings);
 
 /// <summary>Reads the XML a provider test project writes with <c>-xml</c>.</summary>
 internal static partial class XunitXml
 {
 	private const string AttachmentName = "conformance-outcome";
+	private const string FindingPrefix = "conformance-finding-";
 
 	public static IReadOnlyList<RawResult> Parse(string xml)
 	{
@@ -52,7 +57,29 @@ internal static partial class XunitXml
 			test.Element("failure")?.Element("message")?.Value,
 			test.Element("reason")?.Value,
 			markerOutcome,
-			markerReason);
+			markerReason,
+			ReadFindings(test));
+	}
+
+	private static List<Finding> ReadFindings(XElement test)
+	{
+		var findings = new List<Finding>();
+		foreach (var attachment in test.Element("attachments")?.Elements("attachment") ?? Enumerable.Empty<XElement>())
+		{
+			var name = (string?) attachment.Attribute("name");
+			if (name is null || !name.StartsWith(FindingPrefix, StringComparison.Ordinal))
+			{
+				continue;
+			}
+
+			var fields = attachment.Value.Split('|').Select(Uri.UnescapeDataString).ToArray();
+			if (fields.Length == 5 && FidelityInfo.TryParse(fields[3], out var status))
+			{
+				findings.Add(new Finding(fields[0], fields[1], fields[2], status, fields[4].Length == 0 ? null : fields[4]));
+			}
+		}
+
+		return findings;
 	}
 
 	private static (string? Outcome, string? Reason) ReadMarker(XElement test, string output)

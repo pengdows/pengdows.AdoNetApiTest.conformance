@@ -28,6 +28,17 @@ internal static class MatrixJson
 
 			json.WriteEndArray();
 
+			json.WriteStartArray("fidelity-legend");
+			foreach (var status in Enum.GetValues<FidelityStatus>())
+			{
+				json.WriteStartObject();
+				json.WriteString("status", FidelityInfo.CodeOf(status));
+				json.WriteString("meaning", FidelityInfo.MeaningOf(status));
+				json.WriteEndObject();
+			}
+
+			json.WriteEndArray();
+
 			json.WriteStartArray("providers");
 			foreach (var provider in matrix.Providers)
 			{
@@ -44,6 +55,13 @@ internal static class MatrixJson
 				foreach (var (outcome, count) in provider.Counts)
 				{
 					json.WriteNumber(OutcomeInfo.CodeOf(outcome), count);
+				}
+
+				json.WriteEndObject();
+				json.WriteStartObject("fidelity");
+				foreach (var (status, count) in provider.Fidelity)
+				{
+					json.WriteNumber(FidelityInfo.CodeOf(status), count);
 				}
 
 				json.WriteEndObject();
@@ -78,6 +96,32 @@ internal static class MatrixJson
 				{
 					json.WriteStartObject(provider);
 					json.WriteString("outcome", OutcomeInfo.CodeOf(cell.Outcome));
+					if (!string.IsNullOrWhiteSpace(cell.Detail))
+					{
+						json.WriteString("detail", cell.Detail);
+					}
+
+					json.WriteEndObject();
+				}
+
+				json.WriteEndObject();
+				json.WriteEndObject();
+			}
+
+			json.WriteEndArray();
+
+			json.WriteStartArray("fidelity");
+			foreach (var row in matrix.Fidelity)
+			{
+				json.WriteStartObject();
+				json.WriteString("type", row.Type);
+				json.WriteString("value", row.Value);
+				json.WriteString("path", row.Path);
+				json.WriteStartObject("results");
+				foreach (var (provider, cell) in row.Results)
+				{
+					json.WriteStartObject(provider);
+					json.WriteString("status", FidelityInfo.CodeOf(cell.Status));
 					if (!string.IsNullOrWhiteSpace(cell.Detail))
 					{
 						json.WriteString("detail", cell.Detail);

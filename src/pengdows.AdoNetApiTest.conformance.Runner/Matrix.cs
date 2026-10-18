@@ -12,7 +12,12 @@ internal sealed record ProviderSummary(
 	string? Reason,
 	IReadOnlyDictionary<Outcome, int> Counts,
 	int RequiredPassed,
-	int RequiredTotal);
+	int RequiredTotal,
+	IReadOnlyDictionary<FidelityStatus, int> Fidelity);
+
+internal sealed record FidelityCell(FidelityStatus Status, string? Detail);
+
+internal sealed record FidelityRow(string Type, string Value, string Path, IReadOnlyDictionary<string, FidelityCell> Results);
 
 internal sealed record TestRow(
 	string Area,
@@ -25,16 +30,20 @@ internal sealed record TestRow(
 /// <summary>Every test against every provider, with a verdict per provider and overall.</summary>
 internal sealed partial class Matrix
 {
-	private Matrix(IReadOnlyList<ProviderSummary> providers, IReadOnlyList<TestRow> tests)
+	private Matrix(IReadOnlyList<ProviderSummary> providers, IReadOnlyList<TestRow> tests, IReadOnlyList<FidelityRow> fidelity)
 	{
 		Providers = providers;
 		Tests = tests;
+		Fidelity = fidelity;
 		Verdict = providers.Count > 0 && providers.All(p => p.Verdict == Verdict.Pass) ? Verdict.Pass : Verdict.Fail;
 	}
 
 	public IReadOnlyList<ProviderSummary> Providers { get; }
 
 	public IReadOnlyList<TestRow> Tests { get; }
+
+	/// <summary>Every type-fidelity finding against every provider that reported it. Advisory: it never changes a verdict.</summary>
+	public IReadOnlyList<FidelityRow> Fidelity { get; }
 
 	/// <summary>Pass only when every provider passed. A provider that did not run fails the matrix.</summary>
 	public Verdict Verdict { get; }
@@ -83,11 +92,40 @@ internal sealed partial class Matrix
 			tests.Add(new TestRow(row.Info.Area ?? "Other", row.Info.Method, row.Info.Group, row.Info.Contract, row.Info.Because, cells));
 		}
 
-		return new Matrix(providers.Select(p => Summarize(p, tests)).ToList(), tests);
+		var fidelity = BuildFidelity(providers);
+		return new Matrix(providers.Select(p => Summarize(p, tests, fidelity)).ToList(), tests, fidelity);
 	}
 
-	private static ProviderSummary Summarize(ProviderInput provider, IReadOnlyList<TestRow> tests)
+	private static List<FidelityRow> BuildFidelity(IEnumerable<ProviderInput> providers)
 	{
+		var rows = new Dictionary<(string, string, string), Dictionary<string, FidelityCell>>();
+		var order = new List<(string, string, string)>();
+		foreach (var provider in providers.Where(p => p.Results is not null))
+		{
+			foreach (var finding in provider.Results!.SelectMany(r => r.Findings))
+			{
+				var key = (finding.Type, finding.Value, finding.Path);
+				if (!rows.TryGetValue(key, out var cells))
+				{
+					rows[key] = cells = new Dictionary<string, FidelityCell>(StringComparer.Ordinal);
+					order.Add(key);
+				}
+
+				cells[provider.Id] = new FidelityCell(finding.Status, finding.Detail);
+			}
+		}
+
+		return order.Select(key => new FidelityRow(key.Item1, key.Item2, key.Item3, rows[key])).ToList();
+	}
+
+	private static ProviderSummary Summarize(ProviderInput provider, IReadOnlyList<TestRow> tests, IReadOnlyList<FidelityRow> fidelityRows)
+	{
+		var fidelity = Enum.GetValues<FidelityStatus>().ToDictionary(s => s, _ => 0);
+		foreach (var cell in fidelityRows.Select(r => r.Results.GetValueOrDefault(provider.Id)).Where(c => c is not null))
+		{
+			fidelity[cell!.Status]++;
+		}
+
 		var counts = Enum.GetValues<Outcome>().ToDictionary(o => o, _ => 0);
 		var requiredPassed = 0;
 		var requiredTotal = 0;
@@ -114,7 +152,7 @@ internal sealed partial class Matrix
 			? Verdict.NotRun
 			: counts.Any(c => OutcomeInfo.EffectOf(c.Key) == Effect.Fail && c.Value > 0) ? Verdict.Fail : Verdict.Pass;
 
-		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal);
+		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity);
 	}
 
 	// A test the provider overrides loses its group trait and source file, so those are learned from any provider that has the base test.

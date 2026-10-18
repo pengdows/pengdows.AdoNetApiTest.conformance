@@ -15,6 +15,8 @@ internal static class MatrixXml
 					new XAttribute("code", OutcomeInfo.CodeOf(o)),
 					new XAttribute("counts-as", OutcomeInfo.CountsAs(o)),
 					XmlText.Escape(OutcomeInfo.MeaningOf(o))))),
+			new XElement("fidelity-legend", Enum.GetValues<FidelityStatus>().Select(f =>
+				new XElement("status", new XAttribute("code", FidelityInfo.CodeOf(f)), XmlText.Escape(FidelityInfo.MeaningOf(f))))),
 			new XElement("providers", matrix.Providers.Select(p =>
 				new XElement("provider",
 					new XAttribute("id", XmlText.Escape(p.Id)),
@@ -24,7 +26,9 @@ internal static class MatrixXml
 					new XAttribute("required-passed", p.RequiredPassed),
 					new XAttribute("required-total", p.RequiredTotal),
 					new XElement("counts", p.Counts.Select(c =>
-						new XElement("count", new XAttribute("outcome", OutcomeInfo.CodeOf(c.Key)), c.Value)))))),
+						new XElement("count", new XAttribute("outcome", OutcomeInfo.CodeOf(c.Key)), c.Value))),
+					new XElement("fidelity-counts", p.Fidelity.Select(c =>
+						new XElement("count", new XAttribute("status", FidelityInfo.CodeOf(c.Key)), c.Value)))))),
 			new XElement("tests", matrix.Tests.Select(t =>
 				new XElement("test",
 					new XAttribute("area", XmlText.Escape(t.Area)),
@@ -36,6 +40,16 @@ internal static class MatrixXml
 						new XElement("result",
 							new XAttribute("provider", XmlText.Escape(r.Key)),
 							new XAttribute("outcome", OutcomeInfo.CodeOf(r.Value.Outcome)),
+							XmlText.Escape(r.Value.Detail)))))),
+			new XElement("fidelity", matrix.Fidelity.Select(f =>
+				new XElement("finding",
+					new XAttribute("type", XmlText.Escape(f.Type)),
+					new XAttribute("value", XmlText.Escape(f.Value)),
+					new XAttribute("path", XmlText.Escape(f.Path)),
+					f.Results.Select(r =>
+						new XElement("result",
+							new XAttribute("provider", XmlText.Escape(r.Key)),
+							new XAttribute("status", FidelityInfo.CodeOf(r.Value.Status)),
 							XmlText.Escape(r.Value.Detail)))))));
 
 		return new XDocument(new XDeclaration("1.0", "utf-8", null), root).ToString();

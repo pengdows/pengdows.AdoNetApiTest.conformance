@@ -103,6 +103,43 @@ out/Sqlite.xml`), naming each provider after its file.
 To see only the hard result without the runner, filter a provider's tests by group:
 `dotnet test tests/Sqlite.Tests --filter "Category=Required|Category=Optional"`.
 
+## Type fidelity
+
+For every type a database supports, a provider should store a CLR value and give back the same value, as the right CLR
+type. `TypeFidelityTestBase<TFixture>` checks that. A provider's fixture supplies a catalog of its native types
+(`ITypeFidelityFixture.Types`): the column definition, the `DbType` to bind with, the CLR type to expect, and values
+that matter (minimum, maximum, empty, `NULL`, the finest fractional second, Unicode outside the BMP, trailing spaces,
+embedded `NUL`, an offset). Each value takes three paths, so a failure says where it happened:
+
+| Path | What it does |
+| --- | --- |
+| `read` | writes the value with a SQL literal and reads it back through the provider |
+| `write` | writes the value with a parameter, then compares how the database itself renders it against the literal's rendering, so the read side of the provider takes no part |
+| `roundtrip` | writes with a parameter and reads back through the provider, with extra checks `type` (`GetFieldType` and `GetValue` agree with the expected CLR type), `typed` (`GetFieldValue<T>`) and `where` (`WHERE V = parameter` finds the row) |
+
+A database's own rules are written into the expectation, never reported as a driver bug: a `char(10)` comes back padded
+and a `datetime` keeps 3.33 ms steps. Each finding is one of:
+
+| Status | Meaning |
+| --- | --- |
+| `exact` | The value, and its CLR type, came back unchanged. |
+| `lossy` | The type is right but the value changed: truncated, rounded, padded or shifted. |
+| `wrong-type` | The value came back as a different CLR type than expected. |
+| `throws` | The provider threw instead of returning the value. |
+| `not-applicable` | The check does not apply to this type. |
+
+Findings are advisory (the tests are in the Common group) and do not change a provider's PASS or FAIL. The runner
+prints `Types N exact, N lossy, N wrong type, N throws` per provider and writes every finding into the matrix, with the
+detail that shows what changed.
+
+If the provider lists `DataTypes` among its schema collections (`GetSchema("MetaDataCollections")`), the Optional test
+`Advertised_data_types_match_the_catalog` also checks that each type's advertised `DataType` is the CLR type the provider
+really returns and that every supported type is listed. Many providers do not offer `DataTypes` (Microsoft.Data.Sqlite,
+DuckDB.NET and pengdows.flatfile do not), which is why the catalog, not the metadata, is the source of the types.
+
+The first catalog is SQL Server's (`SqlServerTypes`, 24 types) and runs against Microsoft.Data.SqlClient 2 to 5 and
+System.Data.SqlClient; a fixture that implements `ITypeFidelityFixture` and a derived class are all another provider needs.
+
 ## License
 
 [MIT](LICENSE)

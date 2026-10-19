@@ -48,8 +48,8 @@ See the [changelog](CHANGELOG.md). The original project's release notes are in
 
 ## Running the conformance check
 
-You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL) also need
-Docker: each of those test projects starts its own server in a container (with [Testcontainers](https://dotnet.testcontainers.org/))
+You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL, Oracle,
+Firebird, TiDB) also need Docker: each of those test projects starts its own server in a container (with [Testcontainers](https://dotnet.testcontainers.org/))
 before its first test and removes it, with its data, when the run ends. If the test process is killed, Testcontainers'
 reaper removes it. Docker picks the host port, so several providers, or several copies of this repository, can run at
 the same time. To test against a server you already have, set the `ConnectionString` environment variable; no container
@@ -157,7 +157,16 @@ a provider returns is its own contract and each client has its own catalog: Syst
 `DataTypes` collection lists, and Microsoft.Data.Sqlite returns only `long`, `double`, `string` or `byte[]` from `GetValue`
 and converts in the typed read, so a value there has an expected raw form and an expected typed form. SQLite keeps a REAL in
 8 bytes (15 significant digits), so decimals beyond that are the database's limit, not the provider's, and the catalog keeps
-decimals inside it. A fixture that implements `ITypeFidelityFixture` and a derived class are all another provider needs.
+decimals inside it.
+
+`PostgreSqlTypes` covers Npgsql 4 to 8 and `OracleTypes` covers ODP.NET. Several of their values come from workarounds
+pengdows.crud carries for these drivers: an `inet` with a netmask, an `interval` of months (PostgreSQL counts a month as
+30 days in `extract(epoch ...)`, so that is the expectation), a `timestamptz` bound with a non-zero offset, a
+`BINARY_DOUBLE` beyond 1e126, and a `LONG` read without the row's key in the select list. A value whose faithful CLR form
+is the provider's own type (Npgsql's `NpgsqlInet`) is expected by its text (`ClrText`). If a provider closes the
+connection after a rejected value, the finding says so and the next check uses a new connection. A fixture that
+implements `ITypeFidelityFixture` and a derived class are all another provider needs; a database that needs
+`FROM dual` or no statement terminator implements `ISqlDialectFixture` once on its fixture.
 
 ## Origin and license
 

@@ -4,6 +4,20 @@ using System.Data;
 
 namespace pengdows.AdoNetApiTest.conformance;
 
+/// <summary>
+/// An expected value known only by its text, for a type whose faithful CLR form lives in the provider's own assembly (an
+/// <c>inet</c> with its netmask is Npgsql's <c>NpgsqlInet</c>). The value read back matches when its invariant
+/// <c>ToString()</c> is <see cref="Text"/>.
+/// </summary>
+public sealed class ClrText
+{
+	public ClrText(string text) => Text = text;
+
+	public string Text { get; }
+
+	public override string ToString() => Text;
+}
+
 /// <summary>One value to push through a provider for a type, and what must come back.</summary>
 public sealed class TypeValue
 {
@@ -17,7 +31,10 @@ public sealed class TypeValue
 	/// <summary>A short name for the value, such as <c>max</c>, <c>empty</c> or <c>non-BMP</c>.</summary>
 	public string Label { get; }
 
-	/// <summary>A SQL expression that produces the value on the database side, with no parameter involved.</summary>
+	/// <summary>
+	/// A SQL expression that produces the value on the database side, with no parameter involved; <c>null</c> when there
+	/// is no reliable literal, and the value then takes only the <c>roundtrip</c> path.
+	/// </summary>
 	public string Literal { get; }
 
 	/// <summary>The CLR value <c>GetValue</c> returns for it. <c>null</c> means SQL NULL.</summary>
@@ -102,6 +119,12 @@ public sealed class TypeSpec
 		set => _display = value;
 	}
 
+	/// <summary>
+	/// A column definition to use when the database rejects <see cref="ColumnSql"/>, as when a provider's
+	/// <c>DataTypes</c> collection advertises a <c>CreateFormat</c> its database refuses. The rejection is a finding.
+	/// </summary>
+	public string FallbackColumnSql { get; set; }
+
 	/// <summary>False when the database defines no text for the stored value, so the <c>write</c> path has nothing to compare against.</summary>
 	public bool WriteOracle { get; set; } = true;
 
@@ -110,6 +133,15 @@ public sealed class TypeSpec
 
 	/// <summary>True when the case of text is not significant (a GUID's hex digits).</summary>
 	public bool IgnoreCase { get; set; }
+
+	/// <summary>True to leave <see cref="DbType"/> unset when binding a value, so the provider infers it; a NULL still gets <see cref="DbType"/>.</summary>
+	public bool InferDbType { get; set; }
+
+	/// <summary>
+	/// True for a spec generated from the provider's <c>DataTypes</c> collection, whose values are chosen without knowing
+	/// the database's range: a value the database rejects even as a literal is then not applicable, not a finding.
+	/// </summary>
+	public bool Generated { get; set; }
 
 	/// <summary>The <see cref="System.Data.DbType"/> to bind a parameter of this type with.</summary>
 	public DbType DbType { get; }

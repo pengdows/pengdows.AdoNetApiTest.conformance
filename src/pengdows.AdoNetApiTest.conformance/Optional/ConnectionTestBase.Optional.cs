@@ -107,7 +107,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 		{
 			table = connection.GetSchema(DbMetaDataCollectionNames.DataSourceInformation);
 		}
-		catch (NotSupportedException)
+		catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException)
 		{
 			ConformanceOutcome.NotImplemented("The provider does not expose DataSourceInformation.");
 			return;

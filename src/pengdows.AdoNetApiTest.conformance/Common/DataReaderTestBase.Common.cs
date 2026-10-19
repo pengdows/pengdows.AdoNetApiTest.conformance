@@ -824,4 +824,26 @@ public partial class DataReaderTestBase<TFixture>
 		reader.Dispose();
 		Assert.Equal(-1, reader.RecordsAffected);
 	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "GetStream only supports values that can be converted to byte arrays; SQLite and Npgsql can read any column that way.")]
+	public virtual void GetStream_throws_for_non_binary_type()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		Assert.True(reader.Read());
+		Assert.ThrowsAny<InvalidCastException>(() => reader.GetStream(0));
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "SQLite and Npgsql can read any column as text, so no exception is required for a non-text column.")]
+	public virtual void GetTextReader_throws_for_non_text_type()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		Assert.True(reader.Read());
+		Assert.ThrowsAny<InvalidCastException>(() => reader.GetTextReader(0));
+	}
 }

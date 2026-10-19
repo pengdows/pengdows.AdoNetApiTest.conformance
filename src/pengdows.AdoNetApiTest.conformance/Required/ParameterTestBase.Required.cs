@@ -63,8 +63,8 @@ public abstract partial class ParameterTestBase<TFixture>
 		parameter.Direction = ParameterDirection.Input;
 		parameter.IsNullable = true;
 		parameter.ParameterName = "value";
-		parameter.Size = 32;
 		parameter.Value = "x";
+		parameter.Size = 32;
 
 		Assert.Equal(DbType.String, parameter.DbType);
 		Assert.Equal(ParameterDirection.Input, parameter.Direction);

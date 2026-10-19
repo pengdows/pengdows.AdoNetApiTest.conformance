@@ -555,26 +555,4 @@ public partial class DataReaderTestBase<TFixture>
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
 	public virtual void GetTextReader_for_empty_String() => TestGetTextReader(ValueKind.Empty, "");
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
-	public virtual void GetStream_throws_for_non_binary_type()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-		using var reader = command.ExecuteReader();
-		Assert.True(reader.Read());
-		Assert.ThrowsAny<InvalidCastException>(() => reader.GetStream(0));
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
-	public virtual void GetTextReader_throws_for_non_text_type()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-		using var reader = command.ExecuteReader();
-		Assert.True(reader.Read());
-		Assert.ThrowsAny<InvalidCastException>(() => reader.GetTextReader(0));
-	}
-
 }

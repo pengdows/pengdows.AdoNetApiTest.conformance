@@ -34,8 +34,8 @@ public sealed class FlatFileDbFactoryFixture : IDbFactoryFixture, IParameterMark
 
     public string ConnectionString => $"path={_root}";
 
-    /// <summary>'@' is how this provider writes a parameter; it advertises no DataSourceInformation to say so.</summary>
-    public string ParameterMarker(string name) => "@" + name;
+    /// <summary>':' is how this provider writes a parameter; it advertises no DataSourceInformation to say so.</summary>
+    public string ParameterMarker(string name) => ":" + name;
 
 	public IReadOnlyList<string> DmlSetupSql => new[]
 	{

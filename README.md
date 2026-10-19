@@ -86,7 +86,7 @@ The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it wor
 | `not-applicable` | pass | The check does not apply, such as a data type the database does not have. |
 | `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
 | `deviation` | advisory | A Required test failed, but the test carries a **waiver**: the documentation states the behavior, yet a deviation cannot lose or alter data or change what a statement returns (for example a property only a designer reads). It is reported with its reason, counted in `waived`, and never fails the provider. |
-| `not-run` | fail | No result was reported, so nothing is known. |
+| `not-run` | fail | No result was reported, so nothing is known. For a **Common** test this is advisory instead (shown as `N not run` on the Common part of the console line): it cannot hide a Required result. |
 | `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Not counted against the provider; the console line says `Coverage N of M areas`. |
 
 A provider whose test project could not run at all (a server that is down, a build that failed, a timeout) is reported as

@@ -8,5 +8,5 @@ namespace MySqlData.Tests;
 public class MySqlDataDbFactoryFixture : IDbFactoryFixture
 {
 	public DbProviderFactory Factory => MySqlClientFactory.Instance;
-	public string ConnectionString => "server=localhost;user id=root;password=test;characterset=utf8mb4;database=mysqldata;port=" + (Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306");
+	public string ConnectionString => "server=localhost;user id=root;password=test;characterset=utf8mb4;sslmode=none;database=mysqldata;port=" + (Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306");
 }

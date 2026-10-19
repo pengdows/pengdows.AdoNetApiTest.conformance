@@ -70,6 +70,33 @@ public class MatrixTests
 	}
 
 	[Fact]
+	public void A_common_test_that_reported_nothing_does_not_fail_the_provider()
+	{
+		var full = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Reader_differs", "Pass", "Common", XmlBuilder.Base("Connection", "Common"));
+		var missing = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
+		var matrix = Matrix.Build(new[] { Provider("Full", full), Provider("Missing", missing) });
+
+		Assert.Equal(Outcome.NotRun, matrix.Tests.Single(t => t.Name == "Reader_differs").Results["Missing"].Outcome);
+		Assert.Equal(Verdict.Pass, matrix.Providers.Single(p => p.Id == "Missing").Verdict);
+	}
+
+	[Fact]
+	public void An_optional_test_that_reported_nothing_still_fails_the_provider()
+	{
+		var full = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Schema_works", "Pass", "Optional", XmlBuilder.Base("Connection", "Optional"));
+		var missing = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
+		var matrix = Matrix.Build(new[] { Provider("Full", full), Provider("Missing", missing) });
+
+		Assert.Equal(Verdict.Fail, matrix.Providers.Single(p => p.Id == "Missing").Verdict);
+	}
+
+	[Fact]
 	public void A_provider_with_no_results_is_not_run()
 	{
 		var matrix = Matrix.Build(new[] { new ProviderInput("Empty", "Empty.Tests", new List<RawResult>(), null) });

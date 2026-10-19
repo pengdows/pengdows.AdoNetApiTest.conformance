@@ -28,6 +28,9 @@ internal sealed record ProviderSummary(
 
 	/// <summary>Required tests that failed but carry a waiver. Counted in <see cref="RequiredTotal"/>, reported, and never fail the provider.</summary>
 	public int RequiredWaived { get; init; }
+
+	/// <summary>Common tests that reported nothing. Advisory: a Common test cannot hide a Required result, so it never fails the provider.</summary>
+	public int CommonNotRun { get; init; }
 }
 
 internal sealed record FidelityCell(FidelityStatus Status, string? Detail);
@@ -157,6 +160,8 @@ internal sealed partial class Matrix
 		var requiredNotRun = 0;
 		var requiredNotCovered = 0;
 		var requiredWaived = 0;
+		var commonNotRun = 0;
+		var hardFailure = false;
 		foreach (var row in tests)
 		{
 			if (!row.Results.TryGetValue(provider.Id, out var cell))
@@ -165,6 +170,15 @@ internal sealed partial class Matrix
 			}
 
 			counts[cell.Outcome]++;
+			if (row.Group == Group.Common && cell.Outcome == Outcome.NotRun)
+			{
+				commonNotRun++;
+			}
+			else if (OutcomeInfo.EffectOf(cell.Outcome) == Effect.Fail)
+			{
+				hardFailure = true;
+			}
+
 			if (row.Group == Group.Required && cell.Outcome == Outcome.NotCovered)
 			{
 				requiredNotCovered++;
@@ -194,7 +208,7 @@ internal sealed partial class Matrix
 		string? reason = provider.Error ?? (provider.Results is { Count: > 0 } ? null : "no tests reported");
 		var verdict = reason is not null
 			? Verdict.NotRun
-			: counts.Any(c => OutcomeInfo.EffectOf(c.Key) == Effect.Fail && c.Value > 0) ? Verdict.Fail : Verdict.Pass;
+			: hardFailure ? Verdict.Fail : Verdict.Pass;
 
 		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity, areasCovered, areasTotal)
 		{
@@ -202,6 +216,7 @@ internal sealed partial class Matrix
 			RequiredNotRun = requiredNotRun,
 			RequiredNotCovered = requiredNotCovered,
 			RequiredWaived = requiredWaived,
+			CommonNotRun = commonNotRun,
 		};
 	}
 

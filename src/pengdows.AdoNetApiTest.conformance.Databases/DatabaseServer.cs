@@ -1,8 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using Testcontainers.FirebirdSql;
 using Testcontainers.MsSql;
 using Testcontainers.MySql;
+using Testcontainers.Oracle;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -20,6 +23,7 @@ public abstract class DatabaseServer<TServer> : IAsyncLifetime
 {
 	private static string s_host;
 	private static int s_port;
+	private static string s_connectionString;
 	private IContainer m_container;
 
 	/// <summary>The host to connect to.</summary>
@@ -27,6 +31,9 @@ public abstract class DatabaseServer<TServer> : IAsyncLifetime
 
 	/// <summary>The host port Docker mapped to the server's port.</summary>
 	public static int Port => s_host is null ? throw NotStarted() : s_port;
+
+	/// <summary>The connection string the Testcontainers module builds, for a server whose module has one.</summary>
+	public static string ContainerConnectionString => s_connectionString ?? throw NotStarted();
 
 	/// <summary>The port the server listens on inside the container.</summary>
 	protected abstract ushort ContainerPort { get; }
@@ -47,12 +54,14 @@ public abstract class DatabaseServer<TServer> : IAsyncLifetime
 		await m_container.StartAsync().ConfigureAwait(false);
 		await OnStartedAsync(m_container).ConfigureAwait(false);
 		s_port = m_container.GetMappedPublicPort(ContainerPort);
+		s_connectionString = (m_container as IDatabaseContainer)?.GetConnectionString();
 		s_host = m_container.Hostname;
 	}
 
 	public async ValueTask DisposeAsync()
 	{
 		s_host = null;
+		s_connectionString = null;
 		if (m_container is not null)
 		{
 			await m_container.DisposeAsync().ConfigureAwait(false);
@@ -120,4 +129,40 @@ public sealed class SqlServerServer : DatabaseServer<SqlServerServer>
 			throw new InvalidOperationException($"Could not create the {Database} database: {result.Stderr}{result.Stdout}");
 		}
 	}
+}
+
+public sealed class OracleServer : DatabaseServer<OracleServer>
+{
+	protected override ushort ContainerPort => OracleBuilder.OraclePort;
+
+	// The faststart image ships a ready database inside the image, so its data directory cannot be a tmpfs.
+	protected override IContainer Build() =>
+		new OracleBuilder("gvenzl/oracle-free:23.26.2-slim-faststart")
+			.Build();
+}
+
+public sealed class FirebirdServer : DatabaseServer<FirebirdServer>
+{
+	protected override ushort ContainerPort => FirebirdSqlBuilder.FirebirdSqlPort;
+
+	protected override IContainer Build() =>
+		new FirebirdSqlBuilder("jacobalberty/firebird:v4.0")
+			.Build();
+}
+
+public sealed class TiDbServer : DatabaseServer<TiDbServer>
+{
+	public const ushort TiDbPort = 4000;
+	public const string User = "root";
+	public const string Database = "test";
+
+	protected override ushort ContainerPort => TiDbPort;
+
+	// TiDB accepts its port before its SQL layer is ready; this line says the SQL layer is up. Its store is in memory
+	// (unistore) by default, so nothing is written to disk.
+	protected override IContainer Build() =>
+		new ContainerBuilder("pingcap/tidb:v8.5.7")
+			.WithPortBinding(TiDbPort, true)
+			.WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("server is running MySQL protocol"))
+			.Build();
 }

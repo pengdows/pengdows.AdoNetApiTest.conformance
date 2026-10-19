@@ -27,7 +27,7 @@ public abstract partial class DbDataSourceTestBase<TFixture> : DbFactoryTestBase
 	{
 		try
 		{
-			var dataSource = Fixture.Factory.CreateDataSource(Fixture.ConnectionString);
+			var dataSource = Fixture.Factory.CreateDataSource(ConnectionString);
 			if (dataSource is not null)
 			{
 				return dataSource;

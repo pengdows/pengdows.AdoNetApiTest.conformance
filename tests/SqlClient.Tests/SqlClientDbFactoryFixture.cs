@@ -1,11 +1,15 @@
 using System.Data.Common;
 using System.Data.SqlClient;
 using pengdows.AdoNetApiTest.conformance;
+using pengdows.AdoNetApiTest.conformance.Databases;
+using Xunit;
+
+[assembly: AssemblyFixture(typeof(SqlServerServer))]
 
 namespace SqlClient.Tests;
 
 public class SqlClientDbFactoryFixture : IDbFactoryFixture
 {
 	public DbProviderFactory Factory => SqlClientFactory.Instance;
-	public string ConnectionString => "data source=localhost;user id=sa;password=P@ssw0rd;initial catalog=sqlclient";
+	public string ConnectionString => $"data source={SqlServerServer.Host},{SqlServerServer.Port};user id={SqlServerServer.User};password={SqlServerServer.Password};initial catalog={SqlServerServer.Database}";
 }

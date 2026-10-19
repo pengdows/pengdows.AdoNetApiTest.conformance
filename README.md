@@ -48,8 +48,12 @@ See the [changelog](CHANGELOG.md). The original project's release notes are in
 
 ## Running the conformance check
 
-You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL) need that
-server running first; `docker/docker-compose.yml` starts them. SQLite and the other embedded providers need nothing.
+You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL) also need
+Docker: each of those test projects starts its own server in a container (with [Testcontainers](https://dotnet.testcontainers.org/))
+before its first test and removes it, with its data, when the run ends. If the test process is killed, Testcontainers'
+reaper removes it. Docker picks the host port, so several providers, or several copies of this repository, can run at
+the same time. To test against a server you already have, set the `ConnectionString` environment variable; no container
+is started then. SQLite and the other embedded providers need nothing.
 
 From the repository root:
 

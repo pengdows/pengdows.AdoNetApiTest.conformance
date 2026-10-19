@@ -5,7 +5,7 @@
 - `src/pengdows.AdoNetApiTest.conformance/` contains reusable xUnit v3 base classes and fixtures for ADO.NET behavior.
 - `src/pengdows.AdoNetApiTest.conformance.Databases/` contains database setup and SQL helpers; `src/pengdows.AdoNetApiTest.conformance.Runner/` contains the `conformance` command-line runner (`run`, `report`) that builds the results matrix.
 - `tests/<Provider>.Tests/` contains provider-specific fixtures and derived tests (for example, `tests/Sqlite.Tests/`).
-- `docker/` defines local MySQL, PostgreSQL, and SQL Server services. Solution-wide settings are in `Directory.Build.props`, `global.json`, and `pengdows.AdoNetApiTest.conformance.sln`.
+- Server-backed provider projects start their own MySQL, PostgreSQL or SQL Server container (`DatabaseServer.cs` in the Databases project), so Docker must be running. Solution-wide settings are in `Directory.Build.props`, `global.json`, and `pengdows.AdoNetApiTest.conformance.sln`.
 
 ## Build, Test, and Development Commands
 
@@ -15,7 +15,6 @@ Use the SDK version pinned by `global.json`:
 dotnet restore pengdows.AdoNetApiTest.conformance.sln
 dotnet build pengdows.AdoNetApiTest.conformance.sln
 dotnet test tests/Repository.Tests/Repository.Tests.csproj
-docker compose -f docker/docker-compose.yml up
 dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 ```
 
@@ -35,4 +34,4 @@ Use short, imperative commit subjects such as `Build with .NET 10.` or `Update l
 
 ## Configuration and Security
 
-Do not commit credentials or connection strings containing secrets. Use local environment variables and the documented Docker services for database access; review `.github/workflows/build.yaml` before changing CI connection settings.
+Do not commit credentials or connection strings containing secrets. Use the containers the test projects start, or the `ConnectionString` environment variable, for database access; review `.github/workflows/build.yaml` before changing CI connection settings.

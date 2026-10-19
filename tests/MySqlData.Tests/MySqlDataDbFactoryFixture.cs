@@ -1,12 +1,15 @@
-using System;
 using System.Data.Common;
 using pengdows.AdoNetApiTest.conformance;
 using MySql.Data.MySqlClient;
+using pengdows.AdoNetApiTest.conformance.Databases;
+using Xunit;
+
+[assembly: AssemblyFixture(typeof(MySqlServer))]
 
 namespace MySqlData.Tests;
 
 public class MySqlDataDbFactoryFixture : IDbFactoryFixture
 {
 	public DbProviderFactory Factory => MySqlClientFactory.Instance;
-	public string ConnectionString => "server=localhost;user id=root;password=test;characterset=utf8mb4;sslmode=none;database=mysqldata;port=" + (Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306");
+	public string ConnectionString => $"server={MySqlServer.Host};port={MySqlServer.Port};user id={MySqlServer.User};password={MySqlServer.Password};characterset=utf8mb4;sslmode=none;database={MySqlServer.Database}";
 }

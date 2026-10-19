@@ -66,11 +66,11 @@ OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
 
-`Required 146/156` is passed over total. The parenthesis says what became of the rest: `failed` tests ran and failed;
+`Required 146/156` is passed over total. The parenthesis says what became of the rest: `failed` tests ran and failed; `waived` tests failed but carry a waiver (see `deviation`);
 `not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result file from
 an older suite). `+ N Required not covered` counts Required tests in an area the provider has no tests for at all (such as
 `Dml` without a fixture); they are not in the total and do not fail the provider, but they are not passes either.
-`passed + failed + not run` always equals the total, and the same three figures are in `matrix.json` and `matrix.xml`.
+`passed + failed + not run + waived` always equals the total, and the same three figures are in `matrix.json` and `matrix.xml`.
 
 The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it works in a script or CI job.
 
@@ -85,6 +85,7 @@ The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it wor
 | `not-implemented` | pass | The provider does not implement this optional capability. |
 | `not-applicable` | pass | The check does not apply, such as a data type the database does not have. |
 | `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
+| `deviation` | advisory | A Required test failed, but the test carries a **waiver**: the documentation states the behavior, yet a deviation cannot lose or alter data or change what a statement returns (for example a property only a designer reads). It is reported with its reason, counted in `waived`, and never fails the provider. |
 | `not-run` | fail | No result was reported, so nothing is known. |
 | `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Not counted against the provider; the console line says `Coverage N of M areas`. |
 

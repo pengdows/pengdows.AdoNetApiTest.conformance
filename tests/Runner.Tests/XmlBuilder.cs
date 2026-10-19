@@ -9,7 +9,7 @@ internal sealed class XmlBuilder
 	private readonly List<XElement> _tests = new();
 
 	public XmlBuilder Test(string method, string result, string? group = "Required", string? sourceFile = null, string? contract = null,
-		string? because = null, string? outcome = null, string? output = null, string? failure = null, string? skipReason = null,
+		string? because = null, string? waiver = null, string? outcome = null, string? output = null, string? failure = null, string? skipReason = null,
 		string type = "Provider.Tests.ProviderCommandTests", params (string Type, string Value, string Path, string Status, string Detail)[] findings)
 	{
 		var test = new XElement("test",
@@ -36,6 +36,11 @@ internal sealed class XmlBuilder
 		if (because is not null)
 		{
 			traits.Add(new XElement("trait", new XAttribute("name", "Because"), new XAttribute("value", because)));
+		}
+
+		if (waiver is not null)
+		{
+			traits.Add(new XElement("trait", new XAttribute("name", "Waiver"), new XAttribute("value", waiver)));
 		}
 
 		if (traits.HasElements)

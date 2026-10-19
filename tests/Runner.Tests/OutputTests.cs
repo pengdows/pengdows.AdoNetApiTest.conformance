@@ -177,6 +177,27 @@ public class OutputTests
 	}
 
 	[Fact]
+	public void Waived_deviations_are_shown_and_never_hidden()
+	{
+		var xml = new XmlBuilder()
+			.Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("B", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), waiver: "only a designer reads it", failure: "false");
+		var matrix = Matrix.Build(new[] { new ProviderInput("P", "P.Tests", XunitXml.Parse(xml.ToString()), null) });
+
+		var line = ConsoleReport.Render(matrix).Split('\n').Single(l => l.StartsWith("P ", StringComparison.Ordinal));
+		Assert.Contains("PASS", line);
+		Assert.Contains("Required 1/2 (1 waived)", line);
+
+		using var json = JsonDocument.Parse(MatrixJson.Write(matrix));
+		Assert.Equal(1, json.RootElement.GetProperty("providers")[0].GetProperty("required").GetProperty("waived").GetInt32());
+		var test = json.RootElement.GetProperty("tests").EnumerateArray().Single(t => t.GetProperty("name").GetString() == "B");
+		Assert.Equal("only a designer reads it", test.GetProperty("waiver").GetString());
+		Assert.Equal("deviation", test.GetProperty("results").GetProperty("P").GetProperty("outcome").GetString());
+		var xmlOut = MatrixXml.Write(matrix);
+		Assert.Contains("required-waived=\"1\"", xmlOut);
+	}
+
+	[Fact]
 	public void Console_report_shows_coverage_only_when_an_area_has_no_tests()
 	{
 		var full = new XmlBuilder().Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required")).Test("B", "Pass", "Required", XmlBuilder.Base("Command", "Required"));

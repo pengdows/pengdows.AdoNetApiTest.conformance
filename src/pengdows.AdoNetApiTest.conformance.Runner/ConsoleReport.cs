@@ -31,6 +31,11 @@ internal static class ConsoleReport
 					lost.Add(provider.RequiredNotRun + " not run");
 				}
 
+				if (provider.RequiredWaived > 0)
+				{
+					lost.Add(provider.RequiredWaived + " waived");
+				}
+
 				if (lost.Count > 0)
 				{
 					text.Append(" (").Append(string.Join(", ", lost)).Append(')');

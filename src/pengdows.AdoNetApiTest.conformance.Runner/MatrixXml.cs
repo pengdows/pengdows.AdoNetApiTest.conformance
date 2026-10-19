@@ -30,6 +30,7 @@ internal static class MatrixXml
 					new XAttribute("required-failed", p.RequiredFailed),
 					new XAttribute("required-not-run", p.RequiredNotRun),
 					new XAttribute("required-not-covered", p.RequiredNotCovered),
+					new XAttribute("required-waived", p.RequiredWaived),
 					new XElement("counts", p.Counts.Select(c =>
 						new XElement("count", new XAttribute("outcome", OutcomeInfo.CodeOf(c.Key)), c.Value))),
 					new XElement("fidelity-counts", p.Fidelity.Select(c =>
@@ -41,6 +42,7 @@ internal static class MatrixXml
 					new XAttribute("group", t.Group.ToString()),
 					t.Contract is null ? null : new XAttribute("contract", XmlText.Escape(t.Contract)),
 					t.Because is null ? null : new XAttribute("because", XmlText.Escape(t.Because)),
+					t.Waiver is null ? null : new XAttribute("waiver", XmlText.Escape(t.Waiver)),
 					t.Results.Select(r =>
 						new XElement("result",
 							new XAttribute("provider", XmlText.Escape(r.Key)),

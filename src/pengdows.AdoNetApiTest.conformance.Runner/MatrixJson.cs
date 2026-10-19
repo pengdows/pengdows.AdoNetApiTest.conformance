@@ -75,6 +75,7 @@ internal static class MatrixJson
 				json.WriteNumber("failed", provider.RequiredFailed);
 				json.WriteNumber("not-run", provider.RequiredNotRun);
 				json.WriteNumber("not-covered", provider.RequiredNotCovered);
+				json.WriteNumber("waived", provider.RequiredWaived);
 				json.WriteEndObject();
 				json.WriteEndObject();
 			}
@@ -91,6 +92,11 @@ internal static class MatrixJson
 				if (test.Contract is not null)
 				{
 					json.WriteString("contract", test.Contract);
+				}
+
+				if (test.Waiver is not null)
+				{
+					json.WriteString("waiver", test.Waiver);
 				}
 
 				if (test.Because is not null)

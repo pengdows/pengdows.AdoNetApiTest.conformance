@@ -25,6 +25,9 @@ internal sealed record ProviderSummary(
 
 	/// <summary>Required tests in an area the provider has no tests for. Not counted in <see cref="RequiredTotal"/>.</summary>
 	public int RequiredNotCovered { get; init; }
+
+	/// <summary>Required tests that failed but carry a waiver. Counted in <see cref="RequiredTotal"/>, reported, and never fail the provider.</summary>
+	public int RequiredWaived { get; init; }
 }
 
 internal sealed record FidelityCell(FidelityStatus Status, string? Detail);
@@ -37,6 +40,7 @@ internal sealed record TestRow(
 	Group Group,
 	string? Contract,
 	string? Because,
+	string? Waiver,
 	IReadOnlyDictionary<string, Cell> Results);
 
 /// <summary>Every test against every provider, with a verdict per provider and overall.</summary>
@@ -98,7 +102,7 @@ internal sealed partial class Matrix
 				}
 				else if (row.Raw.TryGetValue(provider.Id, out var raw))
 				{
-					cells[provider.Id] = Classifier.Classify(raw, row.Info.Group);
+					cells[provider.Id] = Classifier.Classify(raw, row.Info.Group, row.Info.Waiver);
 				}
 				else if (row.Info.Group != Group.Unclassified)
 				{
@@ -109,7 +113,7 @@ internal sealed partial class Matrix
 				}
 			}
 
-			tests.Add(new TestRow(row.Info.Area ?? "Other", row.Info.Method, row.Info.Group, row.Info.Contract, row.Info.Because, cells));
+			tests.Add(new TestRow(row.Info.Area ?? "Other", row.Info.Method, row.Info.Group, row.Info.Contract, row.Info.Because, row.Info.Waiver, cells));
 		}
 
 		var fidelity = BuildFidelity(providers);
@@ -152,6 +156,7 @@ internal sealed partial class Matrix
 		var requiredFailed = 0;
 		var requiredNotRun = 0;
 		var requiredNotCovered = 0;
+		var requiredWaived = 0;
 		foreach (var row in tests)
 		{
 			if (!row.Results.TryGetValue(provider.Id, out var cell))
@@ -175,6 +180,10 @@ internal sealed partial class Matrix
 				{
 					requiredNotRun++;
 				}
+				else if (cell.Outcome == Outcome.Deviation)
+				{
+					requiredWaived++;
+				}
 				else
 				{
 					requiredFailed++;
@@ -192,6 +201,7 @@ internal sealed partial class Matrix
 			RequiredFailed = requiredFailed,
 			RequiredNotRun = requiredNotRun,
 			RequiredNotCovered = requiredNotCovered,
+			RequiredWaived = requiredWaived,
 		};
 	}
 
@@ -236,13 +246,14 @@ internal sealed partial class Matrix
 		raw.Traits.TryGetValue("Category", out var category);
 		raw.Traits.TryGetValue("Contract", out var contract);
 		raw.Traits.TryGetValue("Because", out var because);
-		return new TestInfo(area, raw.Method, GroupParser.Parse(category), contract, because);
+		raw.Traits.TryGetValue("Waiver", out var waiver);
+		return new TestInfo(area, raw.Method, GroupParser.Parse(category), contract, because, waiver);
 	}
 
 	[GeneratedRegex(@"^(.+?)TestBase\.")]
 	private static partial Regex BaseTestFile();
 
-	private sealed record TestInfo(string? Area, string Method, Group Group, string? Contract, string? Because);
+	private sealed record TestInfo(string? Area, string Method, Group Group, string? Contract, string? Because, string? Waiver);
 
 	private sealed class RowBuilder(TestInfo info)
 	{

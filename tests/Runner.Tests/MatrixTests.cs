@@ -157,6 +157,50 @@ public class MatrixTests
 	}
 
 	[Fact]
+	public void A_waived_required_failure_is_reported_but_does_not_fail_the_provider()
+	{
+		var xml = new XmlBuilder()
+			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Designer_flag", "Fail", "Required", XmlBuilder.Base("Command", "Required"), waiver: "only a designer reads it", failure: "false");
+
+		var matrix = Matrix.Build(new[] { Provider("P", xml) });
+
+		var summary = matrix.Providers.Single();
+		Assert.Equal(Verdict.Pass, summary.Verdict);
+		Assert.Equal(1, summary.RequiredPassed);
+		Assert.Equal(0, summary.RequiredFailed);
+		Assert.Equal(1, summary.RequiredWaived);
+		Assert.Equal(2, summary.RequiredTotal);
+		Assert.Equal(Outcome.Deviation, matrix.Tests.Single(t => t.Name == "Designer_flag").Results["P"].Outcome);
+		Assert.Equal("only a designer reads it", matrix.Tests.Single(t => t.Name == "Designer_flag").Waiver);
+	}
+
+	[Fact]
+	public void The_waiver_is_learned_from_a_provider_that_did_not_override_the_test()
+	{
+		var plain = new XmlBuilder().Test("Designer_flag", "Pass", "Required", XmlBuilder.Base("Command", "Required"), waiver: "only a designer reads it");
+		var overridden = new XmlBuilder().Test("Designer_flag", "Fail", group: null, failure: "false");
+
+		var matrix = Matrix.Build(new[] { Provider("Plain", plain), Provider("Overrides", overridden) });
+
+		Assert.Equal(Outcome.Deviation, matrix.Tests.Single().Results["Overrides"].Outcome);
+		Assert.Equal(Verdict.Pass, matrix.Providers.Single(p => p.Id == "Overrides").Verdict);
+	}
+
+	[Fact]
+	public void Required_tests_are_accounted_for_including_waived()
+	{
+		var xml = new XmlBuilder()
+			.Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("B", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), failure: "x")
+			.Test("C", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), waiver: "w", failure: "x");
+
+		var s = Matrix.Build(new[] { Provider("P", xml) }).Providers.Single();
+
+		Assert.Equal(s.RequiredTotal, s.RequiredPassed + s.RequiredFailed + s.RequiredNotRun + s.RequiredWaived);
+	}
+
+	[Fact]
 	public void Coverage_counts_the_areas_the_provider_has_tests_for()
 	{
 		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));

@@ -6,12 +6,28 @@ namespace Runner.Tests;
 public class ClassifierTests
 {
 	private static Outcome Classify(string method, string result, string? group, string? outcome = null, string? output = null,
-		string? failure = null, string? skipReason = null)
+		string? failure = null, string? skipReason = null, string? waiver = null)
 	{
 		var xml = new XmlBuilder().Test(method, result, group, outcome: outcome, output: output, failure: failure, skipReason: skipReason).ToString();
 		var raw = Assert.Single(XunitXml.Parse(xml));
-		return Classifier.Classify(raw, GroupParser.Parse(group)).Outcome;
+		return Classifier.Classify(raw, GroupParser.Parse(group), waiver).Outcome;
 	}
+
+	[Fact]
+	public void Required_fail_with_a_waiver_is_a_deviation_not_a_fail() =>
+		Assert.Equal(Outcome.Deviation, Classify("A", "Fail", "Required", failure: "boom", waiver: "only a designer reads it"));
+
+	[Fact]
+	public void Required_pass_with_a_waiver_is_still_a_pass() =>
+		Assert.Equal(Outcome.Pass, Classify("A", "Pass", "Required", waiver: "only a designer reads it"));
+
+	[Fact]
+	public void A_waiver_does_not_excuse_a_skip() =>
+		Assert.Equal(Outcome.Fail, Classify("A", "Skip", "Required", skipReason: "x", waiver: "only a designer reads it"));
+
+	[Fact]
+	public void A_waiver_means_nothing_outside_Required() =>
+		Assert.Equal(Outcome.ImplementedFail, Classify("A", "Fail", "Optional", failure: "boom", waiver: "ignored"));
 
 	[Fact]
 	public void Required_pass_is_pass() => Assert.Equal(Outcome.Pass, Classify("A", "Pass", "Required"));

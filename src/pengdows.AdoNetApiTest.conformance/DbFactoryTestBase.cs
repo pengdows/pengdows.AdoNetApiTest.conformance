@@ -108,9 +108,9 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// <summary>
 	/// Matches provider-neutral ADO.NET behavior: providers that
 	/// explicitly advertise the positional format '?' use that placeholder; named
-	/// providers receive their advertised marker plus the logical name. Missing or
-	/// unusable DataSourceInformation is allowed to fail rather than being treated as
-	/// evidence of positional support.
+	/// providers receive their advertised marker plus the logical name. When
+	/// DataSourceInformation is missing or unusable, the marker is <c>@</c>, the .NET de
+	/// facto convention; the DataSourceInformation tests report the gap.
 	/// The logical <see cref="DbParameter.ParameterName"/> remains independent of
 	/// this SQL representation.
 	/// The positional-versus-named decision follows the ADO.NET
@@ -140,20 +140,22 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		}
 		catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException)
 		{
-			throw new InvalidOperationException("The provider offers no DataSourceInformation schema; implement IParameterMarkerFixture on the fixture to state its parameter marker.", ex);
+			return DefaultMarker;
 		}
 
 		if (schema.Rows.Count == 0)
 		{
-			throw new InvalidOperationException("DataSourceInformation returned no row; implement IParameterMarkerFixture on the fixture to state its parameter marker.");
+			return DefaultMarker;
 		}
 
 		var row = schema.Rows[0];
 		var format = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerFormat) ? row[DbMetaDataColumnNames.ParameterMarkerFormat] as string : null;
 		var pattern = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerPattern) ? row[DbMetaDataColumnNames.ParameterMarkerPattern] as string : null;
-		return ParameterMarkerDiscovery.Discover(format, pattern)
-			?? throw new InvalidOperationException($"DataSourceInformation advertises no usable parameter marker (format '{format}', pattern '{pattern}'); implement IParameterMarkerFixture on the fixture.");
+		return ParameterMarkerDiscovery.Discover(format, pattern) ?? DefaultMarker;
 	}
+
+	/// <summary>The marker when a provider does not say: <c>@name</c>, the .NET de facto convention though not SQL-92.</summary>
+	private static readonly ParameterMarker DefaultMarker = new(false, "@");
 
 	/// <summary>
 	/// Formats a provider parameter from its logical name using the same named-versus-

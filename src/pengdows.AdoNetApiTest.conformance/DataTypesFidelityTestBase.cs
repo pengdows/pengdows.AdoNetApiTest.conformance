@@ -72,7 +72,7 @@ public abstract partial class DataTypesFidelityTestBase<TFixture> : FidelityTest
 		{
 			foreach (var uncovered in Catalog.Uncovered)
 			{
-				ConformanceOutcome.Finding(uncovered.Name + DataTypesCatalog.Label, "(advertised)", "metadata", FidelityStatus.NotApplicable, "not covered: " + uncovered.Reason);
+				ConformanceOutcome.Finding(uncovered.Name + DataTypesCatalog.Label, "(not covered)", "metadata", FidelityStatus.NotApplicable, "not covered: " + uncovered.Reason);
 			}
 		}
 
@@ -81,7 +81,9 @@ public abstract partial class DataTypesFidelityTestBase<TFixture> : FidelityTest
 
 	private void Load()
 	{
-		DataTable dataTypes;
+		var server = Fixture as IServerTypesFixture;
+		DataTable dataTypes = null;
+		string unavailable = null;
 		using (var connection = CreateOpenConnection())
 		{
 			try
@@ -90,16 +92,33 @@ public abstract partial class DataTypesFidelityTestBase<TFixture> : FidelityTest
 			}
 			catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException or InvalidOperationException)
 			{
-				_unavailable = $"The provider has no DataTypes collection ({ex.GetType().Name}: {ex.Message}).";
-				return;
+				unavailable = $"The provider has no DataTypes collection ({ex.GetType().Name}: {ex.Message}).";
 			}
+
+			if (dataTypes is { Rows.Count: 0 })
+			{
+				unavailable = "The provider's DataTypes collection is empty.";
+			}
+
+			_serverTypes = server?.ServerTypesSql is { } sql ? ReadServerTypes(connection, sql) : null;
 		}
 
-		if (dataTypes.Rows.Count == 0)
+		var extras = server?.ExtraTypes ?? Array.Empty<ExtraType>();
+		if (unavailable is not null && extras.Count == 0)
 		{
-			_unavailable = "The provider's DataTypes collection is empty.";
+			_unavailable = unavailable;
 			return;
 		}
+
+		if (unavailable is not null)
+		{
+			dataTypes = new DataTable("DataTypes");
+		}
+
+		_advertised = dataTypes.Columns.Contains("TypeName")
+			? dataTypes.Rows.Cast<DataRow>().Select(row => row["TypeName"] as string).Where(name => name is not null).ToList()
+			: new List<string>();
+		Merge(dataTypes, extras.Concat(ProbeServerTypes(extras, server?.ExcludedTypes)).ToList(), server?.ExcludedTypes);
 
 		var render = Fixture is IDataTypesFidelityFixture fixture ? fixture.RenderAsText : "CAST({0} AS VARCHAR(4000))";
 		_catalog = DataTypesCatalog.Build(dataTypes, ResolveType);
@@ -107,7 +126,192 @@ public abstract partial class DataTypesFidelityTestBase<TFixture> : FidelityTest
 		{
 			spec.RenderAsText = render;
 		}
+
+		if (server?.ExcludedTypes is { } excluded)
+		{
+			_catalog = new GeneratedCatalog(_catalog.Types,
+				_catalog.Uncovered.Concat(excluded.Select(pair => new UncoveredType(pair.Key, "excluded: " + pair.Value))).ToList());
+		}
 	}
+
+	private List<(string Name, string Column)> _serverTypes;
+	private List<string> _advertised;
+	private readonly Dictionary<string, string> _probed = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Each server type DataTypes does not list, as the CLR type the driver reports for a column of it: the column is
+	/// created and its schema read (<c>GetFieldType</c>), so the mapping is the driver's own, not a table kept here.
+	/// </summary>
+	private List<ExtraType> ProbeServerTypes(IReadOnlyList<ExtraType> extras, IReadOnlyDictionary<string, string> excluded)
+	{
+		var probed = new List<ExtraType>();
+		if (_serverTypes is null)
+		{
+			return probed;
+		}
+
+		using var connection = CreateOpenConnection();
+		var table = TablePrefix + "_probe";
+		foreach (var (name, column) in _serverTypes.GroupBy(t => t.Name, StringComparer.OrdinalIgnoreCase).Select(g => g.First()))
+		{
+			if (_advertised.Any(a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase))
+				|| extras.Any(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase))
+				|| (excluded?.Keys.Any(k => string.Equals(k, name, StringComparison.OrdinalIgnoreCase)) ?? false))
+			{
+				continue;
+			}
+
+			try
+			{
+				Quietly(() => Execute(connection, DropTableSql(table)));
+				Execute(connection, CreateTableSql(table, column));
+				using var command = connection.CreateCommand();
+				command.CommandText = $"select V from {table}";
+				Type fieldType;
+				try
+				{
+					using var reader = command.ExecuteReader(CommandBehavior.SchemaOnly);
+					fieldType = reader.GetFieldType(0);
+				}
+				catch (Exception ex) when (ex is NotSupportedException or InvalidOperationException)
+				{
+					using var reader = command.ExecuteReader();
+					fieldType = reader.GetFieldType(0);
+				}
+
+				probed.Add(new ExtraType(name, fieldType.FullName, column));
+				_probed[name] = "the driver reads it as " + fieldType.FullName;
+			}
+			catch (Exception ex) when (!(ex is Xunit.Sdk.XunitException))
+			{
+				_probed[name] = $"a column of it ({column}) could not be read: {ex.GetType().Name}: {FirstLine(ex.Message)}";
+			}
+			finally
+			{
+				Quietly(() => Execute(connection, DropTableSql(table)));
+			}
+		}
+
+		return probed;
+	}
+
+	private static void Quietly(Action action)
+	{
+		try
+		{
+			action();
+		}
+		catch (Exception ex) when (!(ex is Xunit.Sdk.XunitException))
+		{
+		}
+	}
+
+	/// <summary>Adds the extra types as rows the generator reads, and removes the excluded ones.</summary>
+	private static void Merge(DataTable dataTypes, IReadOnlyList<ExtraType> extras, IReadOnlyDictionary<string, string> excluded)
+	{
+		foreach (var column in new[] { "TypeName", "CreateFormat", "DataType" })
+		{
+			if (!dataTypes.Columns.Contains(column))
+			{
+				dataTypes.Columns.Add(column, typeof(string));
+			}
+			else if (dataTypes.Columns[column].DataType != typeof(string))
+			{
+				return;
+			}
+		}
+
+		foreach (var extra in extras)
+		{
+			var row = dataTypes.NewRow();
+			row["TypeName"] = extra.Name;
+			row["CreateFormat"] = extra.ColumnSql ?? extra.Name;
+			row["DataType"] = extra.ClrType;
+			dataTypes.Rows.Add(row);
+		}
+
+		if (excluded is not null)
+		{
+			foreach (var row in dataTypes.Rows.Cast<DataRow>().Where(row => row["TypeName"] is string name && excluded.Keys.Any(key => string.Equals(key, name, StringComparison.OrdinalIgnoreCase))).ToList())
+			{
+				dataTypes.Rows.Remove(row);
+			}
+		}
+	}
+
+	private static List<(string Name, string Column)> ReadServerTypes(DbConnection connection, string sql)
+	{
+		using var command = connection.CreateCommand();
+		command.CommandText = sql;
+		using var reader = command.ExecuteReader();
+		var types = new List<(string, string)>();
+		while (reader.Read())
+		{
+			if (reader.IsDBNull(0))
+			{
+				continue;
+			}
+
+			var name = Convert.ToString(reader.GetValue(0), System.Globalization.CultureInfo.InvariantCulture).Trim();
+			var column = reader.FieldCount > 1 && !reader.IsDBNull(1)
+				? Convert.ToString(reader.GetValue(1), System.Globalization.CultureInfo.InvariantCulture).Trim()
+				: name;
+			types.Add((name, column));
+		}
+
+		return types;
+	}
+
+	/// <summary>
+	/// Compares the provider's DataTypes collection with the server's own list of types, both ways, and reports each
+	/// difference as a metadata finding. A provider that builds DataTypes from the server it is connected to matches it;
+	/// one that ships a fixed list misses the server's newer types and may list types the server lacks.
+	/// </summary>
+	protected void CompareWithServer()
+	{
+		if (Catalog is null && _unavailable is not null)
+		{
+			ConformanceOutcome.NotImplemented(_unavailable);
+			return;
+		}
+
+		if (_serverTypes is null)
+		{
+			ConformanceOutcome.NotApplicable("The fixture has no query for the server's own list of types (IServerTypesFixture.ServerTypesSql).");
+			return;
+		}
+
+		var server = _serverTypes.Select(t => t.Name).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+		var missing = server.Where(name => !_advertised.Any(a => SameType(a, name))).ToList();
+		var extra = _advertised.Distinct(StringComparer.OrdinalIgnoreCase).Where(name => !server.Any(s => SameType(s, name))).ToList();
+		var configured = (Fixture as IServerTypesFixture)?.ExtraTypes ?? Array.Empty<ExtraType>();
+
+		foreach (var name in missing)
+		{
+			var how = configured.Any(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase))
+				? "; tested as a configured type"
+				: _probed.TryGetValue(name, out var probe) ? "; " + probe : string.Empty;
+			ConformanceOutcome.Finding(name + DataTypesCatalog.Label, "(server)", "metadata", FidelityStatus.Lossy,
+				"the server supports this type but DataTypes does not list it" + how);
+		}
+
+		foreach (var name in extra)
+		{
+			ConformanceOutcome.Finding(name + DataTypesCatalog.Label, "(advertised)", "metadata", FidelityStatus.Lossy,
+				"DataTypes lists this type but the server's own list does not have it");
+		}
+
+		if (missing.Count > 0 || extra.Count > 0)
+		{
+			ConformanceOutcome.Different(
+				$"DataTypes does not describe the connected server: {missing.Count} of the server's {server.Count} types are missing from it, " +
+				$"and {extra.Count} of its {_advertised.Count} rows are types the server does not list. A list built from the server would match.");
+		}
+	}
+
+	/// <summary>Type names compared as SQL compares them: case aside, and a quoted name (PostgreSQL's <c>"char"</c>) as its unquoted text.</summary>
+	private static bool SameType(string a, string b) =>
+		string.Equals(a.Replace("\"", string.Empty), b.Replace("\"", string.Empty), StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>A <c>DataType</c> name, looked up in the provider's assembly before the framework's.</summary>
 	private Type ResolveType(string name)

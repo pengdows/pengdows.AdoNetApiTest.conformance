@@ -27,4 +27,12 @@ public abstract partial class DataTypesFidelityTestBase<TFixture>
 	/// </summary>
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/common-schema-collections", Because = "value fidelity per type is an interoperability expectation; the contract does not state it")]
 	public virtual void DataTypes_round_trip_exactly_through_parameters() => RunGenerated(Paths.RoundTrip, reportUncovered: false);
+
+	/// <summary>
+	/// "DataTypes: Information about the data types supported by the data source." The collection describes the server
+	/// it is connected to, so it is compared with the server's own list of types (the fixture's query) both ways.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/common-schema-collections#datatypes.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/common-schema-collections", Because = "most providers ship a fixed list; held advisory until the matrix shows how many describe the connected server")]
+	public virtual void DataTypes_lists_the_types_the_server_supports() => CompareWithServer();
 }

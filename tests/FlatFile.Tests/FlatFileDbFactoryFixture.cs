@@ -7,7 +7,7 @@ using pengdows.AdoNetApiTest.conformance;
 
 namespace FlatFile.Tests;
 
-public sealed class FlatFileDbFactoryFixture : IDbFactoryFixture, IDmlFixture, IDisposable
+public sealed class FlatFileDbFactoryFixture : IDbFactoryFixture, IParameterMarkerFixture, IDmlFixture, IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), "adonet-flatfile-" + Guid.NewGuid().ToString("N"));
 
@@ -33,6 +33,9 @@ public sealed class FlatFileDbFactoryFixture : IDbFactoryFixture, IDmlFixture, I
     public DbProviderFactory Factory => FlatFileProviderFactory.Instance;
 
     public string ConnectionString => $"path={_root}";
+
+    /// <summary>'@' is how this provider writes a parameter; it advertises no DataSourceInformation to say so.</summary>
+    public string ParameterMarker(string name) => "@" + name;
 
 	public IReadOnlyList<string> DmlSetupSql => new[]
 	{

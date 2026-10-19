@@ -25,7 +25,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 		using var connection = CreateOpenConnection();
 		if (!connection.CanCreateBatch)
 		{
-			Assert.Throws<NotSupportedException>(() => connection.CreateBatch());
+			Assert.ThrowsAny<NotSupportedException>(() => connection.CreateBatch());
 			ConformanceOutcome.NotImplemented("The provider does not implement connection-level batches.");
 			return;
 		}

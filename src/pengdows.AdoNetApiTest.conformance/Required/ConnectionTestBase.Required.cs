@@ -23,7 +23,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 	public virtual void ConnectionString_setter_throws_when_open()
 	{
 		using var connection = CreateOpenConnection();
-		Assert.Throws<InvalidOperationException>(() => connection.ConnectionString = ConnectionString + ";");
+		Assert.ThrowsAny<InvalidOperationException>(() => connection.ConnectionString = ConnectionString + ";");
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection")]

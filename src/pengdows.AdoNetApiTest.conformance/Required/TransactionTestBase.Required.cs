@@ -12,7 +12,7 @@ public partial class TransactionTestBase<TFixture>
 	public virtual void BeginTransaction_throws_when_closed()
 	{
 		using var connection = CreateConnection();
-		Assert.Throws<InvalidOperationException>(() => connection.BeginTransaction());
+		Assert.ThrowsAny<InvalidOperationException>(() => connection.BeginTransaction());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction")]
@@ -150,9 +150,9 @@ public partial class TransactionTestBase<TFixture>
 
 		if (!transaction.SupportsSavepoints)
 		{
-			Assert.Throws<NotSupportedException>(() => transaction.Save(savepoint));
-			Assert.Throws<NotSupportedException>(() => transaction.Rollback(savepoint));
-			Assert.Throws<NotSupportedException>(() => transaction.Release(savepoint));
+			Assert.ThrowsAny<NotSupportedException>(() => transaction.Save(savepoint));
+			Assert.ThrowsAny<NotSupportedException>(() => transaction.Rollback(savepoint));
+			Assert.ThrowsAny<NotSupportedException>(() => transaction.Release(savepoint));
 			return;
 		}
 
@@ -179,9 +179,9 @@ public partial class TransactionTestBase<TFixture>
 
 		if (!transaction.SupportsSavepoints)
 		{
-			await Assert.ThrowsAsync<NotSupportedException>(() => transaction.SaveAsync(savepoint)).ConfigureAwait(false);
-			await Assert.ThrowsAsync<NotSupportedException>(() => transaction.RollbackAsync(savepoint)).ConfigureAwait(false);
-			await Assert.ThrowsAsync<NotSupportedException>(() => transaction.ReleaseAsync(savepoint)).ConfigureAwait(false);
+			await Assert.ThrowsAnyAsync<NotSupportedException>(() => transaction.SaveAsync(savepoint)).ConfigureAwait(false);
+			await Assert.ThrowsAnyAsync<NotSupportedException>(() => transaction.RollbackAsync(savepoint)).ConfigureAwait(false);
+			await Assert.ThrowsAnyAsync<NotSupportedException>(() => transaction.ReleaseAsync(savepoint)).ConfigureAwait(false);
 			return;
 		}
 

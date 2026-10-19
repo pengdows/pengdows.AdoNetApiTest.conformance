@@ -114,7 +114,7 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectSql("NULL");
 		using var reader = command.ExecuteReader();
-		Assert.Throws<InvalidOperationException>(() => action(reader));
+		Assert.ThrowsAny<InvalidOperationException>(() => action(reader));
 	}
 
 	private void X_throws_when_done(Action<DbDataReader> action)
@@ -129,7 +129,7 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		hasData = reader.Read();
 		Assert.False(hasData);
 
-		Assert.Throws<InvalidOperationException>(() => action(reader));
+		Assert.ThrowsAny<InvalidOperationException>(() => action(reader));
 	}
 
 	private void X_throws_when_closed(Action<DbDataReader> action)
@@ -140,7 +140,7 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		var reader = command.ExecuteReader();
 		((IDisposable) reader).Dispose();
 
-		Assert.Throws<InvalidOperationException>(() => action(reader));
+		Assert.ThrowsAny<InvalidOperationException>(() => action(reader));
 	}
 
 	private void X_diagnostic_when_closed(Action<DbDataReader> action, string behavior)

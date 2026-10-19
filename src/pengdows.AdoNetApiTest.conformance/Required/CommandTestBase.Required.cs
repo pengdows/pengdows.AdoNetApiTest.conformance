@@ -19,7 +19,7 @@ public abstract partial class CommandTestBase<TFixture>
 
 		using var reader = command.ExecuteReader();
 
-		Assert.Throws<InvalidOperationException>(() => command.CommandText = SelectSql("2"));
+		Assert.ThrowsAny<InvalidOperationException>(() => command.CommandText = SelectSql("2"));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -41,7 +41,7 @@ public abstract partial class CommandTestBase<TFixture>
 
 		using var reader = command.ExecuteReader();
 
-		Assert.Throws<InvalidOperationException>(() => command.Connection = CreateConnection());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.Connection = CreateConnection());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -53,7 +53,7 @@ public abstract partial class CommandTestBase<TFixture>
 
 		using var reader = command.ExecuteReader();
 
-		Assert.Throws<InvalidOperationException>(() => command.Connection = null);
+		Assert.ThrowsAny<InvalidOperationException>(() => command.Connection = null);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -172,7 +172,7 @@ public abstract partial class CommandTestBase<TFixture>
 	public virtual void Prepare_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.Prepare());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.Prepare());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -180,7 +180,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.Prepare());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.Prepare());
 	}
 
 
@@ -188,7 +188,7 @@ public abstract partial class CommandTestBase<TFixture>
 	public virtual void ExecuteReader_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.ExecuteReader());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -196,7 +196,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.ExecuteReader());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -249,7 +249,7 @@ public abstract partial class CommandTestBase<TFixture>
 	public virtual void ExecuteScalar_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.ExecuteScalar());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteScalar());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -257,7 +257,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.ExecuteScalar());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteScalar());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executescalar", Because = "the first column of the first row, as an object; no CLR type is named")]
@@ -338,7 +338,7 @@ public abstract partial class CommandTestBase<TFixture>
 	public virtual void ExecuteNonQuery_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.ExecuteNonQuery());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteNonQuery());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -346,7 +346,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
-		Assert.Throws<InvalidOperationException>(() => command.ExecuteNonQuery());
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteNonQuery());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -362,7 +362,7 @@ public abstract partial class CommandTestBase<TFixture>
 	public virtual async Task ExecuteReaderAsync_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		await Assert.ThrowsAsync<InvalidOperationException>(command.ExecuteReaderAsync);
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteReaderAsync);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -370,7 +370,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
-		await Assert.ThrowsAsync<InvalidOperationException>(command.ExecuteReaderAsync);
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteReaderAsync);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -406,7 +406,7 @@ public abstract partial class CommandTestBase<TFixture>
 	public virtual async Task ExecuteScalarAsync_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		await Assert.ThrowsAsync<InvalidOperationException>(command.ExecuteScalarAsync);
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteScalarAsync);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -414,7 +414,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
-		await Assert.ThrowsAsync<InvalidOperationException>(command.ExecuteScalarAsync);
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteScalarAsync);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]

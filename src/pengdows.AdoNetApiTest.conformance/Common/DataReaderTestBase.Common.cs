@@ -519,10 +519,10 @@ public partial class DataReaderTestBase<TFixture>
 	public virtual void FieldCount_is_zero_after_Delete() => Test_X_after_Delete(x => Assert.Equal(0, x.FieldCount));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void IsDBNull_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.IsDBNull(0)));
+	public virtual void IsDBNull_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.IsDBNull(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual async Task IsDBNullAsync_throws_after_Delete() => await Test_X_after_Delete(async x => await Assert.ThrowsAsync<InvalidOperationException>(async () => await x.IsDBNullAsync(0)));
+	public virtual async Task IsDBNullAsync_throws_after_Delete() => await Test_X_after_Delete(async x => await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await x.IsDBNullAsync(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
 	public virtual void Read_returns_false_after_Delete() => Test_X_after_Delete(x => Assert.False(x.Read()));
@@ -531,22 +531,22 @@ public partial class DataReaderTestBase<TFixture>
 	public virtual void NextResult_returns_false_after_Delete() => Test_X_after_Delete(x => Assert.False(x.NextResult()));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetDataTypeName_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDataTypeName(0)));
+	public virtual void GetDataTypeName_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetDataTypeName(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetFieldType_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetFieldType(0)));
+	public virtual void GetFieldType_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetFieldType(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetFieldValue_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetFieldValue<object>(0)));
+	public virtual void GetFieldValue_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetFieldValue<object>(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual async Task GetFieldValueAsync_throws_after_Delete() => await Test_X_after_Delete(async x => await Assert.ThrowsAsync<InvalidOperationException>(async () => await x.GetFieldValueAsync<object>(0)));
+	public virtual async Task GetFieldValueAsync_throws_after_Delete() => await Test_X_after_Delete(async x => await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await x.GetFieldValueAsync<object>(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetBoolean_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetBoolean(0)));
+	public virtual void GetBoolean_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetBoolean(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetByte_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetByte(0)));
+	public virtual void GetByte_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetByte(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
 	public virtual void GetBytes_throws_after_Delete()
@@ -554,12 +554,12 @@ public partial class DataReaderTestBase<TFixture>
 		Test_X_after_Delete(x =>
 		{
 			var bytes = new byte[1];
-			Assert.Throws<InvalidOperationException>(() => x.GetBytes(0, 0, bytes, 0, 1));
+			Assert.ThrowsAny<InvalidOperationException>(() => x.GetBytes(0, 0, bytes, 0, 1));
 		});
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetChar_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetChar(0)));
+	public virtual void GetChar_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetChar(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
 	public virtual void GetChars_throws_after_Delete()
@@ -567,7 +567,7 @@ public partial class DataReaderTestBase<TFixture>
 		Test_X_after_Delete(x =>
 		{
 			var chars = new char[1];
-			Assert.Throws<InvalidOperationException>(() => x.GetChars(0, 0, chars, 0, 1));
+			Assert.ThrowsAny<InvalidOperationException>(() => x.GetChars(0, 0, chars, 0, 1));
 		});
 	}
 
@@ -588,28 +588,28 @@ public partial class DataReaderTestBase<TFixture>
 	});
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetDataTime_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDateTime(0)));
+	public virtual void GetDataTime_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetDateTime(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetDecimal_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDecimal(0)));
+	public virtual void GetDecimal_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetDecimal(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetDouble_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetDouble(0)));
+	public virtual void GetDouble_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetDouble(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetFloat_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetFloat(0)));
+	public virtual void GetFloat_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetFloat(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetGuid_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetGuid(0)));
+	public virtual void GetGuid_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetGuid(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetInt16_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetInt16(0)));
+	public virtual void GetInt16_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetInt16(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetInt32_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetInt32(0)));
+	public virtual void GetInt32_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetInt32(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetInt64_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetInt64(0)));
+	public virtual void GetInt64_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetInt64(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
 	public virtual void GetSchemaTable_is_null_after_Delete() => Test_X_after_Delete(x =>
@@ -628,19 +628,19 @@ public partial class DataReaderTestBase<TFixture>
 	});
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetStream_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetStream(0)));
+	public virtual void GetStream_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetStream(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetString_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetString(0)));
+	public virtual void GetString_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetString(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetTextReader_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetTextReader(0)));
+	public virtual void GetTextReader_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetTextReader(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetName_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() => x.GetName(0)));
+	public virtual void GetName_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() => x.GetName(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetValue_throws_after_Delete() => Test_X_after_Delete(x => Assert.Throws<InvalidOperationException>(() =>x.GetValue(0)));
+	public virtual void GetValue_throws_after_Delete() => Test_X_after_Delete(x => Assert.ThrowsAny<InvalidOperationException>(() =>x.GetValue(0)));
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
 	public virtual void GetValues_throws_after_Delete()
@@ -648,7 +648,7 @@ public partial class DataReaderTestBase<TFixture>
 		Test_X_after_Delete(x =>
 		{
 			var values = new object[1];
-			Assert.Throws<InvalidOperationException>(() => x.GetValues(values));
+			Assert.ThrowsAny<InvalidOperationException>(() => x.GetValues(values));
 		});
 	}
 

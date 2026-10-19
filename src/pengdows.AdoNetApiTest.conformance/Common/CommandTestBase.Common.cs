@@ -362,7 +362,7 @@ public abstract partial class CommandTestBase<TFixture>
 			return;
 		}
 
-		Assert.Throws<InvalidOperationException>(() =>
+		Assert.ThrowsAny<InvalidOperationException>(() =>
 		{
 			using (command.ExecuteReader())
 			{

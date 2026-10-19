@@ -12,7 +12,7 @@ namespace pengdows.AdoNetApiTest.conformance;
 public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable, IClassFixture<TFixture>
 	where TFixture : class, IDbFactoryFixture
 {
-	private static readonly ConditionalWeakTable<TFixture, ParameterFormat> s_parameterFormats = new();
+	private static readonly ConditionalWeakTable<TFixture, ParameterMarker> s_parameterMarkers = new();
 
 	protected DbFactoryTestBase(TFixture fixture)
 	{
@@ -116,65 +116,37 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// </summary>
 	protected virtual string MakeParameterName(DbConnection connection, string name)
 	{
-		var format = s_parameterFormats.GetValue(Fixture, _ => ReadParameterFormat(connection));
-		if (format.IsPositional)
-			return "?";
+		if (Fixture is IParameterMarkerFixture explicitMarker)
+		{
+			return explicitMarker.ParameterMarker(name);
+		}
 
-		var parameterName = name.TrimStart('@', ':', '$', '?');
-		return string.Concat(format.Marker, parameterName);
+		var marker = s_parameterMarkers.GetValue(Fixture, _ => ReadParameterMarker(connection));
+		return marker.IsPositional ? "?" : string.Concat(marker.Prefix, name.TrimStart('@', ':', '$', '?'));
 	}
 
-	private static ParameterFormat ReadParameterFormat(DbConnection connection)
+	private static ParameterMarker ReadParameterMarker(DbConnection connection)
 	{
-		var schema = connection.GetSchema(DbMetaDataCollectionNames.DataSourceInformation);
+		DataTable schema;
+		try
+		{
+			schema = connection.GetSchema(DbMetaDataCollectionNames.DataSourceInformation);
+		}
+		catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException)
+		{
+			throw new InvalidOperationException("The provider offers no DataSourceInformation schema; implement IParameterMarkerFixture on the fixture to state its parameter marker.", ex);
+		}
+
 		if (schema.Rows.Count == 0)
-			throw new InvalidOperationException("DataSourceInformation did not return a row.");
-
-		var markerFormat = schema.Rows[0][DbMetaDataColumnNames.ParameterMarkerFormat] as string;
-		if (string.IsNullOrEmpty(markerFormat))
-			throw new InvalidOperationException("DataSourceInformation did not advertise ParameterMarkerFormat.");
-
-		if (markerFormat == "?")
-			return new ParameterFormat(true, null);
-
-		const string placeholder = "{0}";
-		var placeholderIndex = markerFormat.IndexOf(placeholder, StringComparison.Ordinal);
-		if (placeholderIndex < 0)
-			throw new InvalidOperationException($"Invalid ParameterMarkerFormat '{markerFormat}'.");
-
-		var parameterMarker = markerFormat.Substring(0, placeholderIndex);
-		if (markerFormat == placeholder)
 		{
-			var markerPattern = schema.Rows[0][DbMetaDataColumnNames.ParameterMarkerPattern] as string;
-			if (markerPattern?.IndexOf('?') >= 0)
-				return new ParameterFormat(true, null);
-
-			if (markerPattern?.IndexOf('@') >= 0)
-				parameterMarker = "@";
-
-			else if (markerPattern?.IndexOf(':') >= 0)
-				parameterMarker = ":";
-
-			else if (markerPattern?.IndexOf('$') >= 0)
-				parameterMarker = "$";
+			throw new InvalidOperationException("DataSourceInformation returned no row; implement IParameterMarkerFixture on the fixture to state its parameter marker.");
 		}
 
-		if (string.IsNullOrEmpty(parameterMarker))
-			throw new InvalidOperationException($"Invalid ParameterMarkerFormat '{markerFormat}'.");
-
-		return new ParameterFormat(false, parameterMarker);
-	}
-
-	private sealed class ParameterFormat
-	{
-		public ParameterFormat(bool isPositional, string marker)
-		{
-			IsPositional = isPositional;
-			Marker = marker;
-		}
-
-		public bool IsPositional { get; }
-		public string Marker { get; }
+		var row = schema.Rows[0];
+		var format = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerFormat) ? row[DbMetaDataColumnNames.ParameterMarkerFormat] as string : null;
+		var pattern = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerPattern) ? row[DbMetaDataColumnNames.ParameterMarkerPattern] as string : null;
+		return ParameterMarkerDiscovery.Discover(format, pattern)
+			?? throw new InvalidOperationException($"DataSourceInformation advertises no usable parameter marker (format '{format}', pattern '{pattern}'); implement IParameterMarkerFixture on the fixture.");
 	}
 
 	/// <summary>

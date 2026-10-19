@@ -6,11 +6,14 @@ using pengdows.AdoNetApiTest.conformance;
 
 namespace DuckDB.Tests;
 
-public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, IDmlFixture, IDisposable
+public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, IDmlFixture, IParameterMarkerFixture, IDisposable
 {
     public DbProviderFactory Factory => DuckDBClientFactory.Instance;
 
     public string ConnectionString => "Data Source=:memory:";
+
+    /// <summary>DuckDB.NET binds named parameters written <c>$name</c>.</summary>
+    public string ParameterMarker(string name) => "$" + name;
 
 	public IReadOnlyList<string> DmlSetupSql => new[]
 	{

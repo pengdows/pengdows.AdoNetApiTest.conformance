@@ -144,16 +144,13 @@ public sealed class UncoveredType
 }
 
 /// <summary>What a provider's fixture supplies to check type fidelity.</summary>
-public interface ITypeFidelityFixture : IDbFactoryFixture
+public interface ITypeFidelityFixture : IDbFactoryFixture, IParameterMarkerFixture
 {
 	/// <summary>The types to exercise.</summary>
 	IReadOnlyList<TypeSpec> Types { get; }
 
 	/// <summary>Types the database offers that <see cref="Types"/> does not cover, each with the reason.</summary>
 	IReadOnlyList<UncoveredType> UncoveredTypes { get; }
-
-	/// <summary>A parameter name as it appears in SQL, such as <c>@p</c>.</summary>
-	string ParameterMarker(string name);
 
 	/// <summary>A statement that creates <paramref name="table"/> with an <c>Id</c> primary key and a nullable column <c>V</c> of the given type.</summary>
 	string CreateTableSql(string table, string columnSql);

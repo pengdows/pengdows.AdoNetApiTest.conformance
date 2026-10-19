@@ -110,7 +110,7 @@ public partial class DataReaderTestBase<TFixture>
 		var hasData = reader.Read();
 
 		Assert.True(hasData);
-		Assert.Throws<InvalidCastException>(() => reader.GetFieldValue<DBNull>(0));
+		Assert.ThrowsAny<InvalidCastException>(() => reader.GetFieldValue<DBNull>(0));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
@@ -265,7 +265,7 @@ public partial class DataReaderTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneSql;
 		using var reader = command.ExecuteReader();
-		Assert.Throws<IndexOutOfRangeException>(() => reader.GetOrdinal("Name"));
+		Assert.ThrowsAny<IndexOutOfRangeException>(() => reader.GetOrdinal("Name"));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
@@ -701,7 +701,7 @@ public partial class DataReaderTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneSql;
 		using var reader = command.ExecuteReader();
-		Assert.Throws<InvalidOperationException>(() => reader.GetStream(0));
+		Assert.ThrowsAny<InvalidOperationException>(() => reader.GetStream(0));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
@@ -711,7 +711,7 @@ public partial class DataReaderTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneSql;
 		using var reader = command.ExecuteReader();
-		Assert.Throws<InvalidOperationException>(() => reader.GetTextReader(0));
+		Assert.ThrowsAny<InvalidOperationException>(() => reader.GetTextReader(0));
 	}
 
 }

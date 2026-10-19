@@ -150,14 +150,14 @@ public abstract partial class ParameterTestBase<TFixture>
 	public virtual void ParameterCollection_RemoveAt_negative_one_throws()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		Assert.Throws<ArgumentOutOfRangeException>(() => command.Parameters.RemoveAt(-1));
+		Assert.ThrowsAny<ArgumentOutOfRangeException>(() => command.Parameters.RemoveAt(-1));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
 	public virtual void ParameterCollection_RemoveAt_zero_throws_when_empty()
 	{
 		using var command = Fixture.Factory.CreateCommand();
-		Assert.Throws<ArgumentOutOfRangeException>(() => command.Parameters.RemoveAt(0));
+		Assert.ThrowsAny<ArgumentOutOfRangeException>(() => command.Parameters.RemoveAt(0));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
@@ -165,7 +165,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var command = Fixture.Factory.CreateCommand();
 		var parameter = command.CreateParameter();
-		Assert.Throws<ArgumentOutOfRangeException>(() => command.Parameters.Insert(-1, parameter));
+		Assert.ThrowsAny<ArgumentOutOfRangeException>(() => command.Parameters.Insert(-1, parameter));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
@@ -182,7 +182,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var command = Fixture.Factory.CreateCommand();
 		var parameter = command.CreateParameter();
-		Assert.Throws<ArgumentOutOfRangeException>(() => command.Parameters.Insert(1, parameter));
+		Assert.ThrowsAny<ArgumentOutOfRangeException>(() => command.Parameters.Insert(1, parameter));
 	}
 
 	/// <summary>

@@ -5,10 +5,13 @@ using pengdows.AdoNetApiTest.conformance;
 
 namespace FaithlifeSqlite.Tests;
 
-public class FaithlifeSqliteDbFactoryFixture : IDbFactoryFixture
+public class FaithlifeSqliteDbFactoryFixture : IDbFactoryFixture, IParameterMarkerFixture
 {
 	public DbProviderFactory Factory { get; } = new FaithlifeSqliteFactory();
 	public string ConnectionString => "data source=temp.db";
+
+	/// <summary>'@' is how this provider writes a parameter; it advertises no DataSourceInformation to say so.</summary>
+	public string ParameterMarker(string name) => "@" + name;
 
 	private sealed class FaithlifeSqliteFactory : DbProviderFactory
 	{

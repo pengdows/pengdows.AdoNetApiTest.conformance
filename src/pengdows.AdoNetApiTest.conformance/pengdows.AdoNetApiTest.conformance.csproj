@@ -35,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Repository.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="CONTRACT-COVERAGE.md" Pack="true" PackagePath="\" />
   </ItemGroup>

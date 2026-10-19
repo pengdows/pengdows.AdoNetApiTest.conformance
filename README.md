@@ -61,7 +61,7 @@ dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 provider and an overall verdict:
 
 ```text
-Sqlite    FAIL     Required 146/156 (10 failed)  |  Optional 19 implemented pass, 0 implemented fail, 6 not implemented  |  Common 275 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
+Sqlite    FAIL     Required 96/104 (5 failed, 3 waived) + 8 Required not covered  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
 OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```

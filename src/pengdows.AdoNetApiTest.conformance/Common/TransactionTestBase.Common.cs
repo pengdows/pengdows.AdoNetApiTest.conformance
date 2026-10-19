@@ -101,4 +101,101 @@ public partial class TransactionTestBase<TFixture>
 		transaction.Rollback();
 		Assert.ThrowsAny<Exception>(() => transaction.Commit());
 	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.begintransaction", Because = "No base-contract page lists an exception for BeginTransaction on a closed connection.")]
+	public virtual void BeginTransaction_throws_when_closed()
+	{
+		using var connection = CreateConnection();
+		Assert.ThrowsAny<InvalidOperationException>(() => connection.BeginTransaction());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction", Because = "'no longer valid' on IDbTransaction.Connection is never defined as committed; the public DbTransaction.Connection page has no null clause.")]
+	public virtual void Commit_transaction_clears_Connection()
+	{
+		using var connection = CreateOpenConnection();
+		using var transaction = connection.BeginTransaction();
+		Assert.Same(connection, transaction.Connection);
+		transaction.Commit();
+		Assert.Null(transaction.Connection);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction", Because = "'no longer valid' on IDbTransaction.Connection is never defined as rolled back; the public DbTransaction.Connection page has no null clause.")]
+	public virtual void Rollback_transaction_clears_Connection()
+	{
+		using var connection = CreateOpenConnection();
+		using var transaction = connection.BeginTransaction();
+		Assert.Same(connection, transaction.Connection);
+		transaction.Rollback();
+		Assert.Null(transaction.Connection);
+	}
+
+#if NETSTANDARD2_1_OR_GREATER
+	/// <summary>
+	/// CommitAsync must complete the same transaction state transition as Commit.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.commitasync.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.commitasync", Because = "'no longer valid' on IDbTransaction.Connection is never defined as committed.")]
+	public virtual async Task CommitAsync_clears_Connection()
+	{
+		using var connection = CreateOpenConnection();
+		using var transaction = await connection.BeginTransactionAsync().ConfigureAwait(false);
+
+		await transaction.CommitAsync().ConfigureAwait(false);
+
+		Assert.Null(((IDbTransaction)transaction).Connection);
+	}
+#endif
+
+#if NETSTANDARD2_1_OR_GREATER
+	/// <summary>
+	/// RollbackAsync must complete the same transaction state transition as
+	/// Rollback.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.rollbackasync.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.rollbackasync", Because = "'no longer valid' on IDbTransaction.Connection is never defined as rolled back.")]
+	public virtual async Task RollbackAsync_clears_Connection()
+	{
+		using var connection = CreateOpenConnection();
+		using var transaction = await connection.BeginTransactionAsync().ConfigureAwait(false);
+
+		await transaction.RollbackAsync().ConfigureAwait(false);
+
+		Assert.Null(transaction.Connection);
+	}
+#endif
+
+	/// <summary>
+	/// Disposing a transaction makes it no longer valid, so its associated
+	/// connection must no longer be exposed through Connection.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.system-data-idbtransaction-connection.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.system-data-idbtransaction-connection", Because = "The behavior of DbTransaction.Dispose is documented as provider specific.")]
+	public virtual void Dispose_transaction_clears_Connection()
+	{
+		using var connection = CreateOpenConnection();
+		var transaction = connection.BeginTransaction();
+
+		transaction.Dispose();
+
+		Assert.Null(((IDbTransaction)transaction).Connection);
+	}
+
+#if NETSTANDARD2_1_OR_GREATER
+	/// <summary>
+	/// DisposeAsync must release a transaction and invalidate its associated
+	/// connection reference just like synchronous disposal.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.disposeasync
+	/// and https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.system-data-idbtransaction-connection.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.disposeasync", Because = "The behavior of DbTransaction.Dispose is documented as provider specific.")]
+	public virtual async Task DisposeAsync_clears_Connection()
+	{
+		using var connection = CreateOpenConnection();
+		var transaction = connection.BeginTransaction();
+
+		await transaction.DisposeAsync().ConfigureAwait(false);
+
+		Assert.Null(((IDbTransaction)transaction).Connection);
+	}
+#endif
 }

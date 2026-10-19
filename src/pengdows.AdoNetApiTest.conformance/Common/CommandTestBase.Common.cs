@@ -369,4 +369,142 @@ public abstract partial class CommandTestBase<TFixture>
 			}
 		});
 	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "No page documents an exception for setting CommandText while a reader is open; that is SqlClient behavior.")]
+	public virtual void CommandText_throws_when_set_when_open_reader()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		using var reader = command.ExecuteReader();
+
+		Assert.ThrowsAny<InvalidOperationException>(() => command.CommandText = SelectSql("2"));
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "No page documents an exception for setting Connection while a reader is open; that is SqlClient behavior.")]
+	public virtual void Connection_throws_when_set_when_open_reader()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		using var reader = command.ExecuteReader();
+
+		Assert.ThrowsAny<InvalidOperationException>(() => command.Connection = CreateConnection());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "No page documents an exception for clearing Connection while a reader is open; that is SqlClient behavior.")]
+	public virtual void Connection_throws_when_set_to_null_when_open_reader()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		using var reader = command.ExecuteReader();
+
+		Assert.ThrowsAny<InvalidOperationException>(() => command.Connection = null);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "IDbCommand documents InvalidOperationException for ExecuteNonQuery and Prepare only; ExecuteReader lists no exception.")]
+	public virtual void ExecuteReader_throws_when_no_connection()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "IDbCommand documents InvalidOperationException for ExecuteNonQuery and Prepare only; ExecuteReader lists no exception.")]
+	public virtual void ExecuteReader_throws_when_connection_closed()
+	{
+		using var connection = CreateConnection();
+		using var command = connection.CreateCommand();
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "IDbCommand documents InvalidOperationException for ExecuteNonQuery and Prepare only; ExecuteScalar lists no exception.")]
+	public virtual void ExecuteScalar_throws_when_no_connection()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteScalar());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "IDbCommand documents InvalidOperationException for ExecuteNonQuery and Prepare only; ExecuteScalar lists no exception.")]
+	public virtual void ExecuteScalar_throws_when_connection_closed()
+	{
+		using var connection = CreateConnection();
+		using var command = connection.CreateCommand();
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteScalar());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "No page documents an exception for executing while a reader is open on the connection; that is SqlClient behavior.")]
+	public virtual void ExecuteReader_throws_when_reader_open()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		using var reader = command.ExecuteReader();
+		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "The async pages document only DbException, ArgumentException and OperationCanceledException.")]
+	public virtual async Task ExecuteReaderAsync_throws_when_no_connection()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteReaderAsync);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "The async pages document only DbException, ArgumentException and OperationCanceledException.")]
+	public virtual async Task ExecuteReaderAsync_throws_when_connection_closed()
+	{
+		using var connection = CreateConnection();
+		using var command = connection.CreateCommand();
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteReaderAsync);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "The async pages document only DbException and OperationCanceledException.")]
+	public virtual async Task ExecuteScalarAsync_throws_when_no_connection()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteScalarAsync);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "The async pages document only DbException and OperationCanceledException.")]
+	public virtual async Task ExecuteScalarAsync_throws_when_connection_closed()
+	{
+		using var connection = CreateConnection();
+		using var command = connection.CreateCommand();
+		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteScalarAsync);
+	}
+
+	/// <summary>
+	/// An unsupported CLR parameter value is still tested using the provider's
+	/// parameter syntax rather than a hardcoded SQL Server-style marker.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "No page documents the exception for a parameter value of an unsupported type.")]
+	public virtual void Execute_throws_for_unknown_ParameterValue_type()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		var parameter = command.CreateParameter();
+		parameter.ParameterName = "Parameter";
+		parameter.Value = new CustomClass();
+		command.Parameters.Add(parameter);
+
+		try
+		{
+			var value = command.ExecuteScalar();
+			if (!"custom".Equals((string) value))
+				throw new UnexpectedValueException(value);
+		}
+		catch (Exception ex) when (ex is NotSupportedException || ex is InvalidOperationException)
+		{
+		}
+		catch (Exception ex) when (ex is not UnexpectedValueException)
+		{
+			throw ThrowsException.ForIncorrectExceptionType(typeof(NotSupportedException), ex);
+		}
+	}
 }

@@ -165,4 +165,48 @@ public abstract partial class ConnectionTestBase<TFixture>
 
 		SoftWarning.Report("The provider assigns the current transaction to commands created by the connection.");
 	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "The documented default is an empty string; no page says an empty string must be accepted when assigned.")]
+	public void ConnectionString_can_be_set_to_empty_string()
+	{
+		using var connection = Fixture.Factory.CreateConnection();
+		connection.ConnectionString = "";
+		Assert.Equal("", connection.ConnectionString);
+	}
+
+	/// <summary>
+	/// ConnectionTimeout is expressed in seconds and must never be negative.
+	/// Providers may choose the actual timeout value, but they must expose a valid
+	/// value through the common connection contract.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.connectiontimeout.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.connectiontimeout", Because = "No page states a range for ConnectionTimeout.")]
+	public virtual void ConnectionTimeout_is_non_negative()
+	{
+		using var connection = CreateOpenConnection();
+		Assert.True(connection.ConnectionTimeout >= 0);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "Close may be called more than once without an exception; no page covers Close before Open.")]
+	public virtual void Close_can_be_called_before_open()
+	{
+		using var connection = CreateConnection();
+		connection.Close();
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "Only IDbConnection says it can be set only while closed; no page names the exception.")]
+	public virtual void ConnectionString_setter_throws_when_open()
+	{
+		using var connection = CreateOpenConnection();
+		Assert.ThrowsAny<InvalidOperationException>(() => connection.ConnectionString = ConnectionString + ";");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "Reads the protected DbConnection.DbProviderFactory by reflection.")]
+	public virtual void DbProviderFactory_has_correct_value()
+	{
+		using var connection = CreateConnection();
+		var property = connection.GetType().GetProperty("DbProviderFactory", BindingFlags.Instance | BindingFlags.NonPublic);
+		var dbProviderFactory = property.GetValue(connection);
+		Assert.Same(Fixture.Factory, dbProviderFactory);
+	}
 }

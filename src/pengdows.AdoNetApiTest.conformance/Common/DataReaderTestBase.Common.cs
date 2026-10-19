@@ -182,7 +182,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// The old assertion was an INVALID CONTRACT TEST. See
 	/// https://learn.microsoft.com/dotnet/api/system.data.commandbehavior.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior")]
 	public virtual void SingleRow_returns_one_row()
 	{
 		using var connection = CreateOpenConnection();
@@ -201,7 +201,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// not as a universal contract test.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.commandbehavior.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior")]
 	public virtual void SingleRow_returns_one_result_set()
 	{
 		using var connection = CreateOpenConnection();
@@ -221,7 +221,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// The former assertion was an INVALID CONTRACT TEST. See
 	/// https://learn.microsoft.com/dotnet/api/system.data.commandbehavior.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.commandbehavior")]
 	public virtual void SingleResult_returns_one_result_set()
 	{
 		using var connection = CreateOpenConnection();
@@ -696,4 +696,132 @@ public partial class DataReaderTestBase<TFixture>
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.gettextreader", Because = "the base implementation returns an empty reader for NULL, but providers may throw InvalidCastException instead")]
 	public virtual void GetTextReader_returns_empty_for_null_String() => TestGetTextReader(ValueKind.Null, "");
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "GetValue documents only IndexOutOfRangeException; no page says it throws after the last row.")]
+	public virtual void GetValue_throws_when_done()
+		=> X_throws_when_done(r => r.GetValue(0));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "GetValue documents only IndexOutOfRangeException; no page says it throws on a closed reader.")]
+	public virtual void GetValue_throws_when_closed()
+		=> X_throws_when_closed(r => r.GetValue(0));
+
+	/// <summary>
+	/// DbDataReader.GetValue represents a database NULL with DBNull.Value.
+	/// A provider returning C# null breaks the common reader contract and makes
+	/// IsDBNull/GetValue handling inconsistent.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getvalue.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getvalue", Because = "No base-contract page says GetValue returns DBNull.Value for a SQL NULL (IsDBNull and ExecuteScalar do).")]
+	public virtual void GetValue_returns_DBNull_for_null()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql("NULL");
+		using var reader = command.ExecuteReader();
+		Assert.True(reader.Read());
+		Assert.Same(DBNull.Value, reader.GetValue(0));
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "No page says when a reader becomes closed after the last row is read.")]
+	public virtual void IsClosed_returns_false_when_all_rows_read()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		Assert.True(reader.Read());
+		Assert.False(reader.Read());
+		Assert.False(reader.NextResult());
+		Assert.False(reader.IsClosed);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "Synchronous IsDBNull documents only IndexOutOfRangeException; the InvalidOperationException is on IsDBNullAsync.")]
+	public virtual void IsDBNull_throws_when_closed()
+		=> X_throws_when_closed(r => r.IsDBNull(0));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "No page documents NextResult called again after it returned false.")]
+	public virtual void NextResult_can_be_called_more_than_once()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		var hasResults = reader.NextResult();
+		Assert.False(hasResults);
+
+		hasResults = reader.NextResult();
+		Assert.False(hasResults);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "No page documents Read called again after it returned false.")]
+	public virtual void Read_keeps_returning_false()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(DbType.String, ValueKind.Empty);
+		using var reader = command.ExecuteReader();
+		Assert.True(reader.Read());
+		Assert.False(reader.Read());
+		Assert.False(reader.Read());
+		Assert.False(reader.Read());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "GetBytes documents no behavior for a dataOffset past the end of the field.")]
+	public virtual void GetBytes_reads_nothing_when_dataOffset_is_too_large() => TestGetBytes(reader =>
+	{
+		Assert.Equal(0, reader.GetBytes(0, 6, new byte[4], 0, 4));
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getbytes", Because = "A bufferOffset at the end of the buffer is an unspecified boundary.")]
+	public virtual void GetBytes_reads_nothing_at_end_of_buffer() => TestGetBytes(reader =>
+	{
+		Assert.Equal(0, reader.GetBytes(0, 0, new byte[4], 4, 0));
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "A bufferOffset at the end of the buffer is an unspecified boundary.")]
+	public virtual void GetChars_reads_nothing_at_end_of_buffer() => TestGetChars(reader =>
+	{
+		Assert.Equal(0, reader.GetChars(0, 0, new char[4], 4, 0));
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "The null-buffer sentence does not say what a non-zero dataIndex does.")]
+	public virtual void GetBytes_returns_length_when_buffer_is_null_and_dataIndex_specified() => TestGetBytes(reader =>
+	{
+		Assert.Equal(4, reader.GetBytes(0, 1, null, 0, 0));
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars", Because = "The null-buffer sentence does not say what a non-zero dataOffset does.")]
+	public virtual void GetChars_returns_length_when_buffer_is_null_and_dataOffset_is_specified() => TestGetChars(reader =>
+	{
+		Assert.Equal(4, reader.GetChars(0, 1, null, 0, 0));
+	});
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "Synchronous IsDBNull documents only IndexOutOfRangeException; the InvalidOperationException is on IsDBNullAsync.")]
+	public virtual void IsDBNull_throws_before_read()
+		=> X_throws_before_read(r => r.IsDBNull(0));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "Synchronous IsDBNull documents only IndexOutOfRangeException; the InvalidOperationException is on IsDBNullAsync.")]
+	public virtual void IsDBNull_throws_when_done()
+		=> X_throws_when_done(r => r.IsDBNull(0));
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "The page says RecordsAffected is not set until all rows are read and the reader is closed.")]
+	public virtual void RecordsAffected_returns_negative_1_when_no_rows()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.SelectNoRows;
+		using var reader = command.ExecuteReader();
+		Assert.Equal(-1, reader.RecordsAffected);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "Only the value after Close is documented; Dispose leaves the reader 'unusable'.")]
+	public virtual void RecordsAffected_returns_negative_1_after_dispose_when_no_rows()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.SelectNoRows;
+		using var reader = command.ExecuteReader();
+		reader.Dispose();
+		Assert.Equal(-1, reader.RecordsAffected);
+	}
 }

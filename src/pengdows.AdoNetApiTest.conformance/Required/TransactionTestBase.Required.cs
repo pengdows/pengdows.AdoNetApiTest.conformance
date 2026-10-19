@@ -8,12 +8,6 @@ namespace pengdows.AdoNetApiTest.conformance;
 public partial class TransactionTestBase<TFixture>
 	where TFixture : class, IDbFactoryFixture
 {
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.begintransaction", Because = "NOW VALID DEFAULT-ISOLATION TEST")]
-	public virtual void BeginTransaction_throws_when_closed()
-	{
-		using var connection = CreateConnection();
-		Assert.ThrowsAny<InvalidOperationException>(() => connection.BeginTransaction());
-	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction")]
 	public virtual void BeginTransaction_works()
@@ -43,95 +37,8 @@ public partial class TransactionTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
-	/// <summary>
-	/// CommitAsync must complete the same transaction state transition as Commit.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.commitasync.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.commitasync")]
-	public virtual async Task CommitAsync_clears_Connection()
-	{
-		using var connection = CreateOpenConnection();
-		using var transaction = await connection.BeginTransactionAsync().ConfigureAwait(false);
 
-		await transaction.CommitAsync().ConfigureAwait(false);
 
-		Assert.Null(((IDbTransaction)transaction).Connection);
-	}
-#endif
-
-#if NETSTANDARD2_1_OR_GREATER
-	/// <summary>
-	/// RollbackAsync must complete the same transaction state transition as
-	/// Rollback.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.rollbackasync.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.rollbackasync")]
-	public virtual async Task RollbackAsync_clears_Connection()
-	{
-		using var connection = CreateOpenConnection();
-		using var transaction = await connection.BeginTransactionAsync().ConfigureAwait(false);
-
-		await transaction.RollbackAsync().ConfigureAwait(false);
-
-		Assert.Null(transaction.Connection);
-	}
-#endif
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction")]
-	public virtual void Commit_transaction_clears_Connection()
-	{
-		using var connection = CreateOpenConnection();
-		using var transaction = connection.BeginTransaction();
-		Assert.Same(connection, transaction.Connection);
-		transaction.Commit();
-		Assert.Null(transaction.Connection);
-	}
-
-	/// <summary>
-	/// Disposing a transaction makes it no longer valid, so its associated
-	/// connection must no longer be exposed through Connection.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.system-data-idbtransaction-connection.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.system-data-idbtransaction-connection")]
-	public virtual void Dispose_transaction_clears_Connection()
-	{
-		using var connection = CreateOpenConnection();
-		var transaction = connection.BeginTransaction();
-
-		transaction.Dispose();
-
-		Assert.Null(((IDbTransaction)transaction).Connection);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction")]
-	public virtual void Rollback_transaction_clears_Connection()
-	{
-		using var connection = CreateOpenConnection();
-		using var transaction = connection.BeginTransaction();
-		Assert.Same(connection, transaction.Connection);
-		transaction.Rollback();
-		Assert.Null(transaction.Connection);
-	}
-
-#if NETSTANDARD2_1_OR_GREATER
-	/// <summary>
-	/// DisposeAsync must release a transaction and invalidate its associated
-	/// connection reference just like synchronous disposal.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.disposeasync
-	/// and https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.system-data-idbtransaction-connection.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.disposeasync")]
-	public virtual async Task DisposeAsync_clears_Connection()
-	{
-		using var connection = CreateOpenConnection();
-		var transaction = connection.BeginTransaction();
-
-		await transaction.DisposeAsync().ConfigureAwait(false);
-
-		Assert.Null(((IDbTransaction)transaction).Connection);
-	}
-#endif
 
 #if NET10_0_OR_GREATER
 	/// <summary>
@@ -141,7 +48,7 @@ public partial class TransactionTestBase<TFixture>
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints
 	/// and https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.save.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints", Waiver = "SupportsSavepoints only advertises a capability; a provider that reports false but implements Save loses nothing.")]
 	public virtual void Savepoint_methods_match_support_flag()
 	{
 		using var connection = CreateOpenConnection();
@@ -170,7 +77,7 @@ public partial class TransactionTestBase<TFixture>
 	/// as their synchronous counterparts.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.saveasync.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.saveasync")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.saveasync", Waiver = "SupportsSavepoints only advertises a capability; a provider that reports false but implements Save loses nothing.")]
 	public virtual async Task Savepoint_async_methods_match_support_flag()
 	{
 		using var connection = CreateOpenConnection();

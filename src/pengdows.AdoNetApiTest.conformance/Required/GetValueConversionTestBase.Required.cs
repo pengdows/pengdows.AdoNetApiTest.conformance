@@ -11,6 +11,7 @@ namespace pengdows.AdoNetApiTest.conformance;
 public abstract partial class GetValueConversionTestBase<TFixture>
 	where TFixture : class, ISelectValueFixture
 {
+
 	/// <summary>
 	/// GetFieldType describes the CLR type returned by GetValue for the current
 	/// column. Provider-specific native value types are valid; reporting a type
@@ -31,7 +32,8 @@ public abstract partial class GetValueConversionTestBase<TFixture>
 			Assert.True(reader.Read());
 			var value = reader.GetValue(0);
 			Assert.NotSame(DBNull.Value, value);
-			Assert.Equal(value.GetType(), reader.GetFieldType(0));
+			// IDataRecord.GetFieldType: "the type of Object that would be returned from GetValue" (a base type is allowed).
+			Assert.True(reader.GetFieldType(0).IsInstanceOfType(value));
 		}
 	}
 }

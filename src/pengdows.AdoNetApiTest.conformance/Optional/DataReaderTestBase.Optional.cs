@@ -111,4 +111,50 @@ public partial class DataReaderTestBase<TFixture>
 		}
 		Assert.Fail($"DataType {column.DataType} isn't numeric");
 	}
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "The documentation says implementations may ignore the cancellation request; a provider that does passes as not implemented.")]
+	public virtual async Task GetFieldValueAsync_is_canceled()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		reader.Read();
+
+		var task = reader.GetFieldValueAsync<int>(0, CanceledToken);
+		try
+		{
+			await task;
+		}
+		catch (OperationCanceledException)
+		{
+			Assert.True(task.IsCanceled);
+			return;
+		}
+
+		ConformanceOutcome.NotImplemented("The provider ignores the cancellation request, which the documentation allows.");
+	}
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "The documentation says implementations may ignore the cancellation request; a provider that does passes as not implemented.")]
+	public virtual async Task IsDBNullAsync_is_canceled()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		reader.Read();
+
+		var task = reader.IsDBNullAsync(0, CanceledToken);
+		try
+		{
+			await task;
+		}
+		catch (OperationCanceledException)
+		{
+			Assert.True(task.IsCanceled);
+			return;
+		}
+
+		ConformanceOutcome.NotImplemented("The provider ignores the cancellation request, which the documentation allows.");
+	}
 }

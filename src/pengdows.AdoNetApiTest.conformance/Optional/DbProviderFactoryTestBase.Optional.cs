@@ -42,7 +42,7 @@ public abstract partial class DbProviderFactoryTestBase<TFixture>
 	/// agreement rather than requiring a command builder.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.createcommandbuilder.
 	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatecommandbuilder", Because = "NOW VALID OPTIONAL CAPABILITY-AGREEMENT TEST")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatecommandbuilder")]
 	#if NETSTANDARD2_0
 	public virtual void DbProviderFactory_CreateCommandBuilder_is_not_null()
 		=> ConformanceOutcome.NotImplemented("CanCreateCommandBuilder is not available on this target framework.");
@@ -86,7 +86,7 @@ public abstract partial class DbProviderFactoryTestBase<TFixture>
 	/// agreement rather than requiring a data adapter.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.createdataadapter.
 	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedataadapter", Because = "NOW VALID OPTIONAL CAPABILITY-AGREEMENT TEST")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedataadapter")]
 	#if NETSTANDARD2_0
 	public virtual void DbProviderFactory_CreateDataAdapter_is_not_null()
 		=> ConformanceOutcome.NotImplemented("CanCreateDataAdapter is not available on this target framework.");
@@ -187,7 +187,7 @@ public abstract partial class DbProviderFactoryTestBase<TFixture>
 	/// capability agreement rather than requiring a null result.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.createdatasourceenumerator.
 	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedatasourceenumerator", Because = "NOW VALID OPTIONAL CAPABILITY-AGREEMENT TEST")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedatasourceenumerator")]
 	public virtual void DbProviderFactory_CreateDataSourceEnumerator_is_null()
 		=> AssertOptionalFactoryObject(Fixture.Factory.CanCreateDataSourceEnumerator, Fixture.Factory.CreateDataSourceEnumerator() is not null, "data-source enumerator");
 
@@ -196,7 +196,7 @@ public abstract partial class DbProviderFactoryTestBase<TFixture>
 	/// capability agreement rather than requiring the flag to be false.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedatasourceenumerator.
 	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedatasourceenumerator", Because = "NOW VALID OPTIONAL CAPABILITY-AGREEMENT TEST")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedatasourceenumerator")]
 	public virtual void DbProviderFactory_CanCreateDataSourceEnumerator_is_false()
 		=> AssertOptionalFactoryObject(Fixture.Factory.CanCreateDataSourceEnumerator, Fixture.Factory.CreateDataSourceEnumerator() is not null, "data-source enumerator");
 
@@ -234,12 +234,39 @@ public abstract partial class DbProviderFactoryTestBase<TFixture>
 	public virtual void DbProviderFactory_CanCreateDataAdapter_is_true()
 		=> ConformanceOutcome.NotImplemented("Not supported on this TargetFramework");
 	#else
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatecommandbuilder", Because = "NOW VALID OPTIONAL CAPABILITY-AGREEMENT TEST")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatecommandbuilder")]
 	public virtual void DbProviderFactory_CanCreateCommandBuilder_is_true()
 		=> AssertOptionalFactoryObject(Fixture.Factory.CanCreateCommandBuilder, Fixture.Factory.CreateCommandBuilder() is not null, "command builder");
 
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedataadapter", Because = "NOW VALID OPTIONAL CAPABILITY-AGREEMENT TEST")]
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedataadapter")]
 	public virtual void DbProviderFactory_CanCreateDataAdapter_is_true()
 		=> AssertOptionalFactoryObject(Fixture.Factory.CanCreateDataAdapter, Fixture.Factory.CreateDataAdapter() is not null, "data adapter");
 	#endif
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory", Because = "CreateConnectionStringBuilder is optional on DbProviderFactory and may return null.")]
+	public virtual void DbProviderFactory_CreateConnectionStringBuilder_is_not_null()
+	{
+		if (Fixture.Factory.CreateConnectionStringBuilder() is null)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not create a connection string builder.");
+		}
+	}
+
+	/// <summary>
+	/// The capability flag must agree with whether the factory creates a data-source
+	/// enumerator. Providers that expose this optional API remain visible in the
+	/// comparison output.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.cancreatedatasourceenumerator.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory", Because = "DbDataSourceEnumerator is an optional capability.")]
+	public virtual void DbProviderFactory_CanCreateDataSourceEnumerator_is_accurate()
+	{
+		if (!Fixture.Factory.CanCreateDataSourceEnumerator)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not expose the optional data-source enumerator capability.");
+			return;
+		}
+
+		Assert.NotNull(Fixture.Factory.CreateDataSourceEnumerator());
+	}
 }

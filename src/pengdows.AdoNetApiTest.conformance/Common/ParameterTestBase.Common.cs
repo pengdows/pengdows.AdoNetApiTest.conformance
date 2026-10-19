@@ -90,7 +90,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// requirements can override this implementation-comparison diagnostic.
 	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_requires_set_name()
 	{
 		using var connection = CreateOpenConnection();
@@ -121,7 +121,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// that a parameter carrying that sentinel can be bound.
 	/// See https://learn.microsoft.com/dotnet/api/system.dbnull.value.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_accepts_DBNull_value()
 	{
 		using var connection = CreateOpenConnection();
@@ -144,7 +144,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// This remains an active implementation-comparison diagnostic.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_requires_set_value()
 	{
 		using var connection = CreateOpenConnection();
@@ -175,7 +175,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// parameter collection contains the logical name only.
 	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idataparametercollection.item", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idataparametercollection.item")]
 	public virtual void Bind_is_noop_on_unknown_parameter()
 	{
 		using var connection = CreateOpenConnection();
@@ -195,7 +195,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// diagnostic; providers with different conversion behavior can override it.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_throws_when_unknown()
 	{
 		using var connection = CreateOpenConnection();
@@ -231,7 +231,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// database value; the SQL marker is discovered from provider metadata.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_works_with_string()
 	{
 		using var connection = CreateOpenConnection();
@@ -252,7 +252,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// representation can override the test.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_works_with_byte_array()
 	{
 		using var connection = CreateOpenConnection();
@@ -278,7 +278,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	/// that do not support stream values can override it.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value.
 	/// </summary>
-	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW COMMON BEHAVIOR DIAGNOSTIC")]
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void Bind_works_with_stream()
 	{
 		using var connection = CreateOpenConnection();
@@ -446,5 +446,88 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var command = Fixture.Factory.CreateCommand();
 		AssertNullParameterPolicy(() => command.Parameters.Remove(null), "Remove");
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "DbParameter documents no exception or result for Value = null.")]
+	public virtual void Parameter_Value_can_be_set_to_null()
+	{
+		var parameter = Fixture.Factory.CreateParameter();
+		parameter.Value = null;
+		Assert.True(parameter.Value is null or DBNull);
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "DbParameter documents no exception or result for ParameterName = null.")]
+	public virtual void ParameterName_can_be_set_to_null()
+	{
+		Fixture.Factory.CreateParameter().ParameterName = null;
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "No page documents the result of Contains(null).")]
+	public virtual void ParameterCollection_Contains_object_returns_false_null()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.False(command.Parameters.Contains(default(object)));
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "No page documents the result of Contains(null).")]
+	public virtual void ParameterCollection_Contains_string_returns_false_for_null()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.False(command.Parameters.Contains(default(string)));
+	}
+
+	/// <summary>
+	/// AddRange must add each supplied parameter in order, and CopyTo must expose
+	/// the same collection order through the standard collection API.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparametercollection.addrange
+	/// and https://learn.microsoft.com/dotnet/api/system.data.common.dbparametercollection.copyto.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparametercollection", Because = "No page states the order AddRange or CopyTo produce.")]
+	public virtual void ParameterCollection_AddRange_and_CopyTo_preserve_order()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		var first = command.CreateParameter();
+		first.ParameterName = "first";
+		var second = command.CreateParameter();
+		second.ParameterName = "second";
+
+		command.Parameters.AddRange(new[] { first, second });
+
+		Assert.Equal(2, command.Parameters.Count);
+		Assert.Same(first, command.Parameters[0]);
+		Assert.Same(second, command.Parameters[1]);
+
+		var copy = Array.CreateInstance(first.GetType(), 2);
+		command.Parameters.CopyTo(copy, 0);
+		Assert.Same(first, copy.GetValue(0));
+		Assert.Same(second, copy.GetValue(1));
+	}
+
+	/// <summary>
+	/// The parameter collection implements the collection enumeration contract
+	/// and enumerates its parameters in collection order.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparametercollection.getenumerator.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparametercollection.getenumerator", Because = "No page states the order the enumerator follows.")]
+	public virtual void ParameterCollection_GetEnumerator_preserves_order()
+	{
+		using var command = Fixture.Factory.CreateCommand();
+		var first = command.CreateParameter();
+		var second = command.CreateParameter();
+		command.Parameters.Add(first);
+		command.Parameters.Add(second);
+
+		var enumerator = command.Parameters.GetEnumerator();
+		Assert.True(enumerator.MoveNext());
+		Assert.Same(first, enumerator.Current);
+		Assert.True(enumerator.MoveNext());
+		Assert.Same(second, enumerator.Current);
+		Assert.False(enumerator.MoveNext());
+	}
+
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "The documentation says the default size is inferred from the value, not 0.")]
+	public virtual void Parameter_default_Size_is_zero()
+	{
+		Assert.Equal(0, Fixture.Factory.CreateParameter().Size);
 	}
 }

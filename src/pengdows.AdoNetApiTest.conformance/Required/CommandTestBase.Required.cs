@@ -10,50 +10,16 @@ namespace pengdows.AdoNetApiTest.conformance;
 public abstract partial class CommandTestBase<TFixture>
 	where TFixture : class, IDbFactoryFixture
 {
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void CommandText_throws_when_set_when_open_reader()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		using var reader = command.ExecuteReader();
-
-		Assert.ThrowsAny<InvalidOperationException>(() => command.CommandText = SelectSql("2"));
-	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
 	public virtual void Connection_can_be_unset()
 	{
 		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		Assert.NotNull(command.Connection);
+		using var command = Fixture.Factory.CreateCommand();
+		command.Connection = connection;
+		Assert.Same(connection, command.Connection);
 		command.Connection = null;
 		Assert.Null(command.Connection);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void Connection_throws_when_set_when_open_reader()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		using var reader = command.ExecuteReader();
-
-		Assert.ThrowsAny<InvalidOperationException>(() => command.Connection = CreateConnection());
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void Connection_throws_when_set_to_null_when_open_reader()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		using var reader = command.ExecuteReader();
-
-		Assert.ThrowsAny<InvalidOperationException>(() => command.Connection = null);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -76,7 +42,7 @@ public abstract partial class CommandTestBase<TFixture>
 	/// part of the DbCommand property contract.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
 	public virtual void UpdatedRowSource_can_be_set_and_read()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -89,7 +55,7 @@ public abstract partial class CommandTestBase<TFixture>
 	/// value assigned by the consumer.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Waiver = "Only Visual Studio designers and data-adapter UI components read this property; a different value cannot lose or alter data or change what a statement returns.")]
 	public virtual void DesignTimeVisible_can_be_set_and_read()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -103,7 +69,7 @@ public abstract partial class CommandTestBase<TFixture>
 	/// "The default is true."
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Because = "the page states the default: true")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Waiver = "Only Visual Studio designers and data-adapter UI components read this property; a different value cannot lose or alter data or change what a statement returns.")]
 	public virtual void DesignTimeVisible_default_is_true()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -114,7 +80,7 @@ public abstract partial class CommandTestBase<TFixture>
 	/// "The default is Both unless the command is automatically generated."
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "the page states the default: Both")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
 	public virtual void UpdatedRowSource_default_is_Both()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -125,7 +91,7 @@ public abstract partial class CommandTestBase<TFixture>
 	/// "Throws a ArgumentException if the value entered was not one of the UpdateRowSource values."
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "the page states an ArgumentException for a value that is not an UpdateRowSource")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
 	public virtual void UpdatedRowSource_throws_for_a_value_that_is_not_defined()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -184,38 +150,12 @@ public abstract partial class CommandTestBase<TFixture>
 	}
 
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void ExecuteReader_throws_when_no_connection()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void ExecuteReader_throws_when_connection_closed()
-	{
-		using var connection = CreateConnection();
-		using var command = connection.CreateCommand();
-		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void ExecuteReader_throws_when_reader_open()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		using var reader = command.ExecuteReader();
-		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteReader());
-	}
-
 	/// <summary>
 	/// Parameter binding uses the provider's advertised SQL placeholder while the
 	/// DbParameter keeps only its logical name; no '@' prefix is assumed.
 	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW VALID PROVIDER-NEUTRAL PARAMETER-SYNTAX TEST")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types")]
 	public virtual void ExecuteReader_binds_parameters()
 	{
 		using var connection = CreateOpenConnection();
@@ -245,21 +185,6 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(ConnectionState.Closed, connection.State);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void ExecuteScalar_throws_when_no_connection()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteScalar());
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual void ExecuteScalar_throws_when_connection_closed()
-	{
-		using var connection = CreateConnection();
-		using var command = connection.CreateCommand();
-		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteScalar());
-	}
-
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executescalar", Because = "the first column of the first row, as an object; no CLR type is named")]
 	public virtual void ExecuteScalar_returns_integer()
 	{
@@ -280,10 +205,7 @@ public abstract partial class CommandTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectSql("3.14");
 		var result = command.ExecuteScalar();
-		if (result is double)
-			Assert.Equal(3.14, result);
-		else
-			Assert.Equal(3.14m, result);
+		Assert.Equal(3.14m, Convert.ToDecimal(result, System.Globalization.CultureInfo.InvariantCulture));
 	}
 
 	/// <summary>
@@ -298,7 +220,7 @@ public abstract partial class CommandTestBase<TFixture>
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectTextSql;
-		Assert.Equal("test", command.ExecuteScalar());
+		Assert.Equal("test", Convert.ToString(command.ExecuteScalar(), System.Globalization.CultureInfo.InvariantCulture));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -325,7 +247,7 @@ public abstract partial class CommandTestBase<TFixture>
 	/// instead of relying on accidental query-plan order.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executescalar.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executescalar", Because = "NOW VALID CONTRACT TEST (explicit ORDER BY)")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executescalar")]
 	public virtual void ExecuteScalar_returns_first_when_multiple_rows()
 	{
 		using var connection = CreateOpenConnection();
@@ -359,21 +281,6 @@ public abstract partial class CommandTestBase<TFixture>
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual async Task ExecuteReaderAsync_throws_when_no_connection()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteReaderAsync);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual async Task ExecuteReaderAsync_throws_when_connection_closed()
-	{
-		using var connection = CreateConnection();
-		using var command = connection.CreateCommand();
-		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteReaderAsync);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
 	public virtual async Task ExecuteReaderAsync_throws_on_error()
 	{
 		using var connection = CreateOpenConnection();
@@ -400,21 +307,6 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.True(await reader.ReadAsync().ConfigureAwait(false));
 		Assert.Equal(1, Convert.ToInt32(reader.GetValue(0)));
 		Assert.False(await reader.ReadAsync().ConfigureAwait(false));
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual async Task ExecuteScalarAsync_throws_when_no_connection()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteScalarAsync);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
-	public virtual async Task ExecuteScalarAsync_throws_when_connection_closed()
-	{
-		using var connection = CreateConnection();
-		using var command = connection.CreateCommand();
-		await Assert.ThrowsAnyAsync<InvalidOperationException>(command.ExecuteScalarAsync);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -460,34 +352,4 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(-1, await command.ExecuteNonQueryAsync().ConfigureAwait(false));
 	}
 
-	/// <summary>
-	/// An unsupported CLR parameter value is still tested using the provider's
-	/// parameter syntax rather than a hardcoded SQL Server-style marker.
-	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "NOW VALID PROVIDER-NEUTRAL PARAMETER-SYNTAX TEST; unsupported CLR-value handling remains a provider diagnostic")]
-	public virtual void Execute_throws_for_unknown_ParameterValue_type()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
-		var parameter = command.CreateParameter();
-		parameter.ParameterName = "Parameter";
-		parameter.Value = new CustomClass();
-		command.Parameters.Add(parameter);
-
-		try
-		{
-			var value = command.ExecuteScalar();
-			if (!"custom".Equals((string) value))
-				throw new UnexpectedValueException(value);
-		}
-		catch (Exception ex) when (ex is NotSupportedException || ex is InvalidOperationException)
-		{
-		}
-		catch (Exception ex) when (ex is not UnexpectedValueException)
-		{
-			throw ThrowsException.ForIncorrectExceptionType(typeof(NotSupportedException), ex);
-		}
-	}
 }

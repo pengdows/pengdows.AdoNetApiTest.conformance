@@ -1,0 +1,24 @@
+{
+  "name": "MySqlData9TiDb8",
+  "description": "TiDB with Oracle's MySql.Data, as pengdows.crud testbed runs it (TiDBTestContainer).",
+  "driver": {
+    "package": "MySql.Data",
+    "version": "9.3.0",
+    "factory": "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "pingcap/tidb:v8.5.7",
+    "port": 4000,
+    "waitForLog": "server is running MySQL protocol",
+    "setupConnectionString": "Server=${host};Port=${port};User=root;Database=test;ConnectionTimeout=15",
+    "setup": [
+      "CREATE DATABASE IF NOT EXISTS conformance"
+    ]
+  },
+  "connectionString": "Server=${host};Port=${port};User=root;Database=conformance;ConnectionTimeout=15",
+  "dialect": {
+    "renderAsText": "CAST({0} AS CHAR)",
+    "dropTable": "drop table if exists {0}"
+  }
+}

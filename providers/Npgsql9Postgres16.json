@@ -1,0 +1,28 @@
+{
+  "name": "Npgsql9Postgres16",
+  "description": "PostgreSQL as pengdows.crud testbed runs it (PostgreSqlTestContainer, TestbedImageMatrix latest).",
+  "driver": {
+    "package": "Npgsql",
+    "version": "9.0.3",
+    "factory": "Npgsql.NpgsqlFactory, Npgsql"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "postgres:16.4",
+    "port": 5432,
+    "env": {
+      "POSTGRES_USER": "postgres",
+      "POSTGRES_PASSWORD": "mysecretpassword",
+      "POSTGRES_DB": "conformance"
+    },
+    "tmpfs": "/var/lib/postgresql/data"
+  },
+  "connectionString": "Host=${host};Port=${port};Username=postgres;Password=mysecretpassword;Database=conformance",
+  "dialect": {
+    "renderAsText": "CAST({0} AS text)",
+    "dropTable": "drop table if exists {0}"
+  },
+  "types": {
+    "query": "SELECT DISTINCT format_type(t.oid, NULL) FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname IN ('pg_catalog', 'information_schema') AND t.typtype NOT IN ('p', 'c')"
+  }
+}

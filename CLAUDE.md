@@ -75,6 +75,15 @@ over the fixture's value, and when it is set the server fixtures start no contai
   produce the output. Adding a provider = adding a folder; no registration needed.
 - **`tests/<Provider>.Tests/`** — a fixture plus one thin derived class per test base. Provider-specific overrides
   belong here, not in the shared library.
+- **`providers/*.json`** — a provider as a configuration (driver package and factory, docker/cloud/file target,
+  connection string, SQL-92 deviations, types to test). `ConfiguredProjects` in the runner generates a project for each in
+  `tests/obj/providers` (gitignored); `ConfiguredProvider`/`ConfiguredServer`/`ConfiguredFixture` in the Databases
+  project read it at run time. Prefer a configuration for a new driver version or server; a hand-written project only
+  when it needs custom code (select-value tables for the reader tests, a hand-written type catalog).
+- **Type fidelity** — `FidelityTestBase` is the shared runner; `TypeFidelityTestBase` takes a hand-written catalog
+  (`SqlServerTypes`, `PostgreSqlTypes`, `OracleTypes`, ...) and `DataTypesFidelityTestBase` generates one from the
+  provider's `GetSchema("DataTypes")` (plus `IServerTypesFixture` extras). Where a provider does not advertise SQL syntax,
+  assume SQL-92 quoting, `;`, and `@name` parameters.
 
 ### How outcomes flow
 

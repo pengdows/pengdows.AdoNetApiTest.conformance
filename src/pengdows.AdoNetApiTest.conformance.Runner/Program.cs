@@ -54,7 +54,14 @@ internal static class Program
 	{
 		var testsDirectory = options.TestsDirectory ?? FindTestsDirectory()
 			?? throw new ArgumentException("Could not find the tests folder above the current folder; pass --tests <dir>.");
-		var providers = ProviderDiscovery.Select(ProviderDiscovery.Discover(testsDirectory), options.Providers);
+		var all = ProviderDiscovery.Discover(testsDirectory).Concat(ConfiguredProjects.Discover(testsDirectory)).ToList();
+		var duplicate = all.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
+		if (duplicate is not null)
+		{
+			throw new ArgumentException($"Two providers are named {duplicate.Key}: {string.Join(" and ", duplicate.Select(p => p.Project))}.");
+		}
+
+		var providers = ProviderDiscovery.Select(all, options.Providers);
 		var outputDirectory = Path.GetDirectoryName(Path.GetFullPath(options.JsonPath))!;
 
 		var inputs = new List<ProviderInput>();

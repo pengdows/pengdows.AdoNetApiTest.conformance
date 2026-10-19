@@ -168,6 +168,50 @@ connection after a rejected value, the finding says so and the next check uses a
 implements `ITypeFidelityFixture` and a derived class are all another provider needs; a database that needs
 `FROM dual` or no statement terminator implements `ISqlDialectFixture` once on its fixture.
 
+## Providers from a configuration file
+
+A provider can be a JSON file in `providers/` instead of a test project. The runner generates a project from it (in
+`tests/obj/providers`, which git ignores) and runs it with the others, so `run` picks it up by its `name` like any
+provider. The file is the whole description of what is tested, so a driver's vendor and its users can run the same
+file and compare matrices. A minimal file:
+
+```jsonc
+{
+  "name": "Npgsql9Postgres17",
+  "driver": { "package": "Npgsql", "version": "9.0.3", "factory": "Npgsql.NpgsqlFactory, Npgsql" },
+  "target": {
+    "kind": "docker",
+    "image": "postgres:17-alpine",
+    "port": 5432,
+    "env": { "POSTGRES_USER": "root", "POSTGRES_PASSWORD": "test", "POSTGRES_DB": "conformance" },
+    "tmpfs": "/var/lib/postgresql/data"
+  },
+  "connectionString": "Host=${host};Port=${port};Username=root;Password=test;Database=conformance",
+  "dialect": { "renderAsText": "CAST({0} AS text)" },
+  "types": { "query": "SELECT DISTINCT format_type(oid, NULL) FROM pg_type WHERE typtype = 'b'" }
+}
+```
+
+| Key | What it says |
+| --- | --- |
+| `driver` | The NuGet `package` and `version` (exact or floating), the `DbProviderFactory` type (its `Instance`, or a new one), and any other `packages` the driver needs |
+| `target` | `docker`: an `image` started on a Docker-assigned host port for the `port` it listens on, with `env`, `command`, `tmpfs`, `privileged`, `files` put in the container, `waitForLog`, `sidecars` (containers it reaches by alias on a network of their own), `exec` shell commands run in it, and `setup` statements (on `setupConnectionString`); `exec` and `setup` are retried until `readySeconds` runs out, and every container is removed after the run. `cloud`: nothing is started and the connection string names environment variables. `file`: a database under `${tempdir}`, removed after the run |
+| `requires` | An `os` and environment variables (an opt-in switch, credentials) the provider needs; without them the runner reports it as `NOT RUN` with the reason, without building it |
+| `processEnvironment` | Variables the runner sets when it starts the test process, for a driver that reads them before any code runs; `${output}` is the test assembly's folder |
+| `connectionString` | With `${host}` and `${port}` (the container's), `${tempdir}`, and `${NAME}` for any environment variable; the `ConnectionString` environment variable overrides it |
+| `environment` | Environment variables set for the test process |
+| `dialect` | Only where the database differs from SQL-92: `select` (`SELECT {0} FROM dual`), `terminator`, `parameterMarker`, `renderAsText`, `createTable`, `dropTable` |
+| `types` | `query`: the server's own list of types; one the provider's `DataTypes` leaves out is a finding. `include`: types to test besides `DataTypes` (name, CLR type, column). `exclude`: types not to test, with the reason |
+
+The fixture waits until the driver can open a connection, so a server that accepts its port before its logins is not a
+problem. Where a database does not say how to write something, the defaults are SQL-92 double-quoted identifiers and
+single-quoted strings, `;` between statements, and `@name` for parameters (the .NET convention, though SQL-92 writes
+`:name`). The files in `providers/` are pengdows.crud's integration matrix: one per database it supports, with the driver
+version, image and settings its testbed uses, so both projects test the same pairs. The opt-in ones (Aurora, SAP HANA,
+InterBase, Snowflake) and Access (Windows only) report `NOT RUN` until their variables are set. A configured provider runs the Command, Connection,
+ConnectionString, DbProviderFactory, Parameter, Transaction and generated type-fidelity tests; the reader tests need a
+hand-written project.
+
 ## Origin and license
 
 This project is a derivative of [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest), created by

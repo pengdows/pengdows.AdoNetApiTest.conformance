@@ -1,0 +1,24 @@
+{
+  "name": "OleDb8Access",
+  "description": "Microsoft Access through OLE DB, Windows only as in pengdows.crud testbed; ACCESS_DATABASE names an existing .accdb (testbed creates one with ADOX).",
+  "driver": {
+    "package": "System.Data.OleDb",
+    "version": "8.0.1",
+    "factory": "System.Data.OleDb.OleDbFactory, System.Data.OleDb"
+  },
+  "requires": {
+    "os": "windows",
+    "env": [
+      "ACCESS_DATABASE"
+    ]
+  },
+  "target": {
+    "kind": "file"
+  },
+  "connectionString": "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=${ACCESS_DATABASE}",
+  "dialect": {
+    "terminator": "",
+    "parameterMarker": "?",
+    "renderAsText": "CStr({0})"
+  }
+}

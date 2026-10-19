@@ -1,6 +1,8 @@
 namespace pengdows.AdoNetApiTest.conformance.Runner;
 
-internal sealed record ProviderProject(string Id, string Project);
+/// <param name="NotRunReason">Why the provider cannot run here (an operating system, an unset variable); it is reported as not run without building.</param>
+/// <param name="Environment">Variables for the test process, with <c>${output}</c> for its assembly's folder.</param>
+internal sealed record ProviderProject(string Id, string Project, string? NotRunReason = null, IReadOnlyDictionary<string, string>? Environment = null);
 
 internal static class ProviderDiscovery
 {

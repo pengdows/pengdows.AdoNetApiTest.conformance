@@ -1,0 +1,51 @@
+{
+  "name": "FirebirdClient10Firebird5",
+  "description": "Firebird as pengdows.crud testbed runs it (FirebirdSqlTestContainer, TestbedImageMatrix latest). FirebirdClient's DataTypes predates Firebird 3, so the newer types are listed.",
+  "driver": {
+    "package": "FirebirdSql.Data.FirebirdClient",
+    "version": "10.3.3",
+    "factory": "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory, FirebirdSql.Data.FirebirdClient"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "firebirdsql/firebird:5.0.2",
+    "port": 3050,
+    "env": {
+      "ISC_PASSWORD": "mysecretpassword",
+      "FIREBIRD_ROOT_PASSWORD": "mysecretpassword",
+      "FIREBIRD_DATABASE": "/var/lib/firebird/data/testdb.fdb"
+    }
+  },
+  "connectionString": "DataSource=${host};Port=${port};Database=/var/lib/firebird/data/testdb.fdb;User=SYSDBA;Password=mysecretpassword;Charset=UTF8",
+  "dialect": {
+    "select": "SELECT {0} FROM rdb$database",
+    "terminator": ""
+  },
+  "types": {
+    "include": [
+      {
+        "name": "TIMESTAMP WITH TIME ZONE",
+        "clrType": "System.DateTimeOffset"
+      },
+      {
+        "name": "BINARY",
+        "clrType": "System.Byte[]",
+        "column": "BINARY(16)"
+      },
+      {
+        "name": "VARBINARY",
+        "clrType": "System.Byte[]",
+        "column": "VARBINARY(100)"
+      },
+      {
+        "name": "DECFLOAT",
+        "clrType": "System.Decimal",
+        "column": "DECFLOAT(34)"
+      }
+    ],
+    "exclude": {
+      "array": "needs an array descriptor, not a value"
+    },
+    "query": "SELECT CASE TRIM(RDB$TYPE_NAME) WHEN 'SHORT' THEN 'SMALLINT' WHEN 'LONG' THEN 'INTEGER' WHEN 'INT64' THEN 'BIGINT' WHEN 'INT128' THEN 'INT128' WHEN 'FLOAT' THEN 'FLOAT' WHEN 'DOUBLE' THEN 'DOUBLE PRECISION' WHEN 'TEXT' THEN 'CHAR' WHEN 'VARYING' THEN 'VARCHAR' WHEN 'DATE' THEN 'DATE' WHEN 'TIME' THEN 'TIME' WHEN 'TIMESTAMP' THEN 'TIMESTAMP' WHEN 'TIME_TZ' THEN 'TIME WITH TIME ZONE' WHEN 'TIMESTAMP_TZ' THEN 'TIMESTAMP WITH TIME ZONE' WHEN 'BOOLEAN' THEN 'BOOLEAN' WHEN 'BLOB' THEN 'BLOB' WHEN 'DEC16' THEN 'DECFLOAT(16)' WHEN 'DEC34' THEN 'DECFLOAT(34)' END, CASE TRIM(RDB$TYPE_NAME) WHEN 'SHORT' THEN 'SMALLINT' WHEN 'LONG' THEN 'INTEGER' WHEN 'INT64' THEN 'BIGINT' WHEN 'INT128' THEN 'INT128' WHEN 'FLOAT' THEN 'FLOAT' WHEN 'DOUBLE' THEN 'DOUBLE PRECISION' WHEN 'TEXT' THEN 'CHAR(100)' WHEN 'VARYING' THEN 'VARCHAR(100)' WHEN 'DATE' THEN 'DATE' WHEN 'TIME' THEN 'TIME' WHEN 'TIMESTAMP' THEN 'TIMESTAMP' WHEN 'TIME_TZ' THEN 'TIME WITH TIME ZONE' WHEN 'TIMESTAMP_TZ' THEN 'TIMESTAMP WITH TIME ZONE' WHEN 'BOOLEAN' THEN 'BOOLEAN' WHEN 'BLOB' THEN 'BLOB' WHEN 'DEC16' THEN 'DECFLOAT(16)' WHEN 'DEC34' THEN 'DECFLOAT(34)' END FROM RDB$TYPES WHERE RDB$FIELD_NAME = 'RDB$FIELD_TYPE' UNION SELECT 'decimal', 'DECIMAL(18,9)' FROM rdb$database UNION SELECT 'numeric', 'NUMERIC(18,9)' FROM rdb$database UNION SELECT 'blob sub_type 1', 'BLOB SUB_TYPE 1' FROM rdb$database"
+  }
+}

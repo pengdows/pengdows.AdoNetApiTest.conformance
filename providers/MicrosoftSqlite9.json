@@ -1,0 +1,40 @@
+{
+  "name": "MicrosoftSqlite9",
+  "description": "SQLite as pengdows.crud testbed runs it: Microsoft.Data.Sqlite with SQLitePCLRaw.bundle_e_sqlite3 3.0.3, on a file. No DataTypes collection, so the storage classes are listed.",
+  "driver": {
+    "package": "Microsoft.Data.Sqlite",
+    "version": "9.0.5",
+    "factory": "Microsoft.Data.Sqlite.SqliteFactory, Microsoft.Data.Sqlite",
+    "packages": {
+      "SQLitePCLRaw.bundle_e_sqlite3": "3.0.3"
+    }
+  },
+  "target": {
+    "kind": "file"
+  },
+  "connectionString": "Data Source=${tempdir}/conformance.db",
+  "dialect": {
+    "renderAsText": "CAST({0} AS TEXT)",
+    "dropTable": "drop table if exists {0}"
+  },
+  "types": {
+    "include": [
+      {
+        "name": "INTEGER",
+        "clrType": "System.Int64"
+      },
+      {
+        "name": "REAL",
+        "clrType": "System.Double"
+      },
+      {
+        "name": "TEXT",
+        "clrType": "System.String"
+      },
+      {
+        "name": "BLOB",
+        "clrType": "System.Byte[]"
+      }
+    ]
+  }
+}

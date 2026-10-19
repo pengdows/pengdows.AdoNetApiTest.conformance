@@ -1,0 +1,29 @@
+{
+  "name": "Npgsql9AuroraPostgres",
+  "description": "Aurora PostgreSQL, opt-in as in pengdows.crud testbed (INCLUDE_AURORA and the AURORA_POSTGRES_* variables).",
+  "driver": {
+    "package": "Npgsql",
+    "version": "9.0.3",
+    "factory": "Npgsql.NpgsqlFactory, Npgsql"
+  },
+  "target": {
+    "kind": "cloud"
+  },
+  "requires": {
+    "env": [
+      "INCLUDE_AURORA",
+      "AURORA_POSTGRES_HOST",
+      "AURORA_POSTGRES_USER",
+      "AURORA_POSTGRES_PASSWORD",
+      "AURORA_POSTGRES_DATABASE"
+    ]
+  },
+  "connectionString": "Host=${AURORA_POSTGRES_HOST};Username=${AURORA_POSTGRES_USER};Password=${AURORA_POSTGRES_PASSWORD};Database=${AURORA_POSTGRES_DATABASE};SSL Mode=Require",
+  "dialect": {
+    "renderAsText": "CAST({0} AS text)",
+    "dropTable": "drop table if exists {0}"
+  },
+  "types": {
+    "query": "SELECT DISTINCT format_type(t.oid, NULL) FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname IN ('pg_catalog', 'information_schema') AND t.typtype NOT IN ('p', 'c')"
+  }
+}

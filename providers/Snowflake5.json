@@ -1,0 +1,26 @@
+{
+  "name": "Snowflake5",
+  "description": "Snowflake, opt-in as in pengdows.crud testbed (INCLUDE_SNOWFLAKE and the SNOWFLAKE_* variables).",
+  "driver": {
+    "package": "Snowflake.Data",
+    "version": "5.6.0",
+    "factory": "Snowflake.Data.Client.SnowflakeDbFactory, Snowflake.Data"
+  },
+  "requires": {
+    "env": [
+      "INCLUDE_SNOWFLAKE",
+      "SNOWFLAKE_ACCOUNT",
+      "SNOWFLAKE_USER",
+      "SNOWFLAKE_PASSWORD",
+      "SNOWFLAKE_WAREHOUSE",
+      "SNOWFLAKE_DATABASE"
+    ]
+  },
+  "target": {
+    "kind": "cloud"
+  },
+  "connectionString": "account=${SNOWFLAKE_ACCOUNT};user=${SNOWFLAKE_USER};password=${SNOWFLAKE_PASSWORD};warehouse=${SNOWFLAKE_WAREHOUSE};db=${SNOWFLAKE_DATABASE};schema=PUBLIC",
+  "dialect": {
+    "renderAsText": "TO_VARCHAR({0})"
+  }
+}

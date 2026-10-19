@@ -1,0 +1,37 @@
+{
+  "name": "Hana2SapHanaExpress",
+  "description": "SAP HANA Express, opt-in as in pengdows.crud testbed (INCLUDE_SAPHANA; HanaTestContainer). The image needs 16-32 GB of memory.",
+  "driver": {
+    "package": "Sap.Data.Hana.Net.v8.0",
+    "version": "2.29.27",
+    "factory": "Sap.Data.Hana.HanaFactory, Sap.Data.Hana.Net.v8.0"
+  },
+  "requires": {
+    "env": [
+      "INCLUDE_SAPHANA"
+    ]
+  },
+  "target": {
+    "kind": "docker",
+    "image": "saplabs/hanaexpress:latest",
+    "port": 39013,
+    "readySeconds": 1200,
+    "files": {
+      "/hana/mounts/password.json": "{\"master_password\": \"HXEHana1\"}"
+    },
+    "command": [
+      "--passwords-url",
+      "file:///hana/mounts/password.json",
+      "--agree-to-sap-license"
+    ]
+  },
+  "connectionString": "Server=${host}:${port};UserName=SYSTEM;Password=HXEHana1;Database=HXE;Encrypt=false",
+  "dialect": {
+    "select": "SELECT {0} FROM dummy",
+    "terminator": "",
+    "parameterMarker": "?"
+  },
+  "types": {
+    "query": "SELECT TYPE_NAME FROM SYS.DATA_TYPES"
+  }
+}

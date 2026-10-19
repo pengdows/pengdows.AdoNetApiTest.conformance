@@ -1,0 +1,30 @@
+{
+  "name": "Npgsql9Cockroach25",
+  "description": "CockroachDB as pengdows.crud testbed runs it (CockroachDbTestContainer).",
+  "driver": {
+    "package": "Npgsql",
+    "version": "9.0.3",
+    "factory": "Npgsql.NpgsqlFactory, Npgsql"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "cockroachdb/cockroach:v25.1.0",
+    "port": 26257,
+    "command": [
+      "start-single-node",
+      "--insecure"
+    ],
+    "setupConnectionString": "Host=${host};Port=${port};Username=root;SSL Mode=disable",
+    "setup": [
+      "CREATE DATABASE IF NOT EXISTS conformance"
+    ]
+  },
+  "connectionString": "Host=${host};Port=${port};Username=root;Database=conformance;SSL Mode=disable",
+  "dialect": {
+    "renderAsText": "CAST({0} AS text)",
+    "dropTable": "drop table if exists {0}"
+  },
+  "types": {
+    "query": "SELECT DISTINCT format_type(t.oid, NULL) FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname IN ('pg_catalog', 'information_schema') AND t.typtype NOT IN ('p', 'c')"
+  }
+}

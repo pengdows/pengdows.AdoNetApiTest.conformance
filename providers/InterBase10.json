@@ -1,0 +1,22 @@
+{
+  "name": "InterBase10",
+  "description": "InterBase, opt-in as in pengdows.crud testbed (INCLUDE_INTERBASE): a node-locked developer licence in its own container at a fixed address, and libgds.so on the host.",
+  "driver": {
+    "package": "InterBaseSql.Data.InterBaseClient",
+    "version": "10.0.3",
+    "factory": "InterBaseSql.Data.InterBaseClient.InterBaseClientFactory, InterBaseSql.Data.InterBaseClient"
+  },
+  "requires": {
+    "env": [
+      "INCLUDE_INTERBASE"
+    ]
+  },
+  "target": {
+    "kind": "cloud"
+  },
+  "connectionString": "DataSource=172.28.0.10;Port=3050;Database=/opt/interbase/pengdows_test.ib;User=sysdba;Password=masterkey;Dialect=3",
+  "dialect": {
+    "select": "SELECT {0} FROM rdb$database",
+    "terminator": ""
+  }
+}

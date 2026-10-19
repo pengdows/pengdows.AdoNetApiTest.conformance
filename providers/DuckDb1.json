@@ -1,0 +1,20 @@
+{
+  "name": "DuckDb1",
+  "description": "DuckDB as pengdows.crud testbed runs it (DuckDbTestContainer, a file).",
+  "driver": {
+    "package": "DuckDB.NET.Data.Full",
+    "version": "1.5.6.1",
+    "factory": "DuckDB.NET.Data.DuckDBClientFactory, DuckDB.NET.Data"
+  },
+  "target": {
+    "kind": "file"
+  },
+  "connectionString": "Data Source=${tempdir}/conformance.duckdb",
+  "dialect": {
+    "renderAsText": "CAST({0} AS VARCHAR)",
+    "dropTable": "drop table if exists {0}"
+  },
+  "types": {
+    "query": "SELECT DISTINCT type_name, CASE WHEN type_name = 'DECIMAL' THEN 'DECIMAL(28,10)' ELSE type_name END FROM duckdb_types() WHERE schema_name = 'main' AND NOT type_name LIKE '%[]'"
+  }
+}

@@ -130,6 +130,40 @@ public abstract partial class CommandTestBase<TFixture>
 		}
 	}
 
+	/// <summary>
+	/// An executed command can be detached from its connection for reuse; pengdows.crud swallows the exception some
+	/// providers throw here. Required covers only a command that never ran (Connection_can_be_unset).
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.connection.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.connection", Because = "no page says whether an executed command can be detached from its connection")]
+	public virtual void Connection_can_be_unset_after_execute()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		command.ExecuteScalar();
+		using (var reader = command.ExecuteReader())
+		{
+			while (reader.Read())
+			{
+			}
+		}
+
+		try
+		{
+			command.Connection = null;
+		}
+		catch (Exception ex)
+		{
+			ConformanceOutcome.Different($"Setting Connection to null on an executed command threw {ex.GetType().Name}: {ex.Message}");
+			return;
+		}
+
+		Assert.Null(command.Connection);
+		command.Connection = connection;
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
+	}
+
 	private static void ReportDisposeExceptions(params (Action Dispose, string What)[] steps)
 	{
 		var failures = new List<string>();
@@ -566,7 +600,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = new CustomClass();

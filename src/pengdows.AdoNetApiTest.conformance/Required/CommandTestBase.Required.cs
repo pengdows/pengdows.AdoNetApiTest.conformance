@@ -134,14 +134,22 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.NotNull(command.CreateParameter());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	/// <summary>
+	/// "InvalidOperationException: The Connection is not set. -or- The Connection is not Open."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
 	public virtual void Prepare_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
 		Assert.ThrowsAny<InvalidOperationException>(() => command.Prepare());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	/// <summary>
+	/// "InvalidOperationException: The Connection is not set. -or- The Connection is not Open."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
 	public virtual void Prepare_throws_when_connection_closed()
 	{
 		using var connection = CreateConnection();
@@ -160,17 +168,14 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = 1;
 		command.Parameters.Add(parameter);
 
-		var scalar = command.ExecuteScalar();
-		if (scalar is int)
-			Assert.Equal(1, scalar);
-		else
-			Assert.Equal(1L, scalar);
+		// The CLR type of a selected parameter is the database's choice (Oracle's NUMBER is a decimal); the value is not.
+		Assert.Equal(1L, Convert.ToInt64(command.ExecuteScalar()));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]

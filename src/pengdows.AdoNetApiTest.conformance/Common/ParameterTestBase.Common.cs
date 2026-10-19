@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.IO;
 using Xunit;
 using Xunit.Sdk;
@@ -95,7 +97,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.Value = 1;
 		command.Parameters.Add(parameter);
@@ -126,7 +128,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.DbType = DbType.String;
@@ -149,7 +151,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		command.Parameters.Add(parameter);
@@ -200,7 +202,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = new object();
@@ -236,7 +238,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = "test";
@@ -257,7 +259,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = new byte[] { 1, 2, 3, 4 };
@@ -283,7 +285,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
@@ -529,5 +531,288 @@ public abstract partial class ParameterTestBase<TFixture>
 	public virtual void Parameter_default_Size_is_zero()
 	{
 		Assert.Equal(0, Fixture.Factory.CreateParameter().Size);
+	}
+
+	/// <summary>
+	/// Every <see cref="DbType"/> member can be assigned. ODP.NET rejects Guid, DateTime2 and Xml, IBM Db2 rejects Guid and
+	/// FirebirdClient rejects VarNumeric the moment they are assigned, which pengdows.crud works around by remapping them.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.dbtype.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.dbtype", Because = "the page does not say which DbType values a provider must accept")]
+	public virtual void DbType_accepts_every_DbType_value()
+	{
+		var rejected = new List<string>();
+		foreach (DbType type in Enum.GetValues(typeof(DbType)))
+		{
+			var parameter = Fixture.Factory.CreateParameter();
+			try
+			{
+				parameter.DbType = type;
+			}
+			catch (Exception ex)
+			{
+				rejected.Add($"{type} ({ex.GetType().Name})");
+			}
+		}
+
+		if (rejected.Count > 0)
+			ConformanceOutcome.Different("DbType rejects: " + string.Join(", ", rejected) + ".");
+	}
+
+	/// <summary>
+	/// A NULL value binds under every DbType the provider accepts; IBM Db2 rejected DbType.DateTimeOffset even for NULL.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "no page says a NULL must bind under every DbType")]
+	public virtual void Bind_works_with_DBNull_for_every_DbType()
+	{
+		using var connection = CreateOpenConnection();
+		var failed = new List<string>();
+		foreach (DbType type in Enum.GetValues(typeof(DbType)))
+		{
+			using var command = connection.CreateCommand();
+			command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+			var parameter = command.CreateParameter();
+			parameter.ParameterName = "Parameter";
+			try
+			{
+				parameter.DbType = type;
+			}
+			catch (Exception)
+			{
+				// DbType_accepts_every_DbType_value reports the setter.
+				continue;
+			}
+
+			parameter.Value = DBNull.Value;
+			command.Parameters.Add(parameter);
+			try
+			{
+				var result = command.ExecuteScalar();
+				if (result is not null && result is not DBNull)
+					failed.Add($"{type} (returned {result})");
+			}
+			catch (Exception ex)
+			{
+				failed.Add($"{type} ({ex.GetType().Name}: {FirstLine(ex.Message)})");
+			}
+		}
+
+		if (failed.Count > 0)
+			ConformanceOutcome.Different("A DBNull parameter did not come back as NULL for: " + string.Join("; ", failed));
+	}
+
+	/// <summary>
+	/// A parameter reused with a wider decimal sends the new value in full. Given a first value's smaller Precision and
+	/// Scale, SAP HANA refused a larger value or cut it short silently; pengdows.crud widens them itself.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.value", Because = "no page says how Precision and Scale follow a new Value")]
+	public virtual void Reused_decimal_parameter_sends_a_wider_value_exactly()
+	{
+		using var connection = CreateOpenConnection();
+		var lost = new List<string>();
+		foreach (var prepare in new[] { false, true })
+		{
+			using var command = connection.CreateCommand();
+			command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+			var parameter = command.CreateParameter();
+			parameter.ParameterName = "Parameter";
+			parameter.DbType = DbType.Decimal;
+			parameter.Value = 1.5m;
+			command.Parameters.Add(parameter);
+			var label = prepare ? "prepared" : "unprepared";
+			try
+			{
+				if (prepare)
+				{
+					try
+					{
+						command.Prepare();
+					}
+					catch (NotSupportedException)
+					{
+						continue;
+					}
+				}
+
+				foreach (var value in new[] { 1.5m, 12345678.0625m, 0.000001m, -98765.4321m })
+				{
+					parameter.Value = value;
+					var result = command.ExecuteScalar();
+					var actual = result is string text ? decimal.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture) : Convert.ToDecimal(result, CultureInfo.InvariantCulture);
+					if (actual != value)
+						lost.Add($"{label}: sent {value.ToString(CultureInfo.InvariantCulture)} after 1.5, got {actual.ToString(CultureInfo.InvariantCulture)}");
+				}
+			}
+			catch (Exception ex)
+			{
+				lost.Add($"{label}: {ex.GetType().Name}: {FirstLine(ex.Message)}");
+			}
+		}
+
+		if (lost.Count > 0)
+			ConformanceOutcome.Different("A reused decimal parameter lost its new value: " + string.Join("; ", lost));
+	}
+
+	/// <summary>
+	/// A double outside the range of a decimal NUMBER binds exactly. ODP.NET bound DbType.Double as NUMBER, so a value
+	/// beyond 1e126 overflowed; pengdows.crud binds it as BINARY_DOUBLE.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "no page fixes the range a provider binds a double with")]
+	public virtual void Bind_works_with_large_double()
+	{
+		using var connection = CreateOpenConnection();
+		var lost = new List<string>();
+		foreach (var value in new[] { 1e200, -1e200, double.MaxValue, double.Epsilon })
+		{
+			using var command = connection.CreateCommand();
+			command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+			var parameter = command.CreateParameter();
+			parameter.ParameterName = "Parameter";
+			parameter.DbType = DbType.Double;
+			parameter.Value = value;
+			command.Parameters.Add(parameter);
+			var shown = value.ToString("R", CultureInfo.InvariantCulture);
+			try
+			{
+				var result = command.ExecuteScalar();
+				var actual = result is string text ? double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture) : Convert.ToDouble(result, CultureInfo.InvariantCulture);
+				if (BitConverter.DoubleToInt64Bits(actual) != BitConverter.DoubleToInt64Bits(value))
+					lost.Add($"{shown} came back as {actual.ToString("R", CultureInfo.InvariantCulture)}");
+			}
+			catch (Exception ex)
+			{
+				lost.Add($"{shown}: {ex.GetType().Name}: {FirstLine(ex.Message)}");
+			}
+		}
+
+		if (lost.Count > 0)
+			ConformanceOutcome.Different("A double parameter did not come back exactly: " + string.Join("; ", lost));
+	}
+
+	/// <summary>
+	/// A DateTimeOffset with a non-zero offset binds and keeps its instant. Npgsql 6 and later reject it for timestamptz
+	/// ("Offset" must be 0), which pengdows.crud works around by converting to UTC first.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "no page says how a provider binds a DateTimeOffset's offset")]
+	public virtual void Bind_works_with_DateTimeOffset_with_offset()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		var parameter = command.CreateParameter();
+		parameter.ParameterName = "Parameter";
+		parameter.DbType = DbType.DateTimeOffset;
+		var value = new DateTimeOffset(2024, 1, 1, 12, 0, 0, TimeSpan.FromHours(5));
+		parameter.Value = value;
+		command.Parameters.Add(parameter);
+
+		object result;
+		try
+		{
+			result = command.ExecuteScalar();
+		}
+		catch (Exception ex)
+		{
+			ConformanceOutcome.Different($"Binding {value:o} threw {ex.GetType().Name}: {FirstLine(ex.Message)}");
+			return;
+		}
+
+		var instant = result switch
+		{
+			DateTimeOffset offset => offset.UtcTicks,
+			string text when DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) => parsed.UtcTicks,
+			DateTime { Kind: DateTimeKind.Utc } utc => utc.Ticks,
+			_ => (long?) null,
+		};
+		if (instant is null)
+			ConformanceOutcome.Different($"Binding {value:o} came back as {result?.GetType().Name} {result}, which does not say which instant it is.");
+		else if (instant != value.UtcTicks)
+			ConformanceOutcome.Different($"Binding {value:o} came back as {result}, a different instant.");
+	}
+
+	/// <summary>
+	/// A TimeSpan binds as DbType.Time. SingleStore rejected the typed TIME MySqlConnector sends and Spanner has no TIME, so
+	/// pengdows.crud binds a time of day as text there.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "the table maps TimeSpan to DbType.Time for the .NET Framework providers only")]
+	public virtual void Bind_works_with_TimeSpan_as_Time()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		var parameter = command.CreateParameter();
+		parameter.ParameterName = "Parameter";
+		parameter.DbType = DbType.Time;
+		var value = new TimeSpan(13, 45, 30);
+		parameter.Value = value;
+		command.Parameters.Add(parameter);
+
+		object result;
+		try
+		{
+			result = command.ExecuteScalar();
+		}
+		catch (Exception ex)
+		{
+			ConformanceOutcome.Different($"Binding {value} as DbType.Time threw {ex.GetType().Name}: {FirstLine(ex.Message)}");
+			return;
+		}
+
+		var time = result switch
+		{
+			TimeSpan span => span,
+			DateTime date => date.TimeOfDay,
+			string text when TimeSpan.TryParse(text, CultureInfo.InvariantCulture, out var parsed) => parsed,
+			_ => (TimeSpan?) null,
+		};
+		if (time != value)
+			ConformanceOutcome.Different($"Binding {value} as DbType.Time came back as {result?.GetType().Name} {result}.");
+	}
+
+	/// <summary>
+	/// Setting only Value infers DbType as the table shows (Int32 for an int, Guid for a Guid, Binary for a byte array).
+	/// pengdows.crud copies DbType when it clones a parameter, which broke when ODP.NET reported Int64 for a parameter
+	/// carrying text.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "the inference table describes the .NET Framework providers")]
+	public virtual void DbType_is_inferred_from_Value()
+	{
+		var cases = new (object Value, DbType Expected)[]
+		{
+			(true, DbType.Boolean), ((byte) 1, DbType.Byte), (new byte[] { 1 }, DbType.Binary), (new DateTime(2024, 1, 1), DbType.DateTime),
+			(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), DbType.DateTimeOffset), (1.5m, DbType.Decimal), (1.5d, DbType.Double),
+			(1.5f, DbType.Single), (Guid.Empty, DbType.Guid), ((short) 1, DbType.Int16), (1, DbType.Int32), (1L, DbType.Int64),
+			("text", DbType.String), (TimeSpan.FromHours(1), DbType.Time),
+		};
+		var differ = new List<string>();
+		foreach (var (value, expected) in cases)
+		{
+			var parameter = Fixture.Factory.CreateParameter();
+			try
+			{
+				parameter.Value = value;
+				if (parameter.DbType != expected)
+					differ.Add($"{value.GetType().Name} gives {parameter.DbType}, not {expected}");
+			}
+			catch (Exception ex)
+			{
+				differ.Add($"{value.GetType().Name} throws {ex.GetType().Name}");
+			}
+		}
+
+		if (differ.Count > 0)
+			ConformanceOutcome.Different("DbType inferred from Value: " + string.Join("; ", differ) + ".");
+	}
+
+	private static string FirstLine(string message)
+	{
+		var end = message.IndexOfAny(new[] { '\r', '\n' });
+		return end < 0 ? message : message.Substring(0, end);
 	}
 }

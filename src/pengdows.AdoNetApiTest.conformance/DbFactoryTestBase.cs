@@ -65,7 +65,9 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// bare <c>SELECT 1</c> is portable.
 	/// </summary>
 	/// <seealso href="https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executereader" />
-	protected virtual string SelectSql(string projection) => $"SELECT {projection};";
+	protected virtual string SelectSql(string projection) => Fixture is ISqlDialectFixture dialect
+		? dialect.SelectStatement(projection) + dialect.StatementTerminator
+		: $"SELECT {projection};";
 
 	/// <summary>Returns one scalar using the provider's portable SELECT shape.</summary>
 	protected virtual string SelectOneSql => SelectSql("1");
@@ -88,11 +90,15 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// <summary>Returns three result sets containing one scalar each.</summary>
 	protected virtual string SelectThreeResultsSql => SelectSql("1") + " " + SelectSql("2") + " " + SelectSql("3");
 
-	/// <summary>Returns two rows from a single result set.</summary>
-	protected virtual string SelectTwoRowsSql => "SELECT 1 UNION SELECT 2;";
+	/// <summary>Returns the rows 1 and 2, in that order, from a single result set (a distributed database such as TiDB returns a UNION in either order without ORDER BY).</summary>
+	protected virtual string SelectTwoRowsSql => Fixture is ISqlDialectFixture dialect
+		? $"{dialect.SelectStatement("1")} UNION {dialect.SelectStatement("2")} ORDER BY 1{dialect.StatementTerminator}"
+		: "SELECT 1 UNION SELECT 2 ORDER BY 1;";
 
 	/// <summary>Returns two known rows with the command-test value aliases.</summary>
-	protected virtual string SelectTwoRows42Sql => "SELECT 42 AS value UNION SELECT 43 AS value ORDER BY value;";
+	protected virtual string SelectTwoRows42Sql => Fixture is ISqlDialectFixture dialect
+		? $"{dialect.SelectStatement("42 AS value")} UNION {dialect.SelectStatement("43 AS value")} ORDER BY value{dialect.StatementTerminator}"
+		: "SELECT 42 AS value UNION SELECT 43 AS value ORDER BY value;";
 
 	/// <summary>Returns an empty result followed by one result row.</summary>
 	protected virtual string SelectNoRowsThenOneSql => Fixture is ISelectValueFixture select

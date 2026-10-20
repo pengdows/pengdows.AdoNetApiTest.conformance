@@ -173,6 +173,9 @@ clear.
   `GetFieldValueAsync`/transaction lifecycle coverage.
 - Successful `OpenAsync` and `CloseAsync` connection lifecycle behavior is
   covered; cancellation remains documented as provider-dependent.
+- Closing an already closed connection raises no `StateChange` (Required: the
+  event occurs only between closed and opened); `Close`/`CloseAsync` on a
+  connection never opened are Common, since no page covers Close before Open.
 - Provider-specific SQL setup is kept in fixtures; multi-statement setup is
   executed statement-by-statement because `DbCommand.Prepare` does not require
   providers to accept a batch of statements.

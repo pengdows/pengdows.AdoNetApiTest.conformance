@@ -149,7 +149,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(2, Convert.ToInt32(command.ExecuteScalar()));
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// PrepareAsync follows the same valid-command contract as Prepare. A provider
 	/// may explicitly report that preparation is unsupported.

@@ -191,8 +191,29 @@ public abstract partial class ConnectionTestBase<TFixture>
 	public virtual void Close_can_be_called_before_open()
 	{
 		using var connection = CreateConnection();
+		var raised = 0;
+		connection.StateChange += (_, _) => raised++;
+
 		connection.Close();
+
+		Assert.Equal(ConnectionState.Closed, connection.State);
+		Assert.Equal(0, raised);
 	}
+
+#if !NETSTANDARD2_0
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.closeasync", Because = "CloseAsync may be called more than once without an exception; no page covers CloseAsync before Open.")]
+	public virtual async Task CloseAsync_can_be_called_before_open()
+	{
+		using var connection = CreateConnection();
+		var raised = 0;
+		connection.StateChange += (_, _) => raised++;
+
+		await connection.CloseAsync().ConfigureAwait(false);
+
+		Assert.Equal(ConnectionState.Closed, connection.State);
+		Assert.Equal(0, raised);
+	}
+#endif
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "Only IDbConnection says it can be set only while closed; no page names the exception.")]
 	public virtual void ConnectionString_setter_throws_when_open()

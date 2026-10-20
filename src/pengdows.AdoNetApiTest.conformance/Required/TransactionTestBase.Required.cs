@@ -18,7 +18,7 @@ public partial class TransactionTestBase<TFixture>
 		Assert.Same(connection, transaction.Connection);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// BeginTransactionAsync is required to provide the same transaction contract
 	/// as BeginTransaction. The base implementation may delegate to synchronous
@@ -71,7 +71,7 @@ public partial class TransactionTestBase<TFixture>
 #endif
 
 #if NET10_0_OR_GREATER
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// The asynchronous savepoint methods must obey the same capability contract
 	/// as their synchronous counterparts.

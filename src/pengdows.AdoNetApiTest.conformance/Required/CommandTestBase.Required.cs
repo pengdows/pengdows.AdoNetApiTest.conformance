@@ -98,7 +98,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.ThrowsAny<ArgumentException>(() => command.UpdatedRowSource = (UpdateRowSource) 99);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync must complete the command disposal contract without requiring
 	/// providers to implement a separate asynchronous resource path.

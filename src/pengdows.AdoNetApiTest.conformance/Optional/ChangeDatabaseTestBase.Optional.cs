@@ -19,7 +19,7 @@ public abstract partial class ChangeDatabaseTestBase<TFixture>
 		Fixture.AssertChangedDatabase(connection);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// ChangeDatabaseAsync must perform the same database transition as the
 	/// synchronous API for a provider that supports changing databases.

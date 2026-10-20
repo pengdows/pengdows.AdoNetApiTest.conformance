@@ -371,7 +371,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.True(reader.IsDBNull(0));
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// IsDBNullAsync must report the value state through the asynchronous reader
 	/// API just as IsDBNull does. The test deliberately uses a non-null literal so
@@ -391,7 +391,7 @@ public partial class DataReaderTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// NextResultAsync must complete successfully and report that a single-result
 	/// command has no additional result set.
@@ -409,7 +409,7 @@ public partial class DataReaderTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync must close the reader and release its active state.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.disposeasync.
@@ -428,8 +428,8 @@ public partial class DataReaderTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// CloseAsync must complete the documented asynchronous reader-close
 	/// operation and leave the reader closed.

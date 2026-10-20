@@ -101,4 +101,15 @@ public class ProviderCoverageTests
 
 		Assert.True(offenders.Count == 0, "Single-writer projects out of step:\n" + string.Join("\n", offenders));
 	}
+
+	/// <summary>
+	/// The library's asynchronous tests exist in every build that has the asynchronous API, net10.0 included: the runner
+	/// reads the Required catalog from that build, and most provider projects run it.
+	/// </summary>
+	[Theory]
+	[InlineData(typeof(ConnectionTestBase<>), "CloseAsync_works")]
+	[InlineData(typeof(ConnectionTestBase<>), "CloseAsync_can_be_called_before_open")]
+	[InlineData(typeof(DataReaderTestBase<>), "IsDBNullAsync_returns_value_state")]
+	public void AsynchronousTests_AreInTheNet10Build(Type testBase, string method) =>
+		Assert.NotNull(testBase.GetMethod(method));
 }

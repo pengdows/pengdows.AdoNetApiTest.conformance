@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Sdk;
@@ -246,6 +247,74 @@ public partial class DataReaderTestBase<TFixture>
 		command.CommandText = SelectOneAsIdSql;
 		using var reader = command.ExecuteReader();
 		Assert.Equal(0, reader.GetOrdinal("Id"));
+	}
+
+	/// <summary>
+	/// "GetOrdinal performs a case-sensitive lookup first. If it fails, a second case-insensitive search is made."
+	/// With columns <c>a</c> and <c>A</c>, each name finds its own column. A database that rejects the two names, or folds
+	/// them to one, can't show the difference.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal")]
+	public virtual void GetOrdinal_prefers_the_exact_case_match()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql("1 AS \"a\", 2 AS \"A\"");
+		using var reader = ExecuteReaderWithNamesThatDifferOnlyInCase(command);
+		if (reader is null)
+		{
+			return;
+		}
+
+		Assert.Equal(1, reader.GetOrdinal("A"));
+		Assert.Equal(0, reader.GetOrdinal("a"));
+	}
+
+	/// <summary>
+	/// "If it fails, a second case-insensitive search is made": a name that matches no column exactly finds the column
+	/// whose name differs only in case.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal")]
+	public virtual void GetOrdinal_falls_back_to_a_case_insensitive_match()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql("1 AS \"b\", 2 AS \"value\"");
+		using var reader = command.ExecuteReader();
+		if (reader.GetName(1) != "value")
+		{
+			ConformanceOutcome.NotApplicable($"The database renamed the quoted column \"value\" to \"{reader.GetName(1)}\".");
+			return;
+		}
+
+		Assert.Equal(1, reader.GetOrdinal("VALUE"));
+		Assert.Equal(1, reader.GetOrdinal("Value"));
+	}
+
+	private static DbDataReader ExecuteReaderWithNamesThatDifferOnlyInCase(DbCommand command)
+	{
+		DbDataReader reader;
+		try
+		{
+			reader = command.ExecuteReader();
+		}
+		catch (DbException ex)
+		{
+			ConformanceOutcome.NotApplicable("The database rejects two columns whose names differ only in case: " + ex.Message);
+			return null;
+		}
+
+		if (reader.FieldCount == 2 && reader.GetName(0) == "a" && reader.GetName(1) == "A")
+		{
+			return reader;
+		}
+
+		var names = string.Join(", ", Enumerable.Range(0, reader.FieldCount).Select(reader.GetName));
+		reader.Dispose();
+		ConformanceOutcome.NotApplicable($"The database does not keep the quoted names \"a\" and \"A\" apart (it returned {names}).");
+		return null;
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal")]

@@ -1,23 +1,48 @@
 # pengdows.AdoNetApiTest.conformance
 
-A suite of [xUnit.net](https://xunit.github.io/)-based conformance tests for ADO.NET providers, i.e.,
-classes that inherit from `DbConnection`, `DbCommand`, `DbDataReader`, etc.
+**Testing the documented ADO.NET contract, not common provider conventions.**
+
+An independent, provider-neutral [xUnit.net](https://xunit.net/)-based conformance suite for .NET database providers. It tests the behavior promised by `System.Data.Common`, distinguishes optional capabilities from universal requirements, and investigates whether values survive database round trips intact. It does not assume any particular database, SQL dialect, or parameter marker.
 
 ## Why this exists
 
-This is the successor to [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest) (Bradley Grainger,
-MIT license), which it was forked from; the original's history is kept in this repository. If you were looking for
-that project, this is where it went on.
+### Provider independence was the starting point
 
-It is maintained by the [pengdows.crud](https://github.com/pengdows/pengdows.crud) project. pengdows.crud runs on
-many databases through their vendors' ADO.NET drivers, and testing it showed that drivers return wrong data in
-ways the ADO.NET documentation does not allow (a value truncated, shifted, or read back as a different value). This
-suite exists to find those defects independently of any one data-access library, so that each can be reported to
-its driver's maintainers and a minimum driver version can be recorded for it.
+In February 2010, I wrote [*Don't Hard Code Your DataProviders*](https://www.codeproject.com/Articles/55890/Dont-Hard-Code-Your-DataProviders) about building database-independent .NET code with `DbProviderFactory` and the shared ADO.NET abstractions, rather than hard-coding `SqlConnection`, `SqlCommand`, or another vendor's classes. The article made a point that still matters: using the factory and common interfaces is the **starting point** for provider independence, not a claim that all database SQL dialects are interchangeable.
 
-The premise: test the **documented contract** of `System.Data.Common`, not whether a provider behaves like SQL
-Server, and test **every type each provider supports** with boundary values to see what survives a round trip.
-See [CONTRACT-COVERAGE.md](src/pengdows.AdoNetApiTest.conformance/CONTRACT-COVERAGE.md) for the classification rules.
+That principle became central to [pengdows.crud](https://github.com/pengdows/pengdows.crud). Its data access code is designed to rely on the documented ADO.NET contract and on provider substitutability at that boundary, instead of branching on a provider's concrete type. If two providers implement the same contract, a consumer of that contract should not need a special case merely to get correct behavior.
+
+In practice, testing pengdows.crud across many providers exposed departures from that contract: incorrect values or types, wrong exceptions, inconsistent affected-row counts, and reader or connection lifecycle problems. I initially worked around provider defects in pengdows.crud. But each workaround added vendor-specific behavior to a library intended to avoid it, while leaving the underlying defect for every other ADO.NET consumer.
+
+Eventually, the better answer was to **reproduce the problems and submit fixes to the providers**, not keep accumulating workarounds.
+
+### Why a separate conformance suite?
+
+I found [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest), a project for comparing ADO.NET provider behavior, and initially tried to expand it. Its original purpose was useful, but some tests relied on conventions rather than documented requirements—for example, assuming that every provider supports named parameters with an `@` prefix. A provider that uses positional parameters or a different marker should not fail simply because it is unlike SQL Server.
+
+That revealed the essential distinction: **providers can behave differently without violating ADO.NET, and providers can behave alike while sharing an incorrect assumption.**
+
+Extending those tests into a contract-focused suite required a different foundation. This project grew out of that effort. It is derived from the original project, with its history and MIT license preserved, but pursues its own goal: testing **what the ADO.NET documentation requires**, not enforcing whichever behavior is most common.
+
+### What we test
+
+Shared tests distinguish three kinds of expectations:
+
+- **Required:** Behavior explicitly required by the documented ADO.NET contract. A violation is a conformance failure, subject to the suite's narrowly documented waiver rules.
+- **Optional:** Capabilities a provider may decline to implement. If it implements a capability, that implementation must pass the relevant tests.
+- **Common:** Useful interoperability observations that the contract does not require. Differences are reported as diagnostics, not conformance failures.
+
+The suite also tests **data fidelity** across native database types: parameter writes, independent reads, and full round trips, including boundary values and CLR type information. Those findings are reported separately from strict contract verdicts so database-specific storage rules are not mistaken for provider bugs.
+
+See [CONTRACT-COVERAGE.md](src/pengdows.AdoNetApiTest.conformance/CONTRACT-COVERAGE.md) for the contract classification rules and coverage inventory.
+
+### Feed the findings back upstream
+
+When a test demonstrates a provider defect, the aim is to report it with a minimal reproduction, the documented requirement, and—where possible—a regression test and fix. Maintainer feedback and newly discovered edge cases feed back into this suite, making the same tests more thorough for other providers.
+
+The history of reported issues and submitted fixes belongs in [docs/UPSTREAM.md](docs/UPSTREAM.md), not in a growing list of PRs here.
+
+**The goal is not to make every ADO.NET provider behave identically. It is to make provider substitution work wherever the documented contract promises that it should.**
 
 ## How to Use
 

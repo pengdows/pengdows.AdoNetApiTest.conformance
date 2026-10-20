@@ -26,6 +26,7 @@
   },
   "connectionString": "DataSource=${host};Port=${port};Database=testdb;Uid=sa;Pwd=myPassword;Pooling=false",
   "dialect": {
+    "binaryLiteral": "0x{0}",
     "terminator": "",
     "renderAsText": "CONVERT(varchar(4000), {0})"
   },

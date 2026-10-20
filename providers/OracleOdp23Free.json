@@ -21,6 +21,8 @@
   },
   "connectionString": "User Id=conformance;Password=mysecretpassword;Data Source=${host}:${port}/FREEPDB1",
   "dialect": {
+    "binaryLiteral": "hextoraw('{0}')",
+    "valueTypes": { "Binary": "raw(100)", "Double": "binary_double" },
     "select": "SELECT {0} FROM dual",
     "terminator": "",
     "renderAsText": "TO_CHAR({0})"

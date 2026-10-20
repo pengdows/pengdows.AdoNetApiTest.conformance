@@ -31,3 +31,18 @@ public sealed class YdbDmlTests : DmlTestBase<YdbDbFactoryFixture>
 {
     public YdbDmlTests(YdbDbFactoryFixture fixture) : base(fixture) { }
 }
+
+public sealed class YdbDataReaderTests : DataReaderTestBase<YdbSelectValueFixture>
+{
+    public YdbDataReaderTests(YdbSelectValueFixture fixture) : base(fixture) { }
+}
+
+public sealed class YdbGetValueConversionTests : GetValueConversionTestBase<YdbSelectValueFixture>
+{
+    public YdbGetValueConversionTests(YdbSelectValueFixture fixture) : base(fixture) { }
+}
+
+public sealed class YdbTransactionTests : TransactionTestBase<YdbDbFactoryFixture>
+{
+    public YdbTransactionTests(YdbDbFactoryFixture fixture) : base(fixture) { }
+}

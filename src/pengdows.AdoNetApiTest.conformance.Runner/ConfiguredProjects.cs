@@ -16,8 +16,12 @@ internal static class ConfiguredProjects
 
 	private static readonly string[] s_testBases =
 	{
-		"Command", "ConnectionString", "Connection", "DbProviderFactory", "Parameter", "Transaction", "DataTypesFidelity",
+		"Command", "ConnectionString", "Connection", "DataReader", "DbProviderFactory", "Dml", "GetValueConversion", "Parameter", "Transaction",
+		"DataTypesFidelity",
 	};
+
+	/// <summary>The test bases that use tables the fixture creates first: the select values and the DML table.</summary>
+	private static readonly string[] s_valueTestBases = { "DataReader", "Dml", "GetValueConversion" };
 
 	public static IReadOnlyList<ProviderProject> Discover(string testsDirectory)
 	{
@@ -177,16 +181,24 @@ internal static class ConfiguredProjects
 		text.AppendLine();
 		text.AppendLine("namespace Configured." + config.Name + ";");
 		text.AppendLine();
-		text.AppendLine($"public sealed class Fixture : {(config.StatesMarker ? "ConfiguredMarkerFixture" : "ConfiguredFixture")}");
+		var baseFixture = config.StatesMarker ? "ConfiguredMarkerFixture" : "ConfiguredFixture";
+		text.AppendLine($"public sealed class Fixture : {baseFixture}");
 		text.AppendLine("{");
+		text.AppendLine("}");
+		text.AppendLine();
+		text.AppendLine("// The reader and DML tests' tables exist before a test opens its connection (pengdows.flatfile allows one writer).");
+		text.AppendLine($"public sealed class ValueFixture : {baseFixture}");
+		text.AppendLine("{");
+		text.AppendLine("\tpublic ValueFixture() => CreateValues();");
 		text.AppendLine("}");
 		foreach (var testBase in s_testBases)
 		{
 			var name = config.Name + (testBase == "ConnectionString" ? "ConnectionStringBuilder" : testBase) + "Tests";
+			var fixture = s_valueTestBases.Contains(testBase) ? "ValueFixture" : "Fixture";
 			text.AppendLine();
-			text.AppendLine($"public sealed class {name} : {testBase}TestBase<Fixture>");
+			text.AppendLine($"public sealed class {name} : {testBase}TestBase<{fixture}>");
 			text.AppendLine("{");
-			text.AppendLine($"\tpublic {name}(Fixture fixture)");
+			text.AppendLine($"\tpublic {name}({fixture} fixture)");
 			text.AppendLine("\t\t: base(fixture)");
 			text.AppendLine("\t{");
 			text.AppendLine("\t}");

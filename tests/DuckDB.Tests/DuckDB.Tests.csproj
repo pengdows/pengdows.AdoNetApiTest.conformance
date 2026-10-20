@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
+    <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance.Databases\pengdows.AdoNetApiTest.conformance.Databases.csproj" />
     <ProjectReference Include="../../../DuckDB.NET/DuckDB.NET.Data/Data.csproj" />
   </ItemGroup>
 

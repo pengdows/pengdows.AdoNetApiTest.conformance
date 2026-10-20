@@ -27,6 +27,7 @@
   },
   "connectionString": "Host=${host};Service=${port};Server=informixserver;Database=testdb;UID=informix;PWD=in4mix;Delimident=true;DB_LOCALE=en_US.utf8;CLIENT_LOCALE=en_US.utf8",
   "dialect": {
+    "valueTypes": { "Binary": "" },
     "select": "SELECT {0} FROM systables WHERE tabid = 1",
     "terminator": "",
     "parameterMarker": "?"

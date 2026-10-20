@@ -32,3 +32,18 @@ public sealed class DuckDBProviderFactoryTests : DbProviderFactoryTestBase<DuckD
 {
     public DuckDBProviderFactoryTests(DuckDBDbFactoryFixture fixture) : base(fixture) { }
 }
+
+public sealed class DuckDBDataReaderTests : DataReaderTestBase<DuckDBSelectValueFixture>
+{
+    public DuckDBDataReaderTests(DuckDBSelectValueFixture fixture) : base(fixture) { }
+}
+
+public sealed class DuckDBGetValueConversionTests : GetValueConversionTestBase<DuckDBSelectValueFixture>
+{
+    public DuckDBGetValueConversionTests(DuckDBSelectValueFixture fixture) : base(fixture) { }
+}
+
+public sealed class DuckDBTransactionTests : TransactionTestBase<DuckDBDbFactoryFixture>
+{
+    public DuckDBTransactionTests(DuckDBDbFactoryFixture fixture) : base(fixture) { }
+}

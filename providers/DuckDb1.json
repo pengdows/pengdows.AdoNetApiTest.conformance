@@ -11,6 +11,8 @@
   },
   "connectionString": "Data Source=${tempdir}/conformance.duckdb",
   "dialect": {
+    "binaryLiteral": "unhex('{0}')",
+    "valueTypes": { "Binary": "blob" },
     "renderAsText": "CAST({0} AS VARCHAR)",
     "dropTable": "drop table if exists {0}"
   },

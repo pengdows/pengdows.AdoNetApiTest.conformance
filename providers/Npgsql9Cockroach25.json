@@ -21,6 +21,8 @@
   },
   "connectionString": "Host=${host};Port=${port};Username=root;Database=conformance;SSL Mode=disable",
   "dialect": {
+    "binaryLiteral": "'\\x{0}'::bytea",
+    "valueTypes": { "Binary": "bytea" },
     "renderAsText": "CAST({0} AS text)",
     "dropTable": "drop table if exists {0}"
   },

@@ -81,7 +81,10 @@ over the fixture's value, and when it is set the server fixtures start no contai
   connection string, SQL-92 deviations, types to test). `ConfiguredProjects` in the runner generates a project for each in
   `tests/obj/providers` (gitignored); `ConfiguredProvider`/`ConfiguredServer`/`ConfiguredFixture` in the Databases
   project read it at run time. Prefer a configuration for a new driver version or server; a hand-written project only
-  when it needs custom code (select-value tables for the reader tests, a hand-written type catalog).
+  when it needs custom code (a hand-written type catalog, non-SQL-92 DDL). `Sql92Dml` and `SelectValueTables` build the
+  DML and reader tests' statements for configurations and for the `DmlFixture<T>`/`SelectValueFixture<T>` wrappers that
+  hand-written projects use. `Repository.Tests/ProviderCoverageTests` fails when a provider project leaves out a test
+  base with Required tests, since that provider could only ever be INCOMPLETE.
 - **Type fidelity** — `FidelityTestBase` is the shared runner; `TypeFidelityTestBase` takes a hand-written catalog
   (`SqlServerTypes`, `PostgreSqlTypes`, `OracleTypes`, ...) and `DataTypesFidelityTestBase` generates one from the
   provider's `GetSchema("DataTypes")` (plus `IServerTypesFixture` extras). Where a provider does not advertise SQL syntax,

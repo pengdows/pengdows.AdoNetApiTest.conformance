@@ -21,6 +21,7 @@
   },
   "connectionString": "Server=${host},${port};uid=sa;pwd=YourPassword123!;Initial Catalog=conformance;TrustServerCertificate=true",
   "dialect": {
+    "binaryLiteral": "0x{0}",
     "renderAsText": "CAST({0} AS nvarchar(max))",
     "dropTable": "drop table if exists {0}"
   },

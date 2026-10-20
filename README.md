@@ -33,6 +33,9 @@ suite can use to connect to a database. See
 
 To use the tests that execute SQL statements, you must implement the `ISelectValueFixture`
 interface. Examples of doing this can be found in the `tests/*` projects and `pengdows.AdoNetApiTest.conformance.Databases`.
+Where SQL-92 is enough, `SelectValueFixture<YourFixture>` and `DmlFixture<YourFixture>` (in the Databases package) supply
+the reader and DML tests' statements over your connection; override the column types or binary literal where your
+database spells them differently.
 
 Create one public derived class from each `XTestBase<T>` test base class. Add a public
 constructor that takes an instance of your `IDbFactoryFixture` implementation and passes it
@@ -122,9 +125,6 @@ out/Sqlite.xml`), naming each provider after its file.
 To see only the hard result without the runner, filter a provider's tests by group:
 `dotnet test tests/Sqlite.Tests --filter "Category=Required|Category=Optional"`.
 
-## Type fidelity
-
-For every type a database supports, a provider should store a CLR value and give back the same value, as the right CLR
 ## Certification site
 
 `site` turns a matrix into a static site: an index of every provider with its certification status, and a page per
@@ -153,6 +153,9 @@ same configuration is the same test. Type fidelity and the comparison of `DataTy
 provider but do not decide its status. The `Pages` workflow runs every provider GitHub's runners can run, builds the
 site and publishes it.
 
+## Type fidelity
+
+For every type a database supports, a provider should store a CLR value and give back the same value, as the right CLR
 type. `TypeFidelityTestBase<TFixture>` checks that. A provider's fixture supplies a catalog of its native types
 (`ITypeFidelityFixture.Types`): the column definition, the `DbType` to bind with, the CLR type to expect, and values
 that matter (minimum, maximum, empty, `NULL`, the finest fractional second, Unicode outside the BMP, trailing spaces,
@@ -233,7 +236,7 @@ file and compare matrices. A minimal file:
 | `processEnvironment` | Variables the runner sets when it starts the test process, for a driver that reads them before any code runs; `${output}` is the test assembly's folder |
 | `connectionString` | With `${host}` and `${port}` (the container's), `${tempdir}` (removed after the run), `${instancedir}` (a folder of each test class's own, for a file database that allows one writer per folder), and `${NAME}` for any environment variable; the `ConnectionString` environment variable overrides it |
 | `environment` | Environment variables set for the test process |
-| `dialect` | Only where the database differs from SQL-92: `select` (`SELECT {0} FROM dual`), `terminator`, `parameterMarker`, `renderAsText`, `createTable`, `dropTable` |
+| `dialect` | Only where the database differs from SQL-92: `select` (`SELECT {0} FROM dual`), `terminator`, `parameterMarker`, `renderAsText`, `createTable`, `dropTable`, `binaryLiteral` (`0x{0}`, `hextoraw('{0}')`; SQL:1999 `X'{0}'` by default), and `valueTypes`, the reader tests' column type per `DbType` (`"Binary": "bytea"`; an empty type leaves one out) |
 | `types` | `query`: the server's own list of types; one the provider's `DataTypes` leaves out is a finding. `include`: types to test besides `DataTypes` (name, CLR type, column). `exclude`: types not to test, with the reason |
 
 The fixture waits until the driver can open a connection, so a server that accepts its port before its logins is not a
@@ -241,9 +244,10 @@ problem. Where a database does not say how to write something, the defaults are 
 single-quoted strings, `;` between statements, and `@name` for parameters (the .NET convention, though SQL-92 writes
 `:name`). The files in `providers/` are pengdows.crud's integration matrix: one per database it supports, with the driver
 version, image and settings its testbed uses, so both projects test the same pairs. The opt-in ones (Aurora, SAP HANA,
-InterBase, Snowflake) and Access (Windows only) report `NOT RUN` until their variables are set. A configured provider runs the Command, Connection,
-ConnectionString, DbProviderFactory, Parameter, Transaction and generated type-fidelity tests; the reader tests need a
-hand-written project.
+InterBase, Snowflake) and Access (Windows only) report `NOT RUN` until their variables are set. A configured provider runs every test base with Required tests, plus the
+generated type-fidelity tests: the DML and reader tests use tables of their own, created with the `createTable` and
+`dropTable` statements and filled with each `ValueKind`'s value. A type whose table the server will not create is left
+out of the supported types; a value a type cannot hold leaves its row out, so the tests reading it fail.
 
 ## Origin and license
 

@@ -43,3 +43,18 @@ public sealed class InformixDmlTests : DmlTestBase<InformixDbFactoryFixture>
 {
     public InformixDmlTests(InformixDbFactoryFixture fixture) : base(fixture) { }
 }
+
+public sealed class InformixDataReaderTests : DataReaderTestBase<InformixSelectValueFixture>
+{
+    public InformixDataReaderTests(InformixSelectValueFixture fixture) : base(fixture) { }
+}
+
+public sealed class InformixGetValueConversionTests : GetValueConversionTestBase<InformixSelectValueFixture>
+{
+    public InformixGetValueConversionTests(InformixSelectValueFixture fixture) : base(fixture) { }
+}
+
+public sealed class InformixTransactionTests : TransactionTestBase<InformixDbFactoryFixture>
+{
+    public InformixTransactionTests(InformixDbFactoryFixture fixture) : base(fixture) { }
+}

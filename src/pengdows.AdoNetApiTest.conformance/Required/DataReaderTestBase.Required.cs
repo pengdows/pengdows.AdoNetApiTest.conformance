@@ -234,7 +234,8 @@ public partial class DataReaderTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneAsIdSql;
 		using var reader = command.ExecuteReader();
-		Assert.Equal("id", reader.GetName(0));
+		// SQL-92 folds an undelimited name to upper case (Oracle, Firebird return ID); GetName returns the name the database gave.
+		Assert.Equal("id", reader.GetName(0), ignoreCase: true);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]

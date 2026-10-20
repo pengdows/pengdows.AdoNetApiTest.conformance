@@ -207,6 +207,15 @@ public sealed class DialectConfig
 	public string CreateTable { get; set; } = "create table {0} (Id integer not null primary key, V {1})";
 
 	public string DropTable { get; set; } = "drop table {0}";
+
+	/// <summary>A binary value as written in SQL, with <c>{0}</c> for its hexadecimal digits (<c>0x{0}</c>, <c>hextoraw('{0}')</c>).</summary>
+	public string BinaryLiteral { get; set; } = SelectValueTables.DefaultBinaryLiteral;
+
+	/// <summary>
+	/// Column types for the reader tests' values, by <c>DbType</c> name, where the SQL-92 ones do not fit (<c>"Binary":
+	/// "bytea"</c>) or to test more types (<c>"Boolean": "boolean"</c>); an empty type leaves one out.
+	/// </summary>
+	public Dictionary<string, string> ValueTypes { get; set; } = new();
 }
 
 public sealed class TypesConfig

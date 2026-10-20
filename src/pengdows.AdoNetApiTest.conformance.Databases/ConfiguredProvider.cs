@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
@@ -163,9 +164,9 @@ public sealed class ConfiguredServer : IAsyncLifetime
 				await m_container.StartAsync().ConfigureAwait(false);
 			}
 
-			// Read after any restart: Docker may map the port anew.
 			Provenance.Image = m_container.Image.FullName;
 
+			// Read after any restart: Docker may map the port anew.
 			ConfiguredProvider.Values["host"] = m_container.Hostname;
 			ConfiguredProvider.Values["port"] = m_container.GetMappedPublicPort((ushort) target.Port).ToString(System.Globalization.CultureInfo.InvariantCulture);
 		}
@@ -272,8 +273,22 @@ public sealed class ConfiguredServer : IAsyncLifetime
 }
 
 /// <summary>The fixture a generated test project's classes share, built from <see cref="ConfiguredProvider.Config"/>.</summary>
-public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture
+public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture,
+	IDmlFixture, ISelectValueFixture, IDeleteFixture, IDisposable
 {
+	private readonly Sql92Dml m_dml;
+	private readonly SelectValueTables m_values;
+	private readonly Lazy<IReadOnlyCollection<DbType>> m_supported;
+	private bool m_dmlCreated;
+
+	public ConfiguredFixture()
+	{
+		m_dml = new Sql92Dml(Sql92Dml.UniqueName("dml_"), CreateTableSql, DropTableSql);
+		m_values = new SelectValueTables(Sql92Dml.UniqueName("sv_"), SelectValueTables.WithOverrides(Dialect.ValueTypes), CreateTableSql, DropTableSql,
+			SelectStatement, Dialect.BinaryLiteral);
+		m_supported = new Lazy<IReadOnlyCollection<DbType>>(() => m_values.Create(this));
+	}
+
 	public DbProviderFactory Factory => ConfiguredProvider.Factory;
 
 	private readonly Lazy<string> m_instanceDirectory = new(() =>
@@ -308,6 +323,77 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 	public IReadOnlyList<ExtraType> ExtraTypes => ConfiguredProvider.Config.Types.Include.Select(t => new ExtraType(t.Name, t.ClrType, t.Column)).ToList();
 
 	public IReadOnlyDictionary<string, string> ExcludedTypes => ConfiguredProvider.Config.Types.Exclude;
+
+	public IReadOnlyList<string> DmlSetupSql => m_dml.SetupSql;
+
+	public IReadOnlyList<string> DmlCleanupSql => m_dml.CleanupSql;
+
+	public string DmlInsertSql => m_dml.InsertSql;
+
+	public string DmlMultiRowUpdateSql => m_dml.MultiRowUpdateSql;
+
+	public string DmlUpdateSql => m_dml.UpdateSql;
+
+	public string DmlUpdateNoRowsSql => m_dml.UpdateNoRowsSql;
+
+	public string DmlDeleteSql => m_dml.DeleteSql;
+
+	public string DmlDeleteNoRowsSql => m_dml.DeleteNoRowsSql;
+
+	/// <summary>
+	/// Creates the value and DML tables now, before a test holds a connection (pengdows.flatfile allows one writer);
+	/// value tables are otherwise created on first use.
+	/// </summary>
+	protected void CreateValues()
+	{
+		_ = m_supported.Value;
+		m_dml.Create(this);
+		m_dmlCreated = true;
+	}
+
+	/// <summary>The types whose value table the server created; created on first use, since most test classes need none.</summary>
+	public IReadOnlyCollection<DbType> SupportedDbTypes => m_supported.Value;
+
+	public string CreateSelectSql(DbType dbType, ValueKind kind)
+	{
+		_ = m_supported.Value;
+		return m_values.SelectSql(dbType, kind);
+	}
+
+	public string CreateSelectSql(byte[] value) => m_values.SelectSql(value);
+
+	public string SelectNoRows
+	{
+		get
+		{
+			_ = m_supported.Value;
+			return m_values.SelectNoRows;
+		}
+	}
+
+	public string DeleteNoRows
+	{
+		get
+		{
+			_ = m_supported.Value;
+			return m_values.DeleteNoRows;
+		}
+	}
+
+	public Type NullValueExceptionType => typeof(InvalidCastException);
+
+	public void Dispose()
+	{
+		if (m_supported.IsValueCreated)
+		{
+			m_values.Drop(this);
+		}
+
+		if (m_dmlCreated)
+		{
+			m_dml.Drop(this);
+		}
+	}
 }
 
 /// <summary>A configured fixture whose provider does not advertise its parameter marker, so the configuration states it.</summary>

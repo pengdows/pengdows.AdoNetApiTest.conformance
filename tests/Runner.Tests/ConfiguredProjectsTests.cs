@@ -59,6 +59,25 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains("public sealed class Fixture : ConfiguredFixture", code);
 		Assert.Contains("public sealed class ExampleCommandTests : CommandTestBase<Fixture>", code);
 		Assert.Contains("public sealed class ExampleDataTypesFidelityTests : DataTypesFidelityTestBase<Fixture>", code);
+		Assert.Contains("public sealed class ExampleDataReaderTests : DataReaderTestBase<ValueFixture>", code);
+		Assert.Contains("public sealed class ExampleGetValueConversionTests : GetValueConversionTestBase<ValueFixture>", code);
+		Assert.Contains("public sealed class ExampleDmlTests : DmlTestBase<ValueFixture>", code);
+	}
+
+	/// <summary>
+	/// The reader tests' value tables are created before any test opens a connection: a file database that allows one
+	/// writer per folder (pengdows.flatfile) refuses them while a test holds its connection.
+	/// </summary>
+	[Fact]
+	public void The_reader_tests_use_a_fixture_that_creates_its_values_first()
+	{
+		Write("Example.json", """{ "name": "Example", "driver": { "package": "P", "factory": "F" }, "connectionString": "x" }""");
+
+		var provider = Assert.Single(ConfiguredProjects.Discover(Path.Combine(m_root, "tests")));
+		var code = File.ReadAllText(Path.Combine(Path.GetDirectoryName(provider.Project)!, "Generated.cs"));
+
+		Assert.Contains("public sealed class ValueFixture : ConfiguredFixture", code);
+		Assert.Contains("public ValueFixture() => CreateValues();", code);
 	}
 
 	[Fact]

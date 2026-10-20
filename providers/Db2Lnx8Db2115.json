@@ -21,6 +21,7 @@
   },
   "connectionString": "Server=${host}:${port};Database=testdb;UID=db2inst1;PWD=MyStr0ngP@ssw0rd",
   "dialect": {
+    "binaryLiteral": "BX'{0}'",
     "select": "SELECT {0} FROM sysibm.sysdummy1",
     "terminator": ""
   },

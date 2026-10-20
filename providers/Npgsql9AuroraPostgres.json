@@ -20,6 +20,8 @@
   },
   "connectionString": "Host=${AURORA_POSTGRES_HOST};Username=${AURORA_POSTGRES_USER};Password=${AURORA_POSTGRES_PASSWORD};Database=${AURORA_POSTGRES_DATABASE};SSL Mode=Require",
   "dialect": {
+    "binaryLiteral": "'\\x{0}'::bytea",
+    "valueTypes": { "Binary": "bytea" },
     "renderAsText": "CAST({0} AS text)",
     "dropTable": "drop table if exists {0}"
   },

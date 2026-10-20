@@ -125,6 +125,12 @@ out/Sqlite.xml`), naming each provider after its file.
 To see only the hard result without the runner, filter a provider's tests by group:
 `dotnet test tests/Sqlite.Tests --filter "Category=Required|Category=Optional"`.
 
+## Upstream fixes
+
+When a provider fails a Required test, we send its maintainers a fix with a regression test and the documentation
+sentence it follows. [docs/UPSTREAM.md](docs/UPSTREAM.md) lists the pull requests and issues, and holds drafts for the
+trackers that do not take pull requests.
+
 ## Certification site
 
 `site` turns a matrix into a static site: an index of every provider with its certification status, and a page per

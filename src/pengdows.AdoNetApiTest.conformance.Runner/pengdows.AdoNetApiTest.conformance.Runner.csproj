@@ -15,4 +15,9 @@
     <InternalsVisibleTo Include="Runner.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The Required tests are read from the library, so every provider's Required total is the suite's. -->
+    <ProjectReference Include="..\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
+  </ItemGroup>
+
 </Project>

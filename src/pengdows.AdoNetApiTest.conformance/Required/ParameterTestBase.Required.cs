@@ -11,7 +11,7 @@ namespace pengdows.AdoNetApiTest.conformance;
 public abstract partial class ParameterTestBase<TFixture>
 	where TFixture : class, IDbFactoryFixture
 {
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.direction")]
 	public virtual void Parameter_default_Direction_is_input()
 	{
 		Assert.Equal(ParameterDirection.Input, Fixture.Factory.CreateParameter().Direction);
@@ -88,20 +88,20 @@ public abstract partial class ParameterTestBase<TFixture>
 		Assert.Equal(DataRowVersion.Original, parameter.SourceVersion);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.parametername")]
 	public virtual void ParameterName_default_is_empty_string()
 	{
 		Assert.Equal("", Fixture.Factory.CreateParameter().ParameterName);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.collections.ilist.removeat")]
 	public virtual void ParameterCollection_RemoveAt_negative_one_throws()
 	{
 		using var command = Fixture.Factory.CreateCommand();
 		Assert.ThrowsAny<ArgumentOutOfRangeException>(() => command.Parameters.RemoveAt(-1));
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.collections.ilist.removeat")]
 	public virtual void ParameterCollection_RemoveAt_zero_throws_when_empty()
 	{
 		using var command = Fixture.Factory.CreateCommand();

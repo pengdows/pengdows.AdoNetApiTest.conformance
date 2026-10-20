@@ -58,7 +58,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.InRange(reader.VisibleFieldCount, 0, reader.FieldCount);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getbytes")]
 	public virtual void GetBytes_works()
 	{
 		using var connection = CreateOpenConnection();
@@ -73,7 +73,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(new byte[] { 0x7E, 0x57 }, buffer);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getchars")]
 	public virtual void GetChars_works()
 	{
 		using var connection = CreateOpenConnection();
@@ -114,11 +114,11 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.ThrowsAny<InvalidCastException>(() => reader.GetFieldValue<DBNull>(0));
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue")]
 	public virtual void GetFieldValue_throws_before_read()
 		=> X_throws_before_read(r => r.GetFieldValue<DBNull>(0));
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue")]
 	public virtual void GetFieldValue_throws_when_done()
 		=> X_throws_when_done(r => r.GetFieldValue<DBNull>(0));
 
@@ -234,10 +234,11 @@ public partial class DataReaderTestBase<TFixture>
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneAsIdSql;
 		using var reader = command.ExecuteReader();
-		Assert.Equal("id", reader.GetName(0));
+		// SQL-92 folds an undelimited name to upper case (Oracle, Firebird return ID); GetName returns the name the database gave.
+		Assert.Equal("id", reader.GetName(0), ignoreCase: true);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal")]
 	public virtual void GetOrdinal_works()
 	{
 		using var connection = CreateOpenConnection();
@@ -247,7 +248,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(0, reader.GetOrdinal("Id"));
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal")]
 	public virtual void GetOrdinal_throws_when_out_of_range()
 	{
 		using var connection = CreateOpenConnection();
@@ -286,7 +287,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal("a", values[0]);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getvalues")]
 	public virtual void GetValues_copies_only_what_fits_when_the_array_is_shorter()
 	{
 		using var connection = CreateOpenConnection();
@@ -325,7 +326,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.True(reader.HasRows);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.hasrows")]
 	public virtual void HasRows_returns_false_when_no_rows()
 	{
 		using var connection = CreateOpenConnection();
@@ -370,7 +371,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.True(reader.IsDBNull(0));
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// IsDBNullAsync must report the value state through the asynchronous reader
 	/// API just as IsDBNull does. The test deliberately uses a non-null literal so
@@ -390,7 +391,7 @@ public partial class DataReaderTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// NextResultAsync must complete successfully and report that a single-result
 	/// command has no additional result set.
@@ -408,7 +409,7 @@ public partial class DataReaderTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync must close the reader and release its active state.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.disposeasync.
@@ -427,8 +428,8 @@ public partial class DataReaderTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// CloseAsync must complete the documented asynchronous reader-close
 	/// operation and leave the reader closed.
@@ -494,7 +495,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.False(hasData);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.recordsaffected")]
 	public virtual void RecordsAffected_returns_negative_1_after_close_when_no_rows()
 	{
 		using var connection = CreateOpenConnection();
@@ -505,13 +506,13 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(-1, reader.RecordsAffected);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getbytes")]
 	public virtual void GetBytes_returns_length_when_buffer_is_null() => TestGetBytes(reader =>
 	{
 		Assert.Equal(4, reader.GetBytes(0, 0, null, 0, 0));
 	});
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getbytes")]
 	public virtual void GetBytes_works_when_buffer_is_large() => TestGetBytes(reader =>
 	{
 		var buffer = new byte[6];
@@ -519,7 +520,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(new byte[] { 1, 2, 3, 4, 0, 0 }, buffer);
 	});
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getbytes")]
 	public virtual void GetBytes_reads_part_of_blob() => TestGetBytes(reader =>
 	{
 		var buffer = new byte[5];
@@ -527,13 +528,13 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(new byte[] { 0, 0, 2, 3, 0 }, buffer);
 	});
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getchars")]
 	public virtual void GetChars_returns_length_when_buffer_is_null() => TestGetChars(reader =>
 	{
 		Assert.Equal(4, reader.GetChars(0, 0, null, 0, 0));
 	});
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getchars")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getchars")]
 	public virtual void GetChars_works_when_buffer_is_large() => TestGetChars(reader =>
 	{
 		var buffer = new char[6];
@@ -541,7 +542,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(new[] { 'a', 'b', '¢', 'd', '\0', '\0' }, buffer);
 	});
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getchars")]
 	public virtual void GetChars_reads_part_of_string() => TestGetChars(reader =>
 	{
 		var buffer = new char[5];

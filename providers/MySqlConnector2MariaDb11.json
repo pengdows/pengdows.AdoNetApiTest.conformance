@@ -1,0 +1,31 @@
+{
+  "name": "MySqlConnector2MariaDb11",
+  "description": "MariaDB as pengdows.crud testbed runs it (MySqlTestContainer, TestbedImageMatrix latest).",
+  "driver": {
+    "package": "MySqlConnector",
+    "version": "2.4.0",
+    "factory": "MySqlConnector.MySqlConnectorFactory, MySqlConnector"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "mariadb:11.4.12",
+    "port": 3306,
+    "env": {
+      "MYSQL_ROOT_PASSWORD": "mysecretpassword",
+      "MYSQL_DATABASE": "conformance",
+      "MARIADB_ROOT_PASSWORD": "mysecretpassword",
+      "MARIADB_DATABASE": "conformance"
+    },
+    "command": [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ],
+    "tmpfs": "/var/lib/mysql"
+  },
+  "connectionString": "Server=${host};Port=${port};Database=conformance;User ID=root;Password=mysecretpassword;AllowPublicKeyRetrieval=True;SslMode=None",
+  "dialect": {
+    "returning": "{0} RETURNING Id",
+    "renderAsText": "CAST({0} AS CHAR)",
+    "dropTable": "drop table if exists {0}"
+  }
+}

@@ -44,7 +44,7 @@ public abstract partial class DmlTestBase<TFixture>
 		=> await WithDmlStateAsync(async connection =>
 			Assert.Equal(1, await ExecuteAsync(connection, Fixture.DmlUpdateSql).ConfigureAwait(false))).ConfigureAwait(false);
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.recordsaffected")]
 	public virtual void ExecuteReader_returns_affected_rows_after_close_for_DML()
 		=> WithDmlState(connection =>
 		{
@@ -53,5 +53,32 @@ public abstract partial class DmlTestBase<TFixture>
 			using var reader = command.ExecuteReader();
 			reader.Close();
 			Assert.Equal(1, reader.RecordsAffected);
+		});
+
+	/// <summary>
+	/// An INSERT that returns the row it inserted is still an INSERT: "For UPDATE, INSERT, and DELETE statements, the
+	/// return value is the number of rows affected by the command." A count of 0 would read as "no row was written".
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery")]
+	public virtual void ExecuteNonQuery_returns_inserted_row_count_with_RETURNING()
+		=> WithReturning(f => f.DmlInsertReturningSql, (connection, sql) => Assert.Equal(1, Execute(connection, sql)));
+
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery")]
+	public virtual void ExecuteNonQuery_returns_deleted_row_count_with_RETURNING()
+		=> WithReturning(f => f.DmlDeleteReturningSql, (connection, sql) => Assert.Equal(2, Execute(connection, sql)));
+
+	/// <summary>
+	/// RecordsAffected is "the number of rows changed, inserted, or deleted", whether or not the statement also returns
+	/// the rows; -1 is for SELECT statements only.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.recordsaffected.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.recordsaffected")]
+	public virtual void ExecuteReader_returns_affected_rows_after_close_with_RETURNING()
+		=> WithReturning(f => f.DmlDeleteReturningSql, (connection, sql) =>
+		{
+			var (rows, recordsAffected) = ReadAllAndClose(connection, sql);
+			Assert.Equal(2, rows);
+			Assert.Equal(2, recordsAffected);
 		});
 }

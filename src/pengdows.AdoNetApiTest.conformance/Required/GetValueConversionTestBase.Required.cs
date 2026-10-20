@@ -29,11 +29,12 @@ public abstract partial class GetValueConversionTestBase<TFixture>
 			command.CommandText = Fixture.CreateSelectSql(dbType, ValueKind.One);
 			using var reader = command.ExecuteReader();
 
-			Assert.True(reader.Read());
+			Assert.True(reader.Read(), $"{dbType}: the value row is missing.");
 			var value = reader.GetValue(0);
 			Assert.NotSame(DBNull.Value, value);
 			// IDataRecord.GetFieldType: "the type of Object that would be returned from GetValue" (a base type is allowed).
-			Assert.True(reader.GetFieldType(0).IsInstanceOfType(value));
+			Assert.True(reader.GetFieldType(0).IsInstanceOfType(value),
+				$"{dbType}: GetFieldType returns {reader.GetFieldType(0)}, but GetValue returns {value.GetType()}.");
 		}
 	}
 }

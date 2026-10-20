@@ -33,6 +33,9 @@ suite can use to connect to a database. See
 
 To use the tests that execute SQL statements, you must implement the `ISelectValueFixture`
 interface. Examples of doing this can be found in the `tests/*` projects and `pengdows.AdoNetApiTest.conformance.Databases`.
+Where SQL-92 is enough, `SelectValueFixture<YourFixture>` and `DmlFixture<YourFixture>` (in the Databases package) supply
+the reader and DML tests' statements over your connection; override the column types or binary literal where your
+database spells them differently.
 
 Create one public derived class from each `XTestBase<T>` test base class. Add a public
 constructor that takes an instance of your `IDbFactoryFixture` implementation and passes it
@@ -48,8 +51,12 @@ See the [changelog](CHANGELOG.md). The original project's release notes are in
 
 ## Running the conformance check
 
-You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL) need that
-server running first; `docker/docker-compose.yml` starts them. SQLite and the other embedded providers need nothing.
+You need the .NET SDK pinned in `global.json`. Providers that talk to a server (SQL Server, PostgreSQL, MySQL, Oracle,
+Firebird, TiDB) also need Docker: each of those test projects starts its own server in a container (with [Testcontainers](https://dotnet.testcontainers.org/))
+before its first test and removes it, with its data, when the run ends. If the test process is killed, Testcontainers'
+reaper removes it. Docker picks the host port, so several providers, or several copies of this repository, can run at
+the same time. To test against a server you already have, set the `ConnectionString` environment variable; no container
+is started then. SQLite and the other embedded providers need nothing.
 
 From the repository root:
 
@@ -61,20 +68,25 @@ dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 provider and an overall verdict:
 
 ```text
-Sqlite    FAIL     Required 96/104 (5 failed, 3 waived) + 8 Required not covered  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
+Sqlite    FAIL        Required 96/112 (5 failed, 3 waived, 8 not covered)  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
 OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
 
-`Required 146/156` is passed over total. The parenthesis says what became of the rest: `failed` tests ran and failed; `waived` tests failed but carry a waiver (see `deviation`);
-`not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result file from
-an older suite). `+ N Required not covered` counts Required tests in an area the provider has no tests for at all (such as
-`Dml` without a fixture); they are not in the total and do not fail the provider, but they are not passes either.
-`passed + failed + not run + waived` always equals the total, and the same three figures are in `matrix.json` and `matrix.xml`.
+`Required 96/112` is passed over total, and the total is the same for every provider: every Required test the shared
+library declares, read from the library itself, whichever providers run and whatever areas each has tests for. The
+parenthesis says what became of the rest: `failed` tests ran and failed; `waived` tests failed but carry a waiver (see
+`deviation`); `not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result
+file from an older suite); `not covered` tests are in an area the provider has no tests for at all (such as `Dml` without
+a fixture). `passed + failed + not run + waived + not covered` always equals the total, and the same figures are in
+`matrix.json` and `matrix.xml`.
 
-The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it works in a script or CI job.
+The exit code is `0` for PASS, `1` for anything else (FAIL, INCOMPLETE, NOT RUN) and `2` for a usage error, so it works
+in a script or CI job.
 
-**A provider passes** when it has no failed Required test and no failed Optional test. Nothing is skipped:
+**A provider passes** when every Required test ran, none failed, and no Optional test failed. A Required test that never
+ran is not a pass: a provider with no failure but some Required tests not covered is `INCOMPLETE`, which says the gap is
+in its tests rather than in the driver, and it fails the overall verdict like `FAIL`. Nothing is skipped:
 
 | Outcome | Counts as | Meaning |
 | --- | --- | --- |
@@ -87,7 +99,7 @@ The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it wor
 | `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
 | `deviation` | advisory | A Required test failed, but the test carries a **waiver**: the documentation states the behavior, yet a deviation cannot lose or alter data or change what a statement returns (for example a property only a designer reads). It is reported with its reason, counted in `waived`, and never fails the provider. |
 | `not-run` | fail | No result was reported, so nothing is known. For a **Common** test this is advisory instead (shown as `N not run` on the Common part of the console line): it cannot hide a Required result. |
-| `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Not counted against the provider; the console line says `Coverage N of M areas`. |
+| `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Counted in the Required total but not as a failure; a provider with any Required test not covered is `INCOMPLETE`, and the console line says `Coverage N of M areas`. |
 
 A provider whose test project could not run at all (a server that is down, a build that failed, a timeout) is reported as
 `NOT RUN` with the reason, and it fails the overall verdict: a provider that could not be tested is never reported as
@@ -112,6 +124,40 @@ out/Sqlite.xml`), naming each provider after its file.
 
 To see only the hard result without the runner, filter a provider's tests by group:
 `dotnet test tests/Sqlite.Tests --filter "Category=Required|Category=Optional"`.
+
+## Upstream fixes
+
+When a provider fails a Required test, we send its maintainers a fix with a regression test and the documentation
+sentence it follows. [docs/UPSTREAM.md](docs/UPSTREAM.md) lists the pull requests and issues, and holds drafts for the
+trackers that do not take pull requests.
+
+## Certification site
+
+`site` turns a matrix into a static site: an index of every provider with its certification status, and a page per
+provider with the evidence behind it.
+
+```text
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run --exclude Informix,Ydb
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- site
+```
+
+`site` reads `conformance-results/matrix.json` (or the matrix named on the command line) and writes
+`conformance-results/site` (`--out` to change it). It needs nothing but the matrix, so a published matrix can be turned
+into the same site by anyone.
+
+| Status | Verdict | Meaning |
+| --- | --- | --- |
+| Certified | PASS | Every Required test ran and passed (or carries a documented waiver), and no Optional capability the provider implements failed. |
+| Incomplete | INCOMPLETE | Nothing failed, but some Required tests have not run for the provider, so it cannot be certified. |
+| Not certified | FAIL | A Required test, or an Optional capability the provider implements, failed; each failure links the documentation it breaks. |
+| Not tested | NOT RUN | The provider could not be run, for the reason shown. |
+
+Each provider page shows what was tested, as recorded by its own test process rather than its project file: the driver
+assembly and version that loaded, the server's version and container image, the runtime and operating system, and, for
+a configured provider, its configuration file and checksum, with the suite's commit. A run on another machine with the
+same configuration is the same test. Type fidelity and the comparison of `DataTypes` with the server are shown for every
+provider but do not decide its status. The `Pages` workflow runs every provider GitHub's runners can run, builds the
+site and publishes it.
 
 ## Type fidelity
 
@@ -153,7 +199,61 @@ a provider returns is its own contract and each client has its own catalog: Syst
 `DataTypes` collection lists, and Microsoft.Data.Sqlite returns only `long`, `double`, `string` or `byte[]` from `GetValue`
 and converts in the typed read, so a value there has an expected raw form and an expected typed form. SQLite keeps a REAL in
 8 bytes (15 significant digits), so decimals beyond that are the database's limit, not the provider's, and the catalog keeps
-decimals inside it. A fixture that implements `ITypeFidelityFixture` and a derived class are all another provider needs.
+decimals inside it.
+
+`PostgreSqlTypes` covers Npgsql 4 to 8 and `OracleTypes` covers ODP.NET. Several of their values come from workarounds
+pengdows.crud carries for these drivers: an `inet` with a netmask, an `interval` of months (PostgreSQL counts a month as
+30 days in `extract(epoch ...)`, so that is the expectation), a `timestamptz` bound with a non-zero offset, a
+`BINARY_DOUBLE` beyond 1e126, and a `LONG` read without the row's key in the select list. A value whose faithful CLR form
+is the provider's own type (Npgsql's `NpgsqlInet`) is expected by its text (`ClrText`). If a provider closes the
+connection after a rejected value, the finding says so and the next check uses a new connection. A fixture that
+implements `ITypeFidelityFixture` and a derived class are all another provider needs; a database that needs
+`FROM dual` or no statement terminator implements `ISqlDialectFixture` once on its fixture.
+
+## Providers from a configuration file
+
+A provider can be a JSON file in `providers/` instead of a test project. The runner generates a project from it (in
+`tests/obj/providers`, which git ignores) and runs it with the others, so `run` picks it up by its `name` like any
+provider. The file is the whole description of what is tested, so a driver's vendor and its users can run the same
+file and compare matrices. A minimal file:
+
+```jsonc
+{
+  "name": "Npgsql9Postgres17",
+  "driver": { "package": "Npgsql", "version": "9.0.3", "factory": "Npgsql.NpgsqlFactory, Npgsql" },
+  "target": {
+    "kind": "docker",
+    "image": "postgres:17-alpine",
+    "port": 5432,
+    "env": { "POSTGRES_USER": "root", "POSTGRES_PASSWORD": "test", "POSTGRES_DB": "conformance" },
+    "tmpfs": "/var/lib/postgresql/data"
+  },
+  "connectionString": "Host=${host};Port=${port};Username=root;Password=test;Database=conformance",
+  "dialect": { "renderAsText": "CAST({0} AS text)" },
+  "types": { "query": "SELECT DISTINCT format_type(oid, NULL) FROM pg_type WHERE typtype = 'b'" }
+}
+```
+
+| Key | What it says |
+| --- | --- |
+| `driver` | The NuGet `package` and `version` (exact or floating), or a `project` to build it from source (a sibling checkout, relative to the repository root); the `DbProviderFactory` type (its `Instance`, or a new one); and any other `packages` the driver needs |
+| `target` | `docker`: an `image` started on a Docker-assigned host port for the `port` it listens on, with `env`, `command`, `tmpfs`, `privileged`, `files` put in the container, `waitForLog`, `sidecars` (containers it reaches by alias on a network of their own), `exec` shell commands run in it, and `setup` statements (on `setupConnectionString`); `exec` and `setup` are retried until `readySeconds` runs out, and every container is removed after the run. `cloud`: nothing is started and the connection string names environment variables. `file`: a database under `${tempdir}`, removed after the run. `singleWriter` (true by default for `file`): the database allows one writer at a time, so the test classes run one after another and a test that needs two writers at once is not applicable |
+| `requires` | An `os` and environment variables (an opt-in switch, credentials) the provider needs; without them the runner reports it as `NOT RUN` with the reason, without building it |
+| `processEnvironment` | Variables the runner sets when it starts the test process, for a driver that reads them before any code runs; `${output}` is the test assembly's folder |
+| `connectionString` | With `${host}` and `${port}` (the container's), `${tempdir}` (removed after the run), `${instancedir}` (a folder of each test class's own, for a file database that allows one writer per folder), and `${NAME}` for any environment variable; the `ConnectionString` environment variable overrides it |
+| `environment` | Environment variables set for the test process |
+| `dialect` | Only where the database differs from SQL-92: `select` (`SELECT {0} FROM dual`), `terminator`, `parameterMarker`, `renderAsText`, `createTable`, `dropTable`, `binaryLiteral` (`0x{0}`, `hextoraw('{0}')`; SQL:1999 `X'{0}'` by default), `returning`, DML that returns rows with `{0}` for the statement (`{0} RETURNING Id`; unset, the RETURNING tests are not applicable), and `valueTypes`, the reader tests' column type per `DbType` (`"Binary": "bytea"`; an empty type leaves one out) |
+| `types` | `query`: the server's own list of types; one the provider's `DataTypes` leaves out is a finding. `include`: types to test besides `DataTypes` (name, CLR type, column). `exclude`: types not to test, with the reason |
+
+The fixture waits until the driver can open a connection, so a server that accepts its port before its logins is not a
+problem. Where a database does not say how to write something, the defaults are SQL-92 double-quoted identifiers and
+single-quoted strings, `;` between statements, and `@name` for parameters (the .NET convention, though SQL-92 writes
+`:name`). The files in `providers/` are pengdows.crud's integration matrix: one per database it supports, with the driver
+version, image and settings its testbed uses, so both projects test the same pairs. The opt-in ones (Aurora, SAP HANA,
+InterBase, Snowflake) and Access (Windows only) report `NOT RUN` until their variables are set. A configured provider runs every test base with Required tests, plus the
+generated type-fidelity tests: the DML and reader tests use tables of their own, created with the `createTable` and
+`dropTable` statements and filled with each `ValueKind`'s value. A type whose table the server will not create is left
+out of the supported types; a value a type cannot hold leaves its row out, so the tests reading it fail.
 
 ## Origin and license
 

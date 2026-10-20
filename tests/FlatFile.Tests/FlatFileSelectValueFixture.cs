@@ -14,7 +14,7 @@ namespace FlatFile.Tests;
 /// conversion suites run against pengdows.flatfile. flatfile has no binary literal, so the two byte arrays the reader tests ask
 /// for are rows of the table (<c>Id</c> 100 and 101) and <see cref="CreateSelectSql(byte[])"/> looks them up.
 /// </summary>
-public sealed class FlatFileSelectValueFixture : IDbFactoryFixture, ISelectValueFixture, IDeleteFixture, IDisposable
+public sealed class FlatFileSelectValueFixture : IDbFactoryFixture, ISingleWriterFixture, ISelectValueFixture, IDeleteFixture, IDisposable
 {
 	private static readonly Dictionary<string, int> s_byteRows = new()
 	{

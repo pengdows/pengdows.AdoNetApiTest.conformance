@@ -87,7 +87,69 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+	/// <summary>
+	/// A prepared command is executed again with new parameter values, the reason to prepare it. MySql.Data's Prepare
+	/// against TiDB threw KeyNotFoundException, and pengdows.crud turns preparation off for several providers.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
+	public virtual void Prepared_command_executes_again_with_new_parameter_values()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		var parameter = command.CreateParameter();
+		parameter.ParameterName = "Parameter";
+		parameter.DbType = DbType.Int32;
+		parameter.Value = 1;
+		command.Parameters.Add(parameter);
+
+		try
+		{
+			command.Prepare();
+		}
+		catch (NotSupportedException)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
+			return;
+		}
+
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
+		parameter.Value = 2;
+		Assert.Equal(2, Convert.ToInt32(command.ExecuteScalar()));
+		parameter.Value = int.MaxValue;
+		Assert.Equal(int.MaxValue, Convert.ToInt32(command.ExecuteScalar()));
+	}
+
+	/// <summary>
+	/// Changing CommandText after Prepare runs the new text, whether the provider prepares it again or not.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
+	public virtual void Prepared_command_runs_new_CommandText()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		try
+		{
+			command.Prepare();
+		}
+		catch (NotSupportedException)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
+			return;
+		}
+
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
+		command.CommandText = SelectSql("2");
+		Assert.Equal(2, Convert.ToInt32(command.ExecuteScalar()));
+		command.Prepare();
+		Assert.Equal(2, Convert.ToInt32(command.ExecuteScalar()));
+	}
+
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// PrepareAsync follows the same valid-command contract as Prepare. A provider
 	/// may explicitly report that preparation is unsupported.

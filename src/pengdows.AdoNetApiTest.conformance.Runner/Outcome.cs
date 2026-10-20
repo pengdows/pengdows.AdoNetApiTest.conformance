@@ -47,6 +47,9 @@ public enum Verdict
 	Pass,
 	Fail,
 	NotRun,
+
+	/// <summary>Nothing failed, but some Required tests never ran because the provider has no tests for their area.</summary>
+	Incomplete,
 }
 
 internal static class GroupParser
@@ -100,6 +103,7 @@ internal static class OutcomeInfo
 	{
 		Verdict.Pass => "PASS",
 		Verdict.Fail => "FAIL",
+		Verdict.Incomplete => "INCOMPLETE",
 		_ => "NOT RUN",
 	};
 }

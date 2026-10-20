@@ -55,6 +55,13 @@ public static class FidelityComparer
 			return Lossy(expected, actual);
 		}
 
+		if (expected is ClrText clrText)
+		{
+			return string.Equals(clrText.Text, Convert.ToString(actual, CultureInfo.InvariantCulture), StringComparison.Ordinal)
+				? Exact()
+				: new FidelityResult(FidelityStatus.Lossy, $"expected {clrText.Text} but was {actual.GetType().Name} {Show(actual)}");
+		}
+
 		if (expected.GetType() != actual.GetType())
 		{
 			return new FidelityResult(FidelityStatus.WrongType,

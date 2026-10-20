@@ -137,7 +137,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.close")]
 	public virtual void Close_can_be_called_more_than_once()
 	{
 		using var connection = CreateOpenConnection();
@@ -145,7 +145,26 @@ public abstract partial class ConnectionTestBase<TFixture>
 		connection.Close();
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+	/// <summary>
+	/// StateChange "occurs when the state of the connection changes from closed to opened or from opened to closed", so
+	/// closing a connection that is already closed raises nothing.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.statechange.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.statechange")]
+	public virtual void StateChange_is_not_raised_by_closing_a_closed_connection()
+	{
+		using var connection = CreateOpenConnection();
+		connection.Close();
+		var raised = 0;
+		connection.StateChange += (_, _) => raised++;
+
+		connection.Close();
+
+		Assert.Equal(0, raised);
+		Assert.Equal(ConnectionState.Closed, connection.State);
+	}
+
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// CloseAsync must complete the asynchronous connection lifecycle and leave
 	/// the connection closed.
@@ -184,7 +203,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 		Assert.Equal(1, disposedCount);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync follows the same component-disposal event contract as Dispose.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.disposeasync.

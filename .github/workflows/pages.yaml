@@ -1,0 +1,74 @@
+name: Pages
+
+# Runs every provider GitHub's Ubuntu runners can run, builds the certification site from the matrix and publishes it.
+# The run starts a container per server-backed provider and takes hours, so it is weekly and on demand, not per push.
+on:
+  schedule:
+  - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+
+  certify:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 360
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - name: Build
+      run: dotnet build pengdows.AdoNetApiTest.conformance.sln --configuration Release
+
+    # Not run here: .NET Framework-only projects (DotConnect*, SqlClientBcl), projects built from sibling checkouts
+    # (DuckDB, FlatFile, FlatFileLocal), Informix (its client aborts the test process) and Ydb (no server fixture).
+    # Opt-in providers stay in the list: they are reported as not tested, with the variables they need.
+    # Providers legitimately fail Required tests, so the run's exit code does not stop the site from being published.
+    - name: Run providers
+      continue-on-error: true
+      run: >
+        dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner --configuration Release -- run
+        --exclude DotConnectMySql,DotConnectPostgres,SqlClientBcl,DuckDB,FlatFile,FlatFileLocal,Informix,InformixCoreLnx4,Ydb
+        --timeout 25
+
+    - name: Build site
+      run: dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner --configuration Release --no-build -- site --out site
+
+    - name: Copy matrix into the site
+      run: cp conformance-results/matrix.json conformance-results/matrix.xml site/
+
+    - name: Upload matrix and logs
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: conformance-results
+        path: conformance-results/
+
+    - uses: actions/configure-pages@v5
+
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: site
+
+    - id: deploy
+      uses: actions/deploy-pages@v4

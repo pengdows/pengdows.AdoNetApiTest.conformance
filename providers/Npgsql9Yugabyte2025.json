@@ -1,0 +1,36 @@
+{
+  "name": "Npgsql9Yugabyte2025",
+  "description": "YugabyteDB as pengdows.crud testbed runs it (YugabyteTestContainer).",
+  "driver": {
+    "package": "Npgsql",
+    "version": "9.0.3",
+    "factory": "Npgsql.NpgsqlFactory, Npgsql"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "yugabytedb/yugabyte:2025.2.5.2-b5",
+    "port": 5433,
+    "command": [
+      "bin/yugabyted",
+      "start",
+      "--ui=false",
+      "--daemon=false"
+    ],
+    "readySeconds": 300,
+    "setupConnectionString": "Host=${host};Port=${port};Username=yugabyte;Database=yugabyte;Timeout=30;CommandTimeout=60",
+    "setup": [
+      "CREATE DATABASE conformance"
+    ]
+  },
+  "connectionString": "Host=${host};Port=${port};Username=yugabyte;Database=conformance;Timeout=30;CommandTimeout=60",
+  "dialect": {
+    "returning": "{0} RETURNING Id",
+    "binaryLiteral": "'\\x{0}'::bytea",
+    "valueTypes": { "Binary": "bytea" },
+    "renderAsText": "CAST({0} AS text)",
+    "dropTable": "drop table if exists {0}"
+  },
+  "types": {
+    "query": "SELECT DISTINCT format_type(t.oid, NULL) FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname IN ('pg_catalog', 'information_schema') AND t.typtype NOT IN ('p', 'c')"
+  }
+}

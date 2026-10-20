@@ -1,0 +1,26 @@
+{
+  "name": "MySqlConnector2AuroraMySql",
+  "description": "Aurora MySQL, opt-in as in pengdows.crud testbed (INCLUDE_AURORA and the AURORA_MYSQL_* variables).",
+  "driver": {
+    "package": "MySqlConnector",
+    "version": "2.4.0",
+    "factory": "MySqlConnector.MySqlConnectorFactory, MySqlConnector"
+  },
+  "target": {
+    "kind": "cloud"
+  },
+  "requires": {
+    "env": [
+      "INCLUDE_AURORA",
+      "AURORA_MYSQL_HOST",
+      "AURORA_MYSQL_USER",
+      "AURORA_MYSQL_PASSWORD",
+      "AURORA_MYSQL_DATABASE"
+    ]
+  },
+  "connectionString": "Server=${AURORA_MYSQL_HOST};User ID=${AURORA_MYSQL_USER};Password=${AURORA_MYSQL_PASSWORD};Database=${AURORA_MYSQL_DATABASE};SslMode=Required",
+  "dialect": {
+    "renderAsText": "CAST({0} AS CHAR)",
+    "dropTable": "drop table if exists {0}"
+  }
+}

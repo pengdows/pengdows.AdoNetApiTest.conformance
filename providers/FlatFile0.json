@@ -1,0 +1,13 @@
+{
+  "name": "FlatFile0",
+  "description": "pengdows.flatfile as pengdows.crud testbed runs it, on a folder.",
+  "driver": {
+    "package": "pengdows.flatfile",
+    "version": "0.2.1-preview.2",
+    "factory": "pengdows.flatfile.FlatFileProviderFactory, pengdows.flatfile"
+  },
+  "target": {
+    "kind": "file"
+  },
+  "connectionString": "path=${instancedir}"
+}

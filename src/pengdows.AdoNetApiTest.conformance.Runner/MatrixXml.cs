@@ -4,12 +4,17 @@ namespace pengdows.AdoNetApiTest.conformance.Runner;
 
 internal static class MatrixXml
 {
+	private static XElement Map(string name, IReadOnlyDictionary<string, string> values) =>
+		new(name, values.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair =>
+			new XElement("value", new XAttribute("name", XmlText.Escape(pair.Key)), XmlText.Escape(pair.Value))));
+
 	public static string Write(Matrix matrix)
 	{
 		var root = new XElement("conformance-matrix",
 			new XAttribute("schema", MatrixJson.Schema),
 			new XAttribute("generated", DateTimeOffset.UtcNow.ToString("O")),
 			new XAttribute("verdict", OutcomeInfo.Text(matrix.Verdict)),
+			Map("suite", matrix.Suite),
 			new XElement("legend", Enum.GetValues<Outcome>().Select(o =>
 				new XElement("outcome",
 					new XAttribute("code", OutcomeInfo.CodeOf(o)),
@@ -34,7 +39,8 @@ internal static class MatrixXml
 					new XElement("counts", p.Counts.Select(c =>
 						new XElement("count", new XAttribute("outcome", OutcomeInfo.CodeOf(c.Key)), c.Value))),
 					new XElement("fidelity-counts", p.Fidelity.Select(c =>
-						new XElement("count", new XAttribute("status", FidelityInfo.CodeOf(c.Key)), c.Value)))))),
+						new XElement("count", new XAttribute("status", FidelityInfo.CodeOf(c.Key)), c.Value))),
+					Map("provenance", p.Provenance)))),
 			new XElement("tests", matrix.Tests.Select(t =>
 				new XElement("test",
 					new XAttribute("area", XmlText.Escape(t.Area)),

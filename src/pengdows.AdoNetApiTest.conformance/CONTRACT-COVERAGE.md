@@ -78,14 +78,14 @@ one portable result for the scenario; “review” is remaining work.
 | `DbConnection` | `CreateCommand`, `CreateBatch`, `CanCreateBatch`, `BeginTransaction`, `BeginTransactionAsync` | Covered in `ConnectionTestBase`/`TransactionTestBase`; batch creation is capability-aware and default isolation is provider-defined |
 | `DbConnection` | `ChangeDatabase`, `EnlistTransaction`, `GetSchema`, `GetSchemaAsync` | Capability bases for `ChangeDatabase`/enlistment; synchronous and asynchronous schema collection shape is covered when the optional schema capability is supported |
 | `DbCommand` | `CommandText`, `CommandTimeout`, `CommandType`, `Connection`, `Transaction`, `UpdatedRowSource`, `DesignTimeVisible`, `Parameters` | Covered in `CommandTestBase`; invalid open-reader transitions are strict where the API requires them |
-| `DbCommand` | `Cancel`, `CreateParameter`, `Prepare`, `PrepareAsync`, `DisposeAsync` | Covered; disposal/cancellation edge cases are diagnostics, preparation supports explicit `NotSupportedException` |
-| `DbCommand` | `ExecuteReader`, `ExecuteReaderAsync`, `ExecuteScalar`, `ExecuteScalarAsync`, `ExecuteNonQuery`, `ExecuteNonQueryAsync` | Covered for successful execution, async propagation, invalid connection state, errors, and result semantics; empty text is diagnostic |
+| `DbCommand` | `Cancel`, `CreateParameter`, `Prepare`, `PrepareAsync`, `DisposeAsync` | Covered; disposal/cancellation edge cases are diagnostics (including command/connection dispose order, whether a reader outlives its disposed command, and unsetting `Connection` after execution); `Prepare` exceptions cite `IDbCommand.Prepare`, and prepared commands re-run with new values and new text as Optional |
+| `DbCommand` | `ExecuteReader`, `ExecuteReaderAsync`, `ExecuteScalar`, `ExecuteScalarAsync`, `ExecuteNonQuery`, `ExecuteNonQueryAsync` | Covered for successful execution, async propagation, invalid connection state, errors, and result semantics; empty text is diagnostic, as is re-running a query after its table is recreated with another column type (`TypeFidelityTestBase`) |
 | `DbDataReader` | `Read`, `ReadAsync`, `NextResult`, `NextResultAsync`, `HasRows`, `IsClosed`, `Depth`, `FieldCount`, `VisibleFieldCount`, `RecordsAffected` | Covered; closed-state and result-navigation assertions cite the reader contract |
 | `DbDataReader` | `GetValue`, typed getters, `GetFieldValue`, `GetFieldValueAsync`, `IsDBNull`, `IsDBNullAsync` | Valid values, nulls, ordinals, closed state, and async paths covered; generated cross-type conversions are diagnostics |
 | `DbDataReader` | `GetName`, `GetOrdinal`, `GetDataTypeName`, `GetFieldType`, `GetProviderSpecificValue(s)`, `GetProviderSpecificFieldType` | Core ordinal/type members and provider-specific value/type methods covered; native type names remain provider-defined |
 | `DbDataReader` | `GetData`, `GetDbDataReader` | Nested-reader APIs are explicitly not asserted: the shared fixtures produce scalar columns, not provider-specific nested result columns; the API does not define a portable SQL shape for creating one |
 | `DbDataReader` | `GetBytes`, `GetChars`, `GetStream`, `GetTextReader`, `GetSchemaTable`, `GetSchemaTableAsync`, `GetColumnSchema`, `GetColumnSchemaAsync`, `CloseAsync`, `DisposeAsync` | Valid reads, asynchronous close/dispose, and synchronous/asynchronous schema shape covered; buffer boundaries, stream materialization, native names, and unsupported schema are diagnostics/capabilities |
-| `DbParameter` | `DbType`, `Direction`, `IsNullable`, `ParameterName`, `Precision`, `Scale`, `Size`, `SourceColumn`, `SourceColumnNullMapping`, `SourceVersion`, `Value`, `ResetDbType` | Property/default coverage in `ParameterTestBase`; defaults are strict only where the API documents them |
+| `DbParameter` | `DbType`, `Direction`, `IsNullable`, `ParameterName`, `Precision`, `Scale`, `Size`, `SourceColumn`, `SourceColumnNullMapping`, `SourceVersion`, `Value`, `ResetDbType` | Property/default coverage in `ParameterTestBase`; defaults are strict only where the API documents them. Diagnostics: every `DbType` assignable and bindable as NULL, `DbType` inferred from `Value` (the configuring-parameters table), a reused decimal parameter widened, doubles beyond 1e126, a `DateTimeOffset` with an offset, a `TimeSpan` as `DbType.Time` |
 | `DbParameterCollection`/`IDataParameterCollection` | count/indexing, add/remove/insert, `AddRange`, `CopyTo`, `Contains`, `IndexOf`, logical-name lookup | Covered in `ParameterTestBase`; null-argument policy is diagnostic because the base collection API does not specify one universal outcome. `IsFixedSize`, `IsReadOnly`, `IsSynchronized`, and `SyncRoot` are inherited `IList`/`ICollection` mechanics and are intentionally not conformance assertions because the provider contract does not define a portable mutability or synchronization policy for them |
 | `DbTransaction` | `Connection`, `IsolationLevel`, `Commit`, `Rollback`, savepoints, async equivalents, `Dispose` | Covered in `TransactionTestBase`; savepoint methods are checked against `SupportsSavepoints`, disposed connection invalidation follows the explicit interface contract, and unspecified completed-operation exception types remain diagnostics |
 | `DbProviderFactory` | connection, command, parameter, connection-string builder creation | Required creation coverage in `DbProviderFactoryTestBase` |
@@ -133,6 +133,15 @@ clear.
   asynchronous execution, and verify `DbDataReader.RecordsAffected` after a
   DML reader is closed. Fixture setup and cleanup are statement lists, and
   cleanup is best-effort.
+- An INSERT or DELETE that also returns rows (`RETURNING`) is still an INSERT
+  or DELETE: its ExecuteNonQuery result and RecordsAffected are Required to be
+  the rows it changed. The syntax is not SQL-92, so a fixture states its form
+  (`IDmlReturningFixture`, `IReturningDialectFixture`, or a configuration's
+  `dialect.returning`); without one the tests are not applicable.
+- MERGE counts are Common: ExecuteNonQuery names only INSERT, UPDATE and
+  DELETE and gives -1 for other statements, while RecordsAffected counts rows
+  changed, inserted, or deleted. A provider reporting -1 is a difference; a
+  database without SQL:2003 MERGE is not applicable.
 - Shared tests cover `CommandTimeout`, `UpdatedRowSource`,
   `VisibleFieldCount`, parameter property round-trips, and parameter collection
   `AddRange`/`CopyTo` ordering.
@@ -173,6 +182,9 @@ clear.
   `GetFieldValueAsync`/transaction lifecycle coverage.
 - Successful `OpenAsync` and `CloseAsync` connection lifecycle behavior is
   covered; cancellation remains documented as provider-dependent.
+- Closing an already closed connection raises no `StateChange` (Required: the
+  event occurs only between closed and opened); `Close`/`CloseAsync` on a
+  connection never opened are Common, since no page covers Close before Open.
 - Provider-specific SQL setup is kept in fixtures; multi-statement setup is
   executed statement-by-statement because `DbCommand.Prepare` does not require
   providers to accept a batch of statements.

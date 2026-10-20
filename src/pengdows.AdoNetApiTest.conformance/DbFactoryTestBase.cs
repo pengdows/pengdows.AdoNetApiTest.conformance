@@ -52,6 +52,7 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		var connection = CreateConnection();
 		connection.ConnectionString = ConnectionString;
 		connection.Open();
+		Provenance.Record(Fixture.Factory, connection);
 		return connection;
 	}
 
@@ -65,7 +66,9 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// bare <c>SELECT 1</c> is portable.
 	/// </summary>
 	/// <seealso href="https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executereader" />
-	protected virtual string SelectSql(string projection) => $"SELECT {projection};";
+	protected virtual string SelectSql(string projection) => Fixture is ISqlDialectFixture dialect
+		? dialect.SelectStatement(projection) + dialect.StatementTerminator
+		: $"SELECT {projection};";
 
 	/// <summary>Returns one scalar using the provider's portable SELECT shape.</summary>
 	protected virtual string SelectOneSql => SelectSql("1");
@@ -88,11 +91,15 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// <summary>Returns three result sets containing one scalar each.</summary>
 	protected virtual string SelectThreeResultsSql => SelectSql("1") + " " + SelectSql("2") + " " + SelectSql("3");
 
-	/// <summary>Returns two rows from a single result set.</summary>
-	protected virtual string SelectTwoRowsSql => "SELECT 1 UNION SELECT 2;";
+	/// <summary>Returns the rows 1 and 2, in that order, from a single result set (a distributed database such as TiDB returns a UNION in either order without ORDER BY).</summary>
+	protected virtual string SelectTwoRowsSql => Fixture is ISqlDialectFixture dialect
+		? $"{dialect.SelectStatement("1")} UNION {dialect.SelectStatement("2")} ORDER BY 1{dialect.StatementTerminator}"
+		: "SELECT 1 UNION SELECT 2 ORDER BY 1;";
 
 	/// <summary>Returns two known rows with the command-test value aliases.</summary>
-	protected virtual string SelectTwoRows42Sql => "SELECT 42 AS value UNION SELECT 43 AS value ORDER BY value;";
+	protected virtual string SelectTwoRows42Sql => Fixture is ISqlDialectFixture dialect
+		? $"{dialect.SelectStatement("42 AS value")} UNION {dialect.SelectStatement("43 AS value")} ORDER BY value{dialect.StatementTerminator}"
+		: "SELECT 42 AS value UNION SELECT 43 AS value ORDER BY value;";
 
 	/// <summary>Returns an empty result followed by one result row.</summary>
 	protected virtual string SelectNoRowsThenOneSql => Fixture is ISelectValueFixture select
@@ -102,9 +109,9 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// <summary>
 	/// Matches provider-neutral ADO.NET behavior: providers that
 	/// explicitly advertise the positional format '?' use that placeholder; named
-	/// providers receive their advertised marker plus the logical name. Missing or
-	/// unusable DataSourceInformation is allowed to fail rather than being treated as
-	/// evidence of positional support.
+	/// providers receive their advertised marker plus the logical name. When
+	/// DataSourceInformation is missing or unusable, the marker is <c>@</c>, the .NET de
+	/// facto convention; the DataSourceInformation tests report the gap.
 	/// The logical <see cref="DbParameter.ParameterName"/> remains independent of
 	/// this SQL representation.
 	/// The positional-versus-named decision follows the ADO.NET
@@ -134,20 +141,22 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		}
 		catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException)
 		{
-			throw new InvalidOperationException("The provider offers no DataSourceInformation schema; implement IParameterMarkerFixture on the fixture to state its parameter marker.", ex);
+			return DefaultMarker;
 		}
 
 		if (schema.Rows.Count == 0)
 		{
-			throw new InvalidOperationException("DataSourceInformation returned no row; implement IParameterMarkerFixture on the fixture to state its parameter marker.");
+			return DefaultMarker;
 		}
 
 		var row = schema.Rows[0];
 		var format = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerFormat) ? row[DbMetaDataColumnNames.ParameterMarkerFormat] as string : null;
 		var pattern = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerPattern) ? row[DbMetaDataColumnNames.ParameterMarkerPattern] as string : null;
-		return ParameterMarkerDiscovery.Discover(format, pattern)
-			?? throw new InvalidOperationException($"DataSourceInformation advertises no usable parameter marker (format '{format}', pattern '{pattern}'); implement IParameterMarkerFixture on the fixture.");
+		return ParameterMarkerDiscovery.Discover(format, pattern) ?? DefaultMarker;
 	}
+
+	/// <summary>The marker when a provider does not say: <c>@name</c>, the .NET de facto convention though not SQL-92.</summary>
+	private static readonly ParameterMarker DefaultMarker = new(false, "@");
 
 	/// <summary>
 	/// Formats a provider parameter from its logical name using the same named-versus-

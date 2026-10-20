@@ -154,8 +154,7 @@ public class OutputTests
 		});
 
 		var line = ConsoleReport.Render(matrix).Split('\n').Single(l => l.StartsWith("Partial", StringComparison.Ordinal));
-		Assert.Contains("Required 1/3 (1 failed, 1 not run)", line);
-		Assert.Contains("1 Required not covered", line);
+		Assert.Contains("Required 1/4 (1 failed, 1 not run, 1 not covered)", line);
 		Assert.DoesNotContain("failed", ConsoleReport.Render(matrix).Split('\n').Single(l => l.StartsWith("Full", StringComparison.Ordinal)));
 	}
 

@@ -129,7 +129,7 @@ public partial class TransactionTestBase<TFixture>
 		Assert.Null(transaction.Connection);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// CommitAsync must complete the same transaction state transition as Commit.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.commitasync.
@@ -146,7 +146,7 @@ public partial class TransactionTestBase<TFixture>
 	}
 #endif
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// RollbackAsync must complete the same transaction state transition as
 	/// Rollback.
@@ -180,7 +180,7 @@ public partial class TransactionTestBase<TFixture>
 		Assert.Null(((IDbTransaction)transaction).Connection);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync must release a transaction and invalidate its associated
 	/// connection reference just like synchronous disposal.

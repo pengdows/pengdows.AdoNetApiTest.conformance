@@ -30,7 +30,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal("", command.CommandText);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.commandtype")]
 	public virtual void CommandType_text_by_default()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -98,7 +98,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.ThrowsAny<ArgumentException>(() => command.UpdatedRowSource = (UpdateRowSource) 99);
 	}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync must complete the command disposal contract without requiring
 	/// providers to implement a separate asynchronous resource path.
@@ -134,14 +134,22 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.NotNull(command.CreateParameter());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	/// <summary>
+	/// "InvalidOperationException: The Connection is not set. -or- The Connection is not Open."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
 	public virtual void Prepare_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
 		Assert.ThrowsAny<InvalidOperationException>(() => command.Prepare());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	/// <summary>
+	/// "InvalidOperationException: The Connection is not set. -or- The Connection is not Open."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
 	public virtual void Prepare_throws_when_connection_closed()
 	{
 		using var connection = CreateConnection();
@@ -160,17 +168,14 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = 1;
 		command.Parameters.Add(parameter);
 
-		var scalar = command.ExecuteScalar();
-		if (scalar is int)
-			Assert.Equal(1, scalar);
-		else
-			Assert.Equal(1L, scalar);
+		// The CLR type of a selected parameter is the database's choice (Oracle's NUMBER is a decimal); the value is not.
+		Assert.Equal(1L, Convert.ToInt64(command.ExecuteScalar()));
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
@@ -256,7 +261,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(42, Convert.ToInt32(command.ExecuteScalar()));
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.executenonquery")]
 	public virtual void ExecuteNonQuery_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -271,7 +276,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteNonQuery());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery")]
 	public virtual void ExecuteNonQuery_returns_negative_one_for_SELECT()
 	{
 		using var connection = CreateOpenConnection();

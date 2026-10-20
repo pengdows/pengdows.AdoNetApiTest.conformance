@@ -1,0 +1,52 @@
+{
+  "name": "Npgsql9SpannerOmni",
+  "description": "Spanner Omni through PGAdapter, as pengdows.crud testbed runs it (SpannerOmniTestContainer).",
+  "driver": {
+    "package": "Npgsql",
+    "version": "9.0.3",
+    "factory": "Npgsql.NpgsqlFactory, Npgsql"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "gcr.io/cloud-spanner-pg-adapter/pgadapter:latest",
+    "port": 5432,
+    "env": {
+      "SPANNER_EMULATOR_HOST": "spanner-omni:15000"
+    },
+    "command": [
+      "-p",
+      "default",
+      "-i",
+      "default",
+      "-d",
+      "conformance",
+      "-c",
+      "\"\"",
+      "-r",
+      "autoConfigEmulator=true",
+      "-e",
+      "spanner-omni:15000",
+      "-s",
+      "5432",
+      "-x"
+    ],
+    "readySeconds": 300,
+    "sidecars": [
+      {
+        "image": "us-docker.pkg.dev/spanner-omni/images/spanner-omni:2026.r2.1-beta",
+        "alias": "spanner-omni",
+        "command": [
+          "start-single-server"
+        ],
+        "tmpfs": "/spanner"
+      }
+    ]
+  },
+  "connectionString": "Host=${host};Port=${port};Username=postgres;Database=conformance;Timeout=30;CommandTimeout=60;No Reset On Close=true",
+  "dialect": {
+    "binaryLiteral": "'\\x{0}'::bytea",
+    "valueTypes": { "Binary": "bytea" },
+    "renderAsText": "CAST({0} AS text)",
+    "dropTable": "drop table if exists {0}"
+  }
+}

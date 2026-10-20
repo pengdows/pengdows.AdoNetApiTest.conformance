@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Ydb.Sdk" Version="*" />
     <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
+    <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance.Databases\pengdows.AdoNetApiTest.conformance.Databases.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,27 @@
+{
+  "name": "MySqlConnector2SingleStore",
+  "description": "SingleStore as pengdows.crud testbed runs it (SingleStoreTestContainer, the dev image).",
+  "driver": {
+    "package": "MySqlConnector",
+    "version": "2.4.0",
+    "factory": "MySqlConnector.MySqlConnectorFactory, MySqlConnector"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "ghcr.io/singlestore-labs/singlestoredb-dev:latest",
+    "port": 3306,
+    "env": {
+      "ROOT_PASSWORD": "rootpassword"
+    },
+    "readySeconds": 300,
+    "setupConnectionString": "Server=${host};Port=${port};User ID=root;Password=rootpassword;AllowPublicKeyRetrieval=True;SslMode=None",
+    "setup": [
+      "CREATE DATABASE conformance"
+    ]
+  },
+  "connectionString": "Server=${host};Port=${port};Database=conformance;User ID=root;Password=rootpassword;AllowPublicKeyRetrieval=True;SslMode=None",
+  "dialect": {
+    "renderAsText": "CAST({0} AS CHAR)",
+    "dropTable": "drop table if exists {0}"
+  }
+}

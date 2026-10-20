@@ -20,24 +20,16 @@ public abstract partial class ConnectionTestBase<TFixture> : DbFactoryTestBase<T
 
 
 
+	/// <summary>
+	/// The common schema collections page lists the columns MetaDataCollections has; a provider may add its own after
+	/// them (ODP.NET and FirebirdClient add PopulationMechanism and PopulationString).
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/common-schema-collections.
+	/// </summary>
 	protected virtual void CheckMetaDataCollectionsSchema(DataTable table)
 	{
 		Assert.Equal("MetaDataCollections", table.TableName);
-		Assert.Collection(table.Columns.Cast<DataColumn>(),
-			c =>
-			{
-				Assert.Equal("CollectionName", c.ColumnName);
-				Assert.Same(typeof(string), c.DataType);
-			},
-			c =>
-			{
-				Assert.Equal("NumberOfRestrictions", c.ColumnName);
-				Assert.Same(typeof(int), c.DataType);
-			},
-			c =>
-			{
-				Assert.Equal("NumberOfIdentifierParts", c.ColumnName);
-				Assert.Same(typeof(int), c.DataType);
-			});
+		Assert.Same(typeof(string), Assert.IsType<DataColumn>(table.Columns["CollectionName"]).DataType);
+		Assert.Same(typeof(int), Assert.IsType<DataColumn>(table.Columns["NumberOfRestrictions"]).DataType);
+		Assert.Same(typeof(int), Assert.IsType<DataColumn>(table.Columns["NumberOfIdentifierParts"]).DataType);
 	}
 }

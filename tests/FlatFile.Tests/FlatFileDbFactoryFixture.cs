@@ -5,9 +5,12 @@ using System.IO;
 using pengdows.flatfile;
 using pengdows.AdoNetApiTest.conformance;
 
+// The database allows one writer at a time, so the test classes run one after another.
+[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]
+
 namespace FlatFile.Tests;
 
-public sealed class FlatFileDbFactoryFixture : IDbFactoryFixture, IParameterMarkerFixture, IDmlFixture, IDisposable
+public sealed class FlatFileDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IParameterMarkerFixture, IDmlFixture, IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), "adonet-flatfile-" + Guid.NewGuid().ToString("N"));
 

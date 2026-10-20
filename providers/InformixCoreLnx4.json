@@ -1,0 +1,38 @@
+{
+  "name": "InformixCoreLnx4",
+  "description": "Informix as pengdows.crud testbed runs it (InformixTestContainer). The native client reads LD_LIBRARY_PATH and INFORMIXDIR at process start (InformixNativeLibraryBootstrap) and needs unixODBC on the host.",
+  "driver": {
+    "package": "Informix.Net.Core-lnx",
+    "version": "4.1501.2.2026",
+    "factory": "Informix.Net.Core.InformixClientFactory, Informix.Net.Core"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "icr.io/informix/informix-developer-database:latest",
+    "port": 9088,
+    "readySeconds": 600,
+    "env": {
+      "LICENSE": "accept",
+      "DBSERVERNAME": "informixserver",
+      "INFORMIX_PASSWORD": "in4mix"
+    },
+    "exec": [
+      "bash -lc \"export DB_LOCALE=en_US.utf8 && echo 'CREATE DATABASE testdb WITH LOG;' | dbaccess sysmaster -\""
+    ]
+  },
+  "processEnvironment": {
+    "LD_LIBRARY_PATH": "${output}/native/lib",
+    "INFORMIXDIR": "${output}/native",
+    "INFORMIXSQLHOSTS": "${output}/sqlhosts"
+  },
+  "connectionString": "Host=${host};Service=${port};Server=informixserver;Database=testdb;UID=informix;PWD=in4mix;Delimident=true;DB_LOCALE=en_US.utf8;CLIENT_LOCALE=en_US.utf8",
+  "dialect": {
+    "valueTypes": { "Binary": "" },
+    "select": "SELECT {0} FROM systables WHERE tabid = 1",
+    "terminator": "",
+    "parameterMarker": "?"
+  },
+  "hostFiles": {
+    "${output}/sqlhosts": "informixserver onsoctcp ${host} ${port}\n"
+  }
+}

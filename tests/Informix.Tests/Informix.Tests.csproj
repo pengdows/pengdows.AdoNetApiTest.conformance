@@ -8,5 +8,6 @@
   <ItemGroup>
     <PackageReference Include="Informix.Net.Core-lnx" Version="4.1501.2.2026" />
     <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
+    <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance.Databases\pengdows.AdoNetApiTest.conformance.Databases.csproj" />
   </ItemGroup>
 </Project>

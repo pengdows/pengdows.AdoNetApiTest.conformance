@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
@@ -68,6 +69,118 @@ public abstract partial class CommandTestBase<TFixture>
 		{
 			SoftWarning.Report("The provider rejects Cancel after connection disposal; disposed-connection Cancel behavior is not an ADO.NET contract.");
 		}
+	}
+
+	/// <summary>
+	/// Nested <c>using</c> blocks dispose an executed command before its connection; neither Dispose should throw.
+	/// See https://learn.microsoft.com/dotnet/standard/design-guidelines/dispose-pattern.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/standard/design-guidelines/dispose-pattern", Because = "the guideline says to avoid throwing from Dispose; no page fixes the order of command and connection disposal")]
+	public virtual void Dispose_Command_then_Connection_does_not_throw()
+	{
+		var connection = CreateOpenConnection();
+		var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		command.ExecuteScalar();
+		ReportDisposeExceptions((command.Dispose, "the command, before its connection"), (connection.Dispose, "the connection, after its command"));
+	}
+
+	/// <summary>
+	/// Disposing the connection first leaves the command to be disposed afterwards; neither Dispose should throw.
+	/// See https://learn.microsoft.com/dotnet/standard/design-guidelines/dispose-pattern.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/standard/design-guidelines/dispose-pattern", Because = "the guideline says to avoid throwing from Dispose; no page fixes the order of command and connection disposal")]
+	public virtual void Dispose_Connection_then_Command_does_not_throw()
+	{
+		var connection = CreateOpenConnection();
+		var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		command.ExecuteScalar();
+		ReportDisposeExceptions((connection.Dispose, "the connection, before its command"), (command.Dispose, "the command, after its connection"));
+	}
+
+	/// <summary>
+	/// A reader returned by ExecuteReader can still be read after the command that produced it is disposed, as
+	/// SqlClient and Npgsql allow; Microsoft.Data.Sqlite closes the reader instead.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executereader.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executereader", Because = "no page says whether a reader outlives the command that produced it")]
+	public virtual void Reader_can_be_read_after_Command_is_disposed()
+	{
+		using var connection = CreateOpenConnection();
+		var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		using var reader = command.ExecuteReader();
+		command.Dispose();
+
+		try
+		{
+			if (!reader.Read())
+			{
+				ConformanceOutcome.Different("Disposing the command ended its open reader: Read returned false before the first row.");
+				return;
+			}
+
+			if (Convert.ToInt64(reader.GetValue(0)) != 1)
+				throw new UnexpectedValueException(reader.GetValue(0));
+		}
+		catch (Exception ex) when (ex is not UnexpectedValueException)
+		{
+			ConformanceOutcome.Different($"Disposing the command closed its open reader: Read then threw {ex.GetType().Name}: {ex.Message}");
+		}
+	}
+
+	/// <summary>
+	/// An executed command can be detached from its connection for reuse; pengdows.crud swallows the exception some
+	/// providers throw here. Required covers only a command that never ran (Connection_can_be_unset).
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.connection.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.connection", Because = "no page says whether an executed command can be detached from its connection")]
+	public virtual void Connection_can_be_unset_after_execute()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+		command.ExecuteScalar();
+		using (var reader = command.ExecuteReader())
+		{
+			while (reader.Read())
+			{
+			}
+		}
+
+		try
+		{
+			command.Connection = null;
+		}
+		catch (Exception ex)
+		{
+			ConformanceOutcome.Different($"Setting Connection to null on an executed command threw {ex.GetType().Name}: {ex.Message}");
+			return;
+		}
+
+		Assert.Null(command.Connection);
+		command.Connection = connection;
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
+	}
+
+	private static void ReportDisposeExceptions(params (Action Dispose, string What)[] steps)
+	{
+		var failures = new List<string>();
+		foreach (var (dispose, what) in steps)
+		{
+			try
+			{
+				dispose();
+			}
+			catch (Exception ex)
+			{
+				failures.Add($"Disposing {what} threw {ex.GetType().Name}: {ex.Message}");
+			}
+		}
+
+		if (failures.Count > 0)
+			ConformanceOutcome.Different(string.Join(" ", failures));
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
@@ -347,6 +460,12 @@ public abstract partial class CommandTestBase<TFixture>
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.transaction", Because = "the docs state only the default for DbCommand.Transaction; rejecting a transaction from another connection is SqlClient behavior")]
 	public virtual void ExecuteReader_throws_when_transaction_mismatched()
 	{
+		if (Fixture is ISingleWriterFixture)
+		{
+			ConformanceOutcome.NotApplicable("The database allows one writer at a time, so two connections cannot each hold a transaction.");
+			return;
+		}
+
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneSql;
@@ -487,7 +606,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = $"SELECT {MakeParameterName(connection, "Parameter")};";
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = new CustomClass();

@@ -1,0 +1,39 @@
+{
+  "name": "Db2Lnx8Db2115",
+  "description": "IBM Db2 as pengdows.crud testbed runs it (Db2TestContainer, TestbedImageMatrix latest): privileged, and slow to create its database. libdb2.so is in the package's clidriver folder, which LD_LIBRARY_PATH must name at process start (Db2NativeLibraryBootstrap). The IBM clidriver also needs libxml2.so.2 on the host (distributions with libxml2 2.14+ ship only libxml2.so.16).",
+  "driver": {
+    "package": "Net.IBM.Data.Db2-lnx",
+    "version": "8.0.0.500",
+    "factory": "IBM.Data.Db2.DB2Factory, IBM.Data.Db2"
+  },
+  "target": {
+    "kind": "docker",
+    "image": "ibmcom/db2:11.5.8.0",
+    "port": 50000,
+    "privileged": true,
+    "readySeconds": 900,
+    "env": {
+      "LICENSE": "accept",
+      "DB2INST1_PASSWORD": "MyStr0ngP@ssw0rd",
+      "DBNAME": "testdb",
+      "ARCHIVE_LOGS": "false"
+    }
+  },
+  "connectionString": "Server=${host}:${port};Database=testdb;UID=db2inst1;PWD=MyStr0ngP@ssw0rd",
+  "dialect": {
+    "binaryLiteral": "BX'{0}'",
+    "select": "SELECT {0} FROM sysibm.sysdummy1",
+    "terminator": ""
+  },
+  "types": {
+    "query": "SELECT TYPENAME, CASE TYPENAME WHEN 'CHARACTER' THEN 'CHARACTER(100)' WHEN 'VARCHAR' THEN 'VARCHAR(100)' WHEN 'GRAPHIC' THEN 'GRAPHIC(100)' WHEN 'VARGRAPHIC' THEN 'VARGRAPHIC(100)' WHEN 'BINARY' THEN 'BINARY(16)' WHEN 'VARBINARY' THEN 'VARBINARY(100)' WHEN 'DECIMAL' THEN 'DECIMAL(28,10)' ELSE TYPENAME END FROM SYSCAT.DATATYPES WHERE METATYPE = 'S'",
+    "exclude": {
+      "REFERENCE": "a reference type, not a column type",
+      "CURSOR": "a cursor type, not a column type",
+      "ROW": "a row type, not a column type"
+    }
+  },
+  "processEnvironment": {
+    "LD_LIBRARY_PATH": "${output}/clidriver/lib:${output}/clidriver/lib/icc"
+  }
+}

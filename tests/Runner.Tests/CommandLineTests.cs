@@ -111,4 +111,31 @@ public class ProviderDiscoveryTests : IDisposable
 		Assert.Contains("Oracle", error.Message);
 		Assert.Contains("DuckDB", error.Message);
 	}
+
+	[Fact]
+	public void Exclude_takes_a_comma_separated_list()
+	{
+		var options = CommandLine.Parse(new[] { "run", "--exclude", "Informix, Ydb" });
+
+		Assert.Equal(new[] { "Informix", "Ydb" }, options.Excluded);
+	}
+
+	[Fact]
+	public void Excluded_providers_are_not_run_and_an_unknown_one_is_an_error()
+	{
+		var all = new[] { new ProviderProject("Sqlite", "s"), new ProviderProject("Informix", "i"), new ProviderProject("Ydb", "y") };
+
+		Assert.Equal(new[] { "Sqlite" }, ProviderDiscovery.Select(all, Array.Empty<string>(), new[] { "informix", "Ydb" }).Select(p => p.Id));
+		Assert.ThrowsAny<ArgumentException>(() => ProviderDiscovery.Select(all, Array.Empty<string>(), new[] { "Oracle" }));
+	}
+
+	[Fact]
+	public void Site_reads_the_default_matrix_or_the_one_named()
+	{
+		Assert.Equal(new[] { Path.Combine("conformance-results", "matrix.json") }, CommandLine.Parse(new[] { "site" }).Files);
+		var named = CommandLine.Parse(new[] { "site", "m.json", "--out", "pages" });
+		Assert.Equal(new[] { "m.json" }, named.Files);
+		Assert.Equal("pages", named.SiteDirectory);
+		Assert.NotNull(CommandLine.Parse(new[] { "site", "a.json", "b.json" }).Error);
+	}
 }

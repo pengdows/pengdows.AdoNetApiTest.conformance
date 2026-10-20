@@ -12,7 +12,8 @@ namespace pengdows.AdoNetApiTest.conformance.Databases;
 /// </summary>
 public sealed class Sql92Dml
 {
-	public Sql92Dml(string table, Func<string, string, string> createTable, Func<string, string> dropTable)
+	/// <param name="returning">The form of DML that returns rows, <c>{0}</c> being the statement; null when the database has none.</param>
+	public Sql92Dml(string table, Func<string, string, string> createTable, Func<string, string> dropTable, string returning = null)
 	{
 		CreateTableSql = createTable(table, "varchar(100)");
 		DropTableSql = dropTable(table);
@@ -29,6 +30,10 @@ public sealed class Sql92Dml
 		UpdateNoRowsSql = $"UPDATE {table} SET V = 'Nobody' WHERE Id = 999";
 		DeleteSql = $"DELETE FROM {table} WHERE Id = 2";
 		DeleteNoRowsSql = $"DELETE FROM {table} WHERE Id = 999";
+		InsertReturningSql = returning is null ? null : string.Format(System.Globalization.CultureInfo.InvariantCulture, returning, InsertSql);
+		DeleteReturningSql = returning is null ? null : string.Format(System.Globalization.CultureInfo.InvariantCulture, returning, $"DELETE FROM {table} WHERE Id > 0");
+		MergeSql = $"MERGE INTO {table} t USING (VALUES (1, 'Merged'), (3, 'Dave')) s (Id, V) ON (t.Id = s.Id) " +
+			"WHEN MATCHED THEN UPDATE SET V = s.V WHEN NOT MATCHED THEN INSERT (Id, V) VALUES (s.Id, s.V)";
 	}
 
 	public string CreateTableSql { get; }
@@ -50,6 +55,15 @@ public sealed class Sql92Dml
 	public string DeleteSql { get; }
 
 	public string DeleteNoRowsSql { get; }
+
+	/// <summary>An INSERT of one row that returns it, or null when the database has no RETURNING form.</summary>
+	public string InsertReturningSql { get; }
+
+	/// <summary>A DELETE of both setup rows that returns them, or null when the database has no RETURNING form.</summary>
+	public string DeleteReturningSql { get; }
+
+	/// <summary>A SQL:2003 MERGE that updates row 1 and inserts row 3.</summary>
+	public string MergeSql { get; }
 
 	/// <summary>A table name of its own, so fixtures sharing a database never collide.</summary>
 	public static string UniqueName(string prefix) => prefix + Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -78,9 +92,10 @@ public sealed class Sql92Dml
 
 /// <summary>
 /// Gives a provider whose own fixture has no DML statements the SQL-92 ones, over its connection. A fixture that states
-/// its table SQL through <see cref="IDataTypesFidelityFixture"/> has the table created that way.
+/// its table SQL through <see cref="IDataTypesFidelityFixture"/> has the table created that way, and one that states a
+/// RETURNING form through <see cref="IReturningDialectFixture"/> gets the RETURNING statements.
 /// </summary>
-public class DmlFixture<TFactoryFixture> : IDmlFixture, IDisposable
+public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IMergeFixture, IDisposable
 	where TFactoryFixture : IDbFactoryFixture, new()
 {
 	private readonly TFactoryFixture m_inner = new();
@@ -91,7 +106,8 @@ public class DmlFixture<TFactoryFixture> : IDmlFixture, IDisposable
 		var tables = m_inner as IDataTypesFidelityFixture;
 		m_dml = new Sql92Dml(Sql92Dml.UniqueName("dml_"),
 			tables is null ? Sql92Dml.DefaultCreateTable : tables.CreateTableSql,
-			tables is null ? Sql92Dml.DefaultDropTable : tables.DropTableSql);
+			tables is null ? Sql92Dml.DefaultDropTable : tables.DropTableSql,
+			(m_inner as IReturningDialectFixture)?.ReturningFormat);
 		m_dml.Create(this);
 	}
 
@@ -114,6 +130,12 @@ public class DmlFixture<TFactoryFixture> : IDmlFixture, IDisposable
 	public string DmlDeleteSql => m_dml.DeleteSql;
 
 	public string DmlDeleteNoRowsSql => m_dml.DeleteNoRowsSql;
+
+	public string DmlInsertReturningSql => m_dml.InsertReturningSql;
+
+	public string DmlDeleteReturningSql => m_dml.DeleteReturningSql;
+
+	public string DmlMergeSql => m_dml.MergeSql;
 
 	public void Dispose()
 	{

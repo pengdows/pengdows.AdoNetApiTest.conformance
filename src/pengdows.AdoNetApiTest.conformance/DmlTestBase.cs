@@ -84,6 +84,61 @@ public abstract partial class DmlTestBase<TFixture> : DbFactoryTestBase<TFixture
 		}
 	}
 
+	/// <summary>Runs <paramref name="sql"/> through ExecuteReader, reads every row of every result, closes the reader, and returns the rows read and RecordsAffected.</summary>
+	private static (int Rows, int RecordsAffected) ReadAllAndClose(DbConnection connection, string sql)
+	{
+		using var command = connection.CreateCommand();
+		command.CommandText = sql;
+		using var reader = command.ExecuteReader();
+		var rows = 0;
+		do
+		{
+			while (reader.Read())
+				rows++;
+		}
+		while (reader.NextResult());
+		reader.Close();
+		return (rows, reader.RecordsAffected);
+	}
+
+	/// <summary>Runs <paramref name="action"/> over the fixture's RETURNING statement, or reports the test not applicable when the database has none.</summary>
+	private void WithReturning(Func<IDmlReturningFixture, string> statement, Action<DbConnection, string> action)
+	{
+		var sql = Fixture is IDmlReturningFixture returning ? statement(returning) : null;
+		if (sql is null)
+		{
+			ConformanceOutcome.NotApplicable("the fixture states no DML that returns rows (RETURNING, OUTPUT) for this database");
+			return;
+		}
+
+		WithDmlState(connection => action(connection, sql));
+	}
+
+	/// <summary>
+	/// Runs <paramref name="action"/> over the fixture's MERGE. A database that rejects the statement has no SQL:2003
+	/// MERGE, so the test is not applicable; the rejection is reported, never hidden.
+	/// </summary>
+	private void WithMerge(Action<DbConnection, string> action)
+	{
+		if (Fixture is not IMergeFixture merge || merge.DmlMergeSql is null)
+		{
+			ConformanceOutcome.NotApplicable("the fixture states no MERGE for this database");
+			return;
+		}
+
+		WithDmlState(connection =>
+		{
+			try
+			{
+				action(connection, merge.DmlMergeSql);
+			}
+			catch (DbException e)
+			{
+				ConformanceOutcome.NotApplicable("the database rejected the SQL:2003 MERGE: " + e.Message);
+			}
+		});
+	}
+
 	private static async Task<int> ExecuteAsync(DbConnection connection, string sql)
 	{
 		using var command = connection.CreateCommand();

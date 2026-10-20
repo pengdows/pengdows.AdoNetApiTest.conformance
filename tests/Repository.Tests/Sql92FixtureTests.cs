@@ -49,6 +49,31 @@ public class Sql92FixtureTests
 		Assert.Equal("DELETE FROM dml_t WHERE Id = 999", dml.DeleteNoRowsSql);
 	}
 
+	/// <summary>
+	/// RETURNING is not SQL-92, so a provider states its form; without one there are no RETURNING statements and the
+	/// tests are not applicable. The INSERT adds one row and the DELETE removes both, so a count of 0 cannot pass.
+	/// </summary>
+	[Fact]
+	public void Dml_ReturningStatementsUseTheStatedForm()
+	{
+		var dml = new Sql92Dml("dml_t", Create, Drop, "{0} RETURNING Id");
+
+		Assert.Equal("INSERT INTO dml_t (Id, V) VALUES (3, 'Carol') RETURNING Id", dml.InsertReturningSql);
+		Assert.Equal("DELETE FROM dml_t WHERE Id > 0 RETURNING Id", dml.DeleteReturningSql);
+		Assert.Null(new Sql92Dml("dml_t", Create, Drop).InsertReturningSql);
+		Assert.Null(new Sql92Dml("dml_t", Create, Drop).DeleteReturningSql);
+	}
+
+	/// <summary>The SQL:2003 MERGE updates row 1 and inserts row 3, two rows in all.</summary>
+	[Fact]
+	public void Dml_MergeUpdatesOneRowAndInsertsAnother()
+	{
+		var dml = new Sql92Dml("dml_t", Create, Drop);
+
+		Assert.Equal("MERGE INTO dml_t t USING (VALUES (1, 'Merged'), (3, 'Dave')) s (Id, V) ON (t.Id = s.Id) " +
+			"WHEN MATCHED THEN UPDATE SET V = s.V WHEN NOT MATCHED THEN INSERT (Id, V) VALUES (s.Id, s.V)", dml.MergeSql);
+	}
+
 	private static SelectValueTables Tables(IReadOnlyDictionary<DbType, string> columnTypes = null, string binaryLiteral = null) =>
 		new("sv_t", columnTypes ?? SelectValueTables.DefaultColumnTypes, Create, Drop, p => $"SELECT {p} FROM dual", binaryLiteral ?? SelectValueTables.DefaultBinaryLiteral);
 

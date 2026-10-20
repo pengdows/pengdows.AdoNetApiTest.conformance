@@ -7,8 +7,10 @@ using pengdows.AdoNetApiTest.conformance;
 
 namespace Sqlite.Tests;
 
-public class SqliteDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture
+public class SqliteDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IReturningDialectFixture
 {
 	public DbProviderFactory Factory => SQLiteFactory.Instance;
 	public string ConnectionString => "data source=temp.db";
+
+	public string ReturningFormat => "{0} RETURNING Id";
 }

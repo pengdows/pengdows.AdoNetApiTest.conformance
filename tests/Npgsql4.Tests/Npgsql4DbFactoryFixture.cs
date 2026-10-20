@@ -8,8 +8,10 @@ using Xunit;
 
 namespace Npgsql4.Tests;
 
-public class Npgsql4DbFactoryFixture : IDbFactoryFixture
+public class Npgsql4DbFactoryFixture : IDbFactoryFixture, IReturningDialectFixture
 {
 	public DbProviderFactory Factory => NpgsqlFactory.Instance;
 	public string ConnectionString => $"host={PostgreSqlServer.Host};port={PostgreSqlServer.Port};user id={PostgreSqlServer.User};password={PostgreSqlServer.Password};database={PostgreSqlServer.Database}";
+
+	public string ReturningFormat => "{0} RETURNING Id";
 }

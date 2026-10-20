@@ -218,6 +218,9 @@ public sealed class DialectConfig
 	/// <summary>A binary value as written in SQL, with <c>{0}</c> for its hexadecimal digits (<c>0x{0}</c>, <c>hextoraw('{0}')</c>).</summary>
 	public string BinaryLiteral { get; set; } = SelectValueTables.DefaultBinaryLiteral;
 
+	/// <summary>DML that returns rows, with <c>{0}</c> for the statement (<c>{0} RETURNING Id</c>); unset when the database has none.</summary>
+	public string Returning { get; set; }
+
 	/// <summary>
 	/// Column types for the reader tests' values, by <c>DbType</c> name, where the SQL-92 ones do not fit (<c>"Binary":
 	/// "bytea"</c>) or to test more types (<c>"Boolean": "boolean"</c>); an empty type leaves one out.

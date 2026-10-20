@@ -9,7 +9,7 @@ using pengdows.AdoNetApiTest.conformance;
 
 namespace DuckDB.Tests;
 
-public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IDmlFixture, IParameterMarkerFixture, IDisposable
+public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IDmlReturningFixture, IMergeFixture, IParameterMarkerFixture, IDisposable
 {
     public DbProviderFactory Factory => DuckDBClientFactory.Instance;
 
@@ -37,6 +37,13 @@ public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, ISingleWriterFix
     public string DmlDeleteSql => "DELETE FROM people WHERE id = 2;";
 
     public string DmlDeleteNoRowsSql => "DELETE FROM people WHERE id = 999;";
+
+    public string DmlInsertReturningSql => "INSERT INTO people (id, name) VALUES (3, 'Carol') RETURNING id;";
+
+    public string DmlDeleteReturningSql => "DELETE FROM people WHERE id > 0 RETURNING id;";
+
+    public string DmlMergeSql => "MERGE INTO people t USING (VALUES (1, 'Merged'), (3, 'Dave')) s (id, name) ON (t.id = s.id) " +
+        "WHEN MATCHED THEN UPDATE SET name = s.name WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name);";
 
     public void Dispose()
     {

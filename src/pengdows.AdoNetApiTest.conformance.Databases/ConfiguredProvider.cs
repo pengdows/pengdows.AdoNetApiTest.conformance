@@ -274,7 +274,7 @@ public sealed class ConfiguredServer : IAsyncLifetime
 
 /// <summary>The fixture a generated test project's classes share, built from <see cref="ConfiguredProvider.Config"/>.</summary>
 public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture,
-	IDmlFixture, ISelectValueFixture, IDeleteFixture, IDisposable
+	IDmlReturningFixture, IMergeFixture, ISelectValueFixture, IDeleteFixture, IDisposable
 {
 	private readonly Sql92Dml m_dml;
 	private readonly SelectValueTables m_values;
@@ -283,7 +283,7 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 
 	public ConfiguredFixture()
 	{
-		m_dml = new Sql92Dml(Sql92Dml.UniqueName("dml_"), CreateTableSql, DropTableSql);
+		m_dml = new Sql92Dml(Sql92Dml.UniqueName("dml_"), CreateTableSql, DropTableSql, Dialect.Returning);
 		m_values = new SelectValueTables(Sql92Dml.UniqueName("sv_"), SelectValueTables.WithOverrides(Dialect.ValueTypes), CreateTableSql, DropTableSql,
 			SelectStatement, Dialect.BinaryLiteral);
 		m_supported = new Lazy<IReadOnlyCollection<DbType>>(() => m_values.Create(this));
@@ -339,6 +339,12 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 	public string DmlDeleteSql => m_dml.DeleteSql;
 
 	public string DmlDeleteNoRowsSql => m_dml.DeleteNoRowsSql;
+
+	public string DmlInsertReturningSql => m_dml.InsertReturningSql;
+
+	public string DmlDeleteReturningSql => m_dml.DeleteReturningSql;
+
+	public string DmlMergeSql => m_dml.MergeSql;
 
 	/// <summary>
 	/// Creates the value and DML tables now, before a test holds a connection (pengdows.flatfile allows one writer);

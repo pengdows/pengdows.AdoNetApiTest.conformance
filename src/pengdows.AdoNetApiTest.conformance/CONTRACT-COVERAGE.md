@@ -133,6 +133,15 @@ clear.
   asynchronous execution, and verify `DbDataReader.RecordsAffected` after a
   DML reader is closed. Fixture setup and cleanup are statement lists, and
   cleanup is best-effort.
+- An INSERT or DELETE that also returns rows (`RETURNING`) is still an INSERT
+  or DELETE: its ExecuteNonQuery result and RecordsAffected are Required to be
+  the rows it changed. The syntax is not SQL-92, so a fixture states its form
+  (`IDmlReturningFixture`, `IReturningDialectFixture`, or a configuration's
+  `dialect.returning`); without one the tests are not applicable.
+- MERGE counts are Common: ExecuteNonQuery names only INSERT, UPDATE and
+  DELETE and gives -1 for other statements, while RecordsAffected counts rows
+  changed, inserted, or deleted. A provider reporting -1 is a difference; a
+  database without SQL:2003 MERGE is not applicable.
 - Shared tests cover `CommandTimeout`, `UpdatedRowSource`,
   `VisibleFieldCount`, parameter property round-trips, and parameter collection
   `AddRange`/`CopyTo` ordering.

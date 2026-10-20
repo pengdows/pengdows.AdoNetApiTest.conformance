@@ -24,6 +24,7 @@
   },
   "connectionString": "Server=${host};Port=${port};Database=conformance;User ID=root;Password=mysecretpassword;AllowPublicKeyRetrieval=True;SslMode=None",
   "dialect": {
+    "returning": "{0} RETURNING Id",
     "renderAsText": "CAST({0} AS CHAR)",
     "dropTable": "drop table if exists {0}"
   }

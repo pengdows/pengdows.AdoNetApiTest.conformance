@@ -19,6 +19,7 @@
   },
   "connectionString": "Host=${host};Port=${port};Username=postgres;Password=mysecretpassword;Database=conformance",
   "dialect": {
+    "returning": "{0} RETURNING Id",
     "binaryLiteral": "'\\x{0}'::bytea",
     "valueTypes": { "Binary": "bytea" },
     "renderAsText": "CAST({0} AS text)",

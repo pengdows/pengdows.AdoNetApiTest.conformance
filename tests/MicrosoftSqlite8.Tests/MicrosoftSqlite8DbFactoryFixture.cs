@@ -7,11 +7,13 @@ using Microsoft.Data.Sqlite;
 
 namespace MicrosoftSqlite8.Tests;
 
-public class MicrosoftSqlite8DbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IParameterMarkerFixture
+public class MicrosoftSqlite8DbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IParameterMarkerFixture, IReturningDialectFixture
 {
 	public DbProviderFactory Factory => SqliteFactory.Instance;
 	public string ConnectionString => "data source=temp.db";
 
 	/// <summary>'@' is how this provider writes a parameter; it advertises no DataSourceInformation to say so.</summary>
 	public string ParameterMarker(string name) => "@" + name;
+
+	public string ReturningFormat => "{0} RETURNING Id";
 }

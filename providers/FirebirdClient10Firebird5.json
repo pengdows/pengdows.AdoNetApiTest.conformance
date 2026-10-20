@@ -18,6 +18,7 @@
   },
   "connectionString": "DataSource=${host};Port=${port};Database=/var/lib/firebird/data/testdb.fdb;User=SYSDBA;Password=mysecretpassword;Charset=UTF8",
   "dialect": {
+    "returning": "{0} RETURNING Id",
     "select": "SELECT {0} FROM rdb$database",
     "terminator": ""
   },

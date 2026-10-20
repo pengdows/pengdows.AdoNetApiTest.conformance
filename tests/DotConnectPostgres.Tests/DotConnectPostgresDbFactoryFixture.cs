@@ -8,8 +8,10 @@ using Xunit;
 
 namespace DotConnectPostgres.Tests;
 
-public class DotConnectPostgresDbFactoryFixture : IDbFactoryFixture
+public class DotConnectPostgresDbFactoryFixture : IDbFactoryFixture, IReturningDialectFixture
 {
 	public DbProviderFactory Factory => PgSqlProviderFactory.Instance;
 	public string ConnectionString => $"host={PostgreSqlServer.Host};port={PostgreSqlServer.Port};user id={PostgreSqlServer.User};password={PostgreSqlServer.Password};unpreparedexecute=true;database={PostgreSqlServer.Database};";
+
+	public string ReturningFormat => "{0} RETURNING Id";
 }

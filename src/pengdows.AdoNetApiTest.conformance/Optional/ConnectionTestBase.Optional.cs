@@ -129,4 +129,44 @@ public abstract partial class ConnectionTestBase<TFixture>
 		if (format != "?")
 			Assert.Contains("{0}", format, StringComparison.Ordinal);
 	}
+
+	/// <summary>
+	/// Disposal raises the standard DbConnection Disposed event exactly once.
+	/// See https://learn.microsoft.com/dotnet/api/system.componentmodel.component.disposed.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "Design-time support is optional; a provider whose new commands are DesignTimeVisible opts in and must then support all of it.")]
+	public virtual void Dispose_raises_Disposed()
+	{
+		if (!ImplementsDesignTime())
+		{
+			return;
+		}
+
+		var connection = CreateOpenConnection();
+		var disposedCount = 0;
+		connection.Disposed += (s, e) => disposedCount++;
+		connection.Dispose();
+		Assert.Equal(1, disposedCount);
+	}
+
+#if !NETSTANDARD2_0
+	/// <summary>
+	/// DisposeAsync follows the same component-disposal event contract as Dispose.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.disposeasync.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Because = "Design-time support is optional; a provider whose new commands are DesignTimeVisible opts in and must then support all of it.")]
+	public virtual async Task DisposeAsync_raises_Disposed()
+	{
+		if (!ImplementsDesignTime())
+		{
+			return;
+		}
+
+		var connection = CreateOpenConnection();
+		var disposedCount = 0;
+		connection.Disposed += (s, e) => disposedCount++;
+		await connection.DisposeAsync().ConfigureAwait(true);
+		Assert.Equal(1, disposedCount);
+	}
+#endif
 }

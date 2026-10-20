@@ -45,4 +45,34 @@ public abstract partial class ParameterTestBase<TFixture>
 		Assert.Contains("{0}", markerFormat, StringComparison.Ordinal);
 		Assert.EndsWith("parameter", marker, StringComparison.OrdinalIgnoreCase);
 	}
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "Only a provider with a DataAdapter needs the members DbDataAdapter.Update reads; one that has a DataAdapter must support all of them.")]
+	public virtual void Parameter_default_SourceVersion_is_Current()
+	{
+		if (!ImplementsDataAdapter())
+		{
+			return;
+		}
+
+		Assert.Equal(DataRowVersion.Current, Fixture.Factory.CreateParameter().SourceVersion);
+	}
+
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Because = "Only a provider with a DataAdapter needs the members DbDataAdapter.Update reads; one that has a DataAdapter must support all of them.")]
+	public virtual void Parameter_adapter_properties_round_trip()
+	{
+		if (!ImplementsDataAdapter())
+		{
+			return;
+		}
+
+		var parameter = Fixture.Factory.CreateParameter();
+
+		parameter.SourceColumn = "source";
+		parameter.SourceColumnNullMapping = true;
+		parameter.SourceVersion = DataRowVersion.Original;
+
+		Assert.Equal("source", parameter.SourceColumn);
+		Assert.True(parameter.SourceColumnNullMapping);
+		Assert.Equal(DataRowVersion.Original, parameter.SourceVersion);
+	}
 }

@@ -3,7 +3,7 @@ using System.Reflection;
 namespace pengdows.AdoNetApiTest.conformance.Runner;
 
 /// <summary>A Required test as the shared library declares it, whether or not any provider in the run reported it.</summary>
-internal sealed record SuiteTest(string Area, string Method, string? Contract, string? Because, string? Waiver);
+internal sealed record SuiteTest(string Area, string Method, string? Contract, string? Because);
 
 /// <summary>
 /// Every Required test in the shared library, read from its <see cref="RequiredFactAttribute"/>s. It is the same for every
@@ -22,7 +22,7 @@ internal static class RequiredCatalog
 			.SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 				.Select(method => (method, attribute: method.GetCustomAttribute<RequiredFactAttribute>()))
 				.Where(x => x.attribute is not null)
-				.Select(x => new SuiteTest(type.Name[..^Suffix.Length], x.method.Name, x.attribute!.Contract, x.attribute.Because, x.attribute.Waiver)))
+				.Select(x => new SuiteTest(type.Name[..^Suffix.Length], x.method.Name, x.attribute!.Contract, x.attribute.Because)))
 			.OrderBy(test => test.Area, StringComparer.Ordinal)
 			.ThenBy(test => test.Method, StringComparer.Ordinal)
 			.ToList();

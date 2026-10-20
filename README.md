@@ -68,17 +68,16 @@ dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 provider and an overall verdict:
 
 ```text
-Sqlite    FAIL        Required 96/112 (5 failed, 3 waived, 8 not covered)  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
+Sqlite    FAIL        Required 96/112 (8 failed, 8 not covered)  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
 OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
 
 `Required 96/112` is passed over total, and the total is the same for every provider: every Required test the shared
 library declares, read from the library itself, whichever providers run and whatever areas each has tests for. The
-parenthesis says what became of the rest: `failed` tests ran and failed; `waived` tests failed but carry a waiver (see
-`deviation`); `not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result
+parenthesis says what became of the rest: `failed` tests ran and failed; `not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result
 file from an older suite); `not covered` tests are in an area the provider has no tests for at all (such as `Dml` without
-a fixture). `passed + failed + not run + waived + not covered` always equals the total, and the same figures are in
+a fixture). `passed + failed + not run + not covered` always equals the total, and the same figures are in
 `matrix.json` and `matrix.xml`.
 
 The exit code is `0` for PASS, `1` for anything else (FAIL, INCOMPLETE, NOT RUN) and `2` for a usage error, so it works
@@ -97,7 +96,6 @@ in its tests rather than in the driver, and it fails the overall verdict like `F
 | `not-implemented` | pass | The provider does not implement this optional capability. |
 | `not-applicable` | pass | The check does not apply, such as a data type the database does not have. |
 | `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
-| `deviation` | advisory | A Required test failed, but the test carries a **waiver**: the documentation states the behavior, yet a deviation cannot lose or alter data or change what a statement returns (for example a property only a designer reads). It is reported with its reason, counted in `waived`, and never fails the provider. |
 | `not-run` | fail | No result was reported, so nothing is known. For a **Common** test this is advisory instead (shown as `N not run` on the Common part of the console line): it cannot hide a Required result. |
 | `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Counted in the Required total but not as a failure; a provider with any Required test not covered is `INCOMPLETE`, and the console line says `Coverage N of M areas`. |
 
@@ -147,7 +145,7 @@ into the same site by anyone.
 
 | Status | Verdict | Meaning |
 | --- | --- | --- |
-| Certified | PASS | Every Required test ran and passed (or carries a documented waiver), and no Optional capability the provider implements failed. |
+| Certified | PASS | Every Required test ran and passed, and no Optional capability the provider implements failed. |
 | Incomplete | INCOMPLETE | Nothing failed, but some Required tests have not run for the provider, so it cannot be certified. |
 | Not certified | FAIL | A Required test, or an Optional capability the provider implements, failed; each failure links the documentation it breaks. |
 | Not tested | NOT RUN | The provider could not be run, for the reason shown. |

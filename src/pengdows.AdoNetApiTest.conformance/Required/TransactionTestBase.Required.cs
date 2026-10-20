@@ -48,7 +48,7 @@ public partial class TransactionTestBase<TFixture>
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints
 	/// and https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.save.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints", Waiver = "SupportsSavepoints only advertises a capability; a provider that reports false but implements Save loses nothing.")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints")]
 	public virtual void Savepoint_methods_match_support_flag()
 	{
 		using var connection = CreateOpenConnection();
@@ -77,7 +77,7 @@ public partial class TransactionTestBase<TFixture>
 	/// as their synchronous counterparts.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.saveasync.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.saveasync", Waiver = "SupportsSavepoints only advertises a capability; a provider that reports false but implements Save loses nothing.")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.saveasync")]
 	public virtual async Task Savepoint_async_methods_match_support_flag()
 	{
 		using var connection = CreateOpenConnection();

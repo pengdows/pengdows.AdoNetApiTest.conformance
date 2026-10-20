@@ -19,7 +19,6 @@ public enum Outcome
 	NotImplemented,
 	NotApplicable,
 	Different,
-	Deviation,
 	NotRun,
 	NotCovered,
 }
@@ -69,7 +68,6 @@ internal static class OutcomeInfo
 		Outcome.NotImplemented => "not-implemented",
 		Outcome.NotApplicable => "not-applicable",
 		Outcome.Different => "different",
-		Outcome.Deviation => "deviation",
 		Outcome.NotRun => "not-run",
 		Outcome.NotCovered => "not-covered",
 		_ => throw new ArgumentOutOfRangeException(nameof(outcome)),
@@ -84,7 +82,6 @@ internal static class OutcomeInfo
 		Outcome.NotImplemented => "The provider does not implement this optional capability. This is a pass.",
 		Outcome.NotApplicable => "The check does not apply, such as a data type the database does not have. This is a pass.",
 		Outcome.Different => "The provider departs from a common expectation that the contract does not require. Advisory only: it never fails the provider.",
-		Outcome.Deviation => "The provider departs from documented behavior that the suite has waived as not really required (the reason is in the matrix). Reported, never hidden, and it never fails the provider.",
 		Outcome.NotRun => "The test reported no result for this provider, so nothing is known. This is a failure.",
 		Outcome.NotCovered => "The provider's test project has no tests for this area, so nothing is known about it. Not counted against the provider; the coverage line says how much is missing.",
 		_ => throw new ArgumentOutOfRangeException(nameof(outcome)),
@@ -93,7 +90,7 @@ internal static class OutcomeInfo
 	public static Effect EffectOf(Outcome outcome) => outcome switch
 	{
 		Outcome.Pass or Outcome.ImplementedPass or Outcome.NotImplemented or Outcome.NotApplicable => Effect.Pass,
-		Outcome.Different or Outcome.Deviation or Outcome.NotCovered => Effect.Advisory,
+		Outcome.Different or Outcome.NotCovered => Effect.Advisory,
 		_ => Effect.Fail,
 	};
 

@@ -60,6 +60,52 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		=> Fixture.Factory.CreateConnectionStringBuilder();
 
 	/// <summary>
+	/// A provider has a DataAdapter when its factory creates one, and must then support every member
+	/// <c>DbDataAdapter.Update</c> reads (UpdatedRowSource, SourceColumn, SourceVersion, ...). Without one, those members
+	/// do nothing, so this reports the test not implemented and returns false.
+	/// </summary>
+	/// <seealso href="https://learn.microsoft.com/dotnet/api/system.data.common.dbproviderfactory.createdataadapter" />
+	protected bool ImplementsDataAdapter()
+	{
+		DbDataAdapter adapter;
+		try
+		{
+			adapter = Fixture.Factory.CreateDataAdapter();
+		}
+		catch (NotSupportedException)
+		{
+			adapter = null;
+		}
+
+		using (adapter)
+		{
+			if (adapter is not null)
+				return true;
+		}
+
+		ConformanceOutcome.NotImplemented("The provider has no DataAdapter: DbProviderFactory.CreateDataAdapter returns null.");
+		return false;
+	}
+
+	/// <summary>
+	/// A provider supports design-time components when a new command is DesignTimeVisible ("The default is true."), and
+	/// must then support all of design time: the flag and the component Disposed event. A provider whose commands are
+	/// hidden from designers has opted out, so this reports the test not implemented and returns false.
+	/// </summary>
+	/// <seealso href="https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible" />
+	protected bool ImplementsDesignTime()
+	{
+		using (var command = Fixture.Factory.CreateCommand())
+		{
+			if (command.DesignTimeVisible)
+				return true;
+		}
+
+		ConformanceOutcome.NotImplemented("The provider does not support design time: a new command is not DesignTimeVisible.");
+		return false;
+	}
+
+	/// <summary>
 	/// Returns a provider-valid query that produces one scalar value. Providers
 	/// whose dialect requires a dummy table may override this hook in their
 	/// provider-specific test project; shared tests must not assume that a

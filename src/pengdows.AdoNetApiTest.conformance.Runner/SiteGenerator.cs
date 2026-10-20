@@ -8,8 +8,8 @@ namespace pengdows.AdoNetApiTest.conformance.Runner;
 /// <summary>
 /// Turns a matrix (<c>matrix.json</c>) into a static site: an index of every provider with its certification status, and
 /// a page per provider with the evidence behind it. It reads only the matrix, so anyone with a published matrix can
-/// build the same site. A provider is <b>Certified</b> when its verdict is PASS: every Required test ran and passed (or
-/// is waived) and no Optional test failed.
+/// build the same site. A provider is <b>Certified</b> when its verdict is PASS: every Required test ran and passed and no
+/// Optional test failed.
 /// </summary>
 internal static class SiteGenerator
 {
@@ -62,7 +62,7 @@ internal static class SiteGenerator
 		body.Append("</ul>");
 
 		body.Append("<section class=\"key\"><h2>What the statuses mean</h2><dl>");
-		body.Append("<dt><span class=\"badge certified\">Certified</span></dt><dd>Every Required test ran and passed (or carries a documented waiver), and no Optional capability the provider implements failed.</dd>");
+		body.Append("<dt><span class=\"badge certified\">Certified</span></dt><dd>Every Required test ran and passed, and no Optional capability the provider implements failed.</dd>");
 		body.Append("<dt><span class=\"badge incomplete\">Incomplete</span></dt><dd>Nothing failed, but some Required tests have not run for this provider yet, so it cannot be certified.</dd>");
 		body.Append("<dt><span class=\"badge failed\">Not certified</span></dt><dd>At least one Required test, or an Optional capability the provider implements, failed. Each failure names the documentation it breaks.</dd>");
 		body.Append("<dt><span class=\"badge untested\">Not tested</span></dt><dd>The provider could not be run, for the reason given.</dd>");
@@ -81,7 +81,7 @@ internal static class SiteGenerator
 			body.Append(CultureInfo.InvariantCulture, $"<td><span class=\"badge {status.Css}\">{E(status.Label)}</span></td>");
 			if (Text(provider, "reason") is { } reason)
 			{
-				body.Append(CultureInfo.InvariantCulture, $"<td colspan=\"7\" class=\"reason\">{E(reason)}</td>");
+				body.Append(CultureInfo.InvariantCulture, $"<td colspan=\"8\" class=\"reason\">{E(reason)}</td>");
 			}
 			else
 			{
@@ -125,7 +125,7 @@ internal static class SiteGenerator
 			var required = provider.GetProperty("required");
 			body.Append(CultureInfo.InvariantCulture,
 				$"<p class=\"summary\">{Bar(required)} <strong>{Number(required, "passed")}</strong> of {Number(required, "total")} Required tests passed: " +
-				$"{Number(required, "failed")} failed, {Number(required, "waived")} waived, {Number(required, "not-run")} not run, {Number(required, "not-covered")} not covered.</p>");
+				$"{Number(required, "failed")} failed, {Number(required, "not-run")} not run, {Number(required, "not-covered")} not covered.</p>");
 		}
 
 		var provenance = Map(provider, "provenance");
@@ -155,8 +155,6 @@ internal static class SiteGenerator
 			mine.Where(x => x.Outcome == "implemented-fail"), withContract: true);
 		Section(body, "Required tests that did not run", "The provider covers this area but reported no result (a crashed or timed-out test host).",
 			mine.Where(x => Text(x.Test, "group") == "Required" && x.Outcome == "not-run"), withContract: true);
-		Section(body, "Waived", "The documentation states the behavior, but a deviation cannot lose or alter data or change what a statement returns.",
-			mine.Where(x => x.Outcome == "deviation"), withContract: true, waiver: true);
 
 		var notCovered = mine.Where(x => x.Outcome == "not-covered" && Text(x.Test, "group") == "Required")
 			.GroupBy(x => Text(x.Test, "area")).OrderBy(g => g.Key, StringComparer.Ordinal).ToList();
@@ -226,7 +224,7 @@ internal static class SiteGenerator
 		return Close(html, body);
 	}
 
-	private static void Section(StringBuilder body, string title, string note, IEnumerable<(JsonElement Test, JsonElement Result, string? Outcome)> rows, bool withContract, bool waiver = false)
+	private static void Section(StringBuilder body, string title, string note, IEnumerable<(JsonElement Test, JsonElement Result, string? Outcome)> rows, bool withContract)
 	{
 		var list = rows.OrderBy(x => Text(x.Test, "area"), StringComparer.Ordinal).ThenBy(x => Text(x.Test, "name"), StringComparer.Ordinal).ToList();
 		if (list.Count == 0)
@@ -234,18 +232,13 @@ internal static class SiteGenerator
 			return;
 		}
 
-		body.Append(CultureInfo.InvariantCulture, $"<section><h2>{E(title)} <span class=\"count\">{list.Count}</span></h2><p class=\"note\">{E(note)}</p><div class=\"scroll\"><table><thead><tr><th>Area</th><th>Test</th>{(waiver ? "<th>Waiver</th>" : string.Empty)}<th>Result</th></tr></thead><tbody>");
+		body.Append(CultureInfo.InvariantCulture, $"<section><h2>{E(title)} <span class=\"count\">{list.Count}</span></h2><p class=\"note\">{E(note)}</p><div class=\"scroll\"><table><thead><tr><th>Area</th><th>Test</th><th>Result</th></tr></thead><tbody>");
 		foreach (var (test, result, _) in list)
 		{
 			var name = Text(test, "name") ?? string.Empty;
 			var contract = Text(test, "contract");
 			var nameCell = withContract && contract is not null ? $"<a href=\"{E(contract)}\">{E(name)}</a>" : E(name);
 			body.Append(CultureInfo.InvariantCulture, $"<tr><td>{E(Text(test, "area"))}</td><td>{nameCell}</td>");
-			if (waiver)
-			{
-				body.Append(CultureInfo.InvariantCulture, $"<td>{E(Text(test, "waiver"))}</td>");
-			}
-
 			body.Append(CultureInfo.InvariantCulture, $"<td class=\"detail\">{E(FirstLine(Text(result, "detail")))}</td></tr>");
 		}
 
@@ -288,7 +281,7 @@ internal static class SiteGenerator
 		var total = Math.Max(1, Number(required, "total"));
 		string Segment(string css, int count) => count == 0 ? string.Empty
 			: string.Create(CultureInfo.InvariantCulture, $"<span class=\"seg {css}\" style=\"width:{count * 100.0 / total:0.##}%\"></span>");
-		return "<span class=\"bar\" aria-hidden=\"true\">" + Segment("passed", Number(required, "passed")) + Segment("waived", Number(required, "waived")) +
+		return "<span class=\"bar\" aria-hidden=\"true\">" + Segment("passed", Number(required, "passed")) +
 			Segment("failed", Number(required, "failed") + Number(required, "not-run")) + Segment("uncovered", Number(required, "not-covered")) + "</span>";
 	}
 
@@ -350,13 +343,13 @@ internal static class SiteGenerator
 	private const string Css = """
 		:root{--bg:#fbfbfa;--fg:#1d1d1f;--muted:#5f6368;--line:#e3e3e0;--card:#ffffff;--link:#1a5fb4;
 		--ok:#1e7d3a;--ok-bg:#e3f4e8;--warn:#8a5a00;--warn-bg:#fdf1d6;--bad:#b3261e;--bad-bg:#fbe4e2;--na:#5f6368;--na-bg:#eceeef;
-		--seg-pass:#2e9e4f;--seg-waived:#7fc493;--seg-fail:#d9473d;--seg-uncovered:#d7d9db;color-scheme:light}
+		--seg-pass:#2e9e4f;--seg-fail:#d9473d;--seg-uncovered:#d7d9db;color-scheme:light}
 		@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161617;--fg:#ececee;--muted:#a3a7ad;--line:#2e2f31;--card:#1e1f21;--link:#8ab4f8;
 		--ok:#7ed69a;--ok-bg:#173623;--warn:#f2c46b;--warn-bg:#3a2d10;--bad:#f2938b;--bad-bg:#3d1916;--na:#a3a7ad;--na-bg:#2a2b2d;
-		--seg-pass:#3fb365;--seg-waived:#2c6b40;--seg-fail:#e0625a;--seg-uncovered:#3a3b3e;color-scheme:dark}}
+		--seg-pass:#3fb365;--seg-fail:#e0625a;--seg-uncovered:#3a3b3e;color-scheme:dark}}
 		:root[data-theme="dark"]{--bg:#161617;--fg:#ececee;--muted:#a3a7ad;--line:#2e2f31;--card:#1e1f21;--link:#8ab4f8;
 		--ok:#7ed69a;--ok-bg:#173623;--warn:#f2c46b;--warn-bg:#3a2d10;--bad:#f2938b;--bad-bg:#3d1916;--na:#a3a7ad;--na-bg:#2a2b2d;
-		--seg-pass:#3fb365;--seg-waived:#2c6b40;--seg-fail:#e0625a;--seg-uncovered:#3a3b3e;color-scheme:dark}
+		--seg-pass:#3fb365;--seg-fail:#e0625a;--seg-uncovered:#3a3b3e;color-scheme:dark}
 		*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 		main{max-width:1180px;margin:0 auto;padding:32px 16px 48px}a{color:var(--link)}code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
 		h1{font-size:28px;margin:0 0 8px}h2{font-size:19px;margin:36px 0 8px}h3{font-size:16px;margin:24px 0 8px}
@@ -373,7 +366,7 @@ internal static class SiteGenerator
 		.num{text-align:right;font-variant-numeric:tabular-nums}.reason{color:var(--muted)}.detail{color:var(--muted);font-size:13px;word-break:break-word}
 		.facts{border:1px solid var(--line);border-radius:10px;background:var(--card)}.facts th{width:180px;color:var(--muted);font-weight:500}
 		.bar{display:inline-flex;width:120px;height:8px;border-radius:4px;overflow:hidden;background:var(--seg-uncovered);vertical-align:middle;margin-right:8px}
-		.seg{display:block;height:100%}.seg.passed{background:var(--seg-pass)}.seg.waived{background:var(--seg-waived)}.seg.failed{background:var(--seg-fail)}.seg.uncovered{background:var(--seg-uncovered)}
+		.seg{display:block;height:100%}.seg.passed{background:var(--seg-pass)}.seg.failed{background:var(--seg-fail)}.seg.uncovered{background:var(--seg-uncovered)}
 		.fraction{font-variant-numeric:tabular-nums;white-space:nowrap}td.required{white-space:nowrap}.summary{font-size:16px}.count{color:var(--muted);font-weight:400}
 		.areas{margin:0;padding-left:20px}details summary{cursor:pointer;margin:0 0 12px}
 		footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}

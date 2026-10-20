@@ -30,9 +30,6 @@ internal sealed record ProviderSummary(
 	/// <summary>Required tests in an area the provider has no tests for. Counted in <see cref="RequiredTotal"/>; any makes the verdict at best INCOMPLETE.</summary>
 	public int RequiredNotCovered { get; init; }
 
-	/// <summary>Required tests that failed but carry a waiver. Counted in <see cref="RequiredTotal"/>, reported, and never fail the provider.</summary>
-	public int RequiredWaived { get; init; }
-
 	/// <summary>Common tests that reported nothing. Advisory: a Common test cannot hide a Required result, so it never fails the provider.</summary>
 	public int CommonNotRun { get; init; }
 
@@ -50,7 +47,6 @@ internal sealed record TestRow(
 	Group Group,
 	string? Contract,
 	string? Because,
-	string? Waiver,
 	IReadOnlyDictionary<string, Cell> Results);
 
 /// <summary>Every test against every provider, with a verdict per provider and overall.</summary>
@@ -107,7 +103,7 @@ internal sealed partial class Matrix
 			var key = test.Area + "\u0001" + test.Method;
 			if (!rows.ContainsKey(key))
 			{
-				rows[key] = new RowBuilder(new TestInfo(test.Area, test.Method, Group.Required, test.Contract, test.Because, test.Waiver));
+				rows[key] = new RowBuilder(new TestInfo(test.Area, test.Method, Group.Required, test.Contract, test.Because));
 			}
 		}
 
@@ -128,7 +124,7 @@ internal sealed partial class Matrix
 				}
 				else if (row.Raw.TryGetValue(provider.Id, out var raw))
 				{
-					cells[provider.Id] = Classifier.Classify(raw, row.Info.Group, row.Info.Waiver);
+					cells[provider.Id] = Classifier.Classify(raw, row.Info.Group);
 				}
 				else if (row.Info.Group != Group.Unclassified)
 				{
@@ -139,7 +135,7 @@ internal sealed partial class Matrix
 				}
 			}
 
-			tests.Add(new TestRow(row.Info.Area ?? "Other", row.Info.Method, row.Info.Group, row.Info.Contract, row.Info.Because, row.Info.Waiver, cells));
+			tests.Add(new TestRow(row.Info.Area ?? "Other", row.Info.Method, row.Info.Group, row.Info.Contract, row.Info.Because, cells));
 		}
 
 		var fidelity = BuildFidelity(providers);
@@ -182,7 +178,6 @@ internal sealed partial class Matrix
 		var requiredFailed = 0;
 		var requiredNotRun = 0;
 		var requiredNotCovered = 0;
-		var requiredWaived = 0;
 		var commonNotRun = 0;
 		var hardFailure = false;
 		foreach (var row in tests)
@@ -217,10 +212,6 @@ internal sealed partial class Matrix
 				{
 					requiredNotRun++;
 				}
-				else if (cell.Outcome == Outcome.Deviation)
-				{
-					requiredWaived++;
-				}
 				else
 				{
 					requiredFailed++;
@@ -240,7 +231,6 @@ internal sealed partial class Matrix
 			RequiredFailed = requiredFailed,
 			RequiredNotRun = requiredNotRun,
 			RequiredNotCovered = requiredNotCovered,
-			RequiredWaived = requiredWaived,
 			CommonNotRun = commonNotRun,
 			Provenance = provider.Provenance ?? new Dictionary<string, string>(),
 		};
@@ -287,14 +277,13 @@ internal sealed partial class Matrix
 		raw.Traits.TryGetValue("Category", out var category);
 		raw.Traits.TryGetValue("Contract", out var contract);
 		raw.Traits.TryGetValue("Because", out var because);
-		raw.Traits.TryGetValue("Waiver", out var waiver);
-		return new TestInfo(area, raw.Method, GroupParser.Parse(category), contract, because, waiver);
+		return new TestInfo(area, raw.Method, GroupParser.Parse(category), contract, because);
 	}
 
 	[GeneratedRegex(@"^(.+?)TestBase\.")]
 	private static partial Regex BaseTestFile();
 
-	private sealed record TestInfo(string? Area, string Method, Group Group, string? Contract, string? Because, string? Waiver);
+	private sealed record TestInfo(string? Area, string Method, Group Group, string? Contract, string? Because);
 
 	private sealed class RowBuilder(TestInfo info)
 	{

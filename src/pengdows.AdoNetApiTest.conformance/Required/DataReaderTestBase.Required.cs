@@ -178,7 +178,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// common CLR type, but it must be usable as metadata.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificfieldtype.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificfieldtype", Waiver = "Provider-specific accessors fall back to the portable ones; a deviation changes no portable result.")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificfieldtype")]
 	public virtual void GetProviderSpecificFieldType_works()
 	{
 		using var connection = CreateOpenConnection();
@@ -195,7 +195,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// provider-specific representation selected by the reader.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificvalue.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificvalue", Waiver = "Provider-specific accessors fall back to the portable ones; a deviation changes no portable result.")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificvalue")]
 	public virtual void GetProviderSpecificValue_works()
 	{
 		using var connection = CreateOpenConnection();
@@ -212,7 +212,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// column and reports the number copied.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificvalues.
 	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificvalues", Waiver = "Provider-specific accessors fall back to the portable ones; a deviation changes no portable result.")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getproviderspecificvalues")]
 	public virtual void GetProviderSpecificValues_works()
 	{
 		using var connection = CreateOpenConnection();
@@ -303,7 +303,7 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal("a", values[0]);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getvalues", Waiver = "A zero-length array is the extreme of the documented shorter array; providers that throw here still copy a shorter array correctly, so no data is lost.")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getvalues")]
 	public virtual void GetValues_with_an_empty_array_copies_nothing()
 	{
 		using var connection = CreateOpenConnection();

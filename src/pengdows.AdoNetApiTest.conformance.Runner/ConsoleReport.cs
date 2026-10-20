@@ -31,11 +31,6 @@ internal static class ConsoleReport
 					lost.Add(provider.RequiredNotRun + " not run");
 				}
 
-				if (provider.RequiredWaived > 0)
-				{
-					lost.Add(provider.RequiredWaived + " waived");
-				}
-
 				if (provider.RequiredNotCovered > 0)
 				{
 					lost.Add(provider.RequiredNotCovered + " not covered");

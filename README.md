@@ -8,7 +8,7 @@ An independent, provider-neutral [xUnit.net](https://xunit.net/)-based conforman
 
 ### Provider independence was the starting point
 
-In February 2010, I wrote [*Don't Hard Code Your DataProviders*](https://www.codeproject.com/Articles/55890/Dont-Hard-Code-Your-DataProviders) about building database-independent .NET code with `DbProviderFactory` and the shared ADO.NET abstractions, rather than hard-coding `SqlConnection`, `SqlCommand`, or another vendor's classes. The article made a point that still matters: using the factory and common interfaces is the **starting point** for provider independence, not a claim that all database SQL dialects are interchangeable.
+In February 2010, I wrote [*Don't Hard Code Your DataProviders*](https://www.pengdows.com/don-t-hard-code-your-dataproviders/) about building database-independent .NET code with `DbProviderFactory` and the shared ADO.NET abstractions, rather than hard-coding `SqlConnection`, `SqlCommand`, or another vendor's classes. The article made a point that still matters: using the factory and common interfaces is the **starting point** for provider independence, not a claim that all database SQL dialects are interchangeable.
 
 That principle became central to [pengdows.crud](https://github.com/pengdows/pengdows.crud). Its data access code is designed to rely on the documented ADO.NET contract and on provider substitutability at that boundary, instead of branching on a provider's concrete type. If two providers implement the same contract, a consumer of that contract should not need a special case merely to get correct behavior.
 

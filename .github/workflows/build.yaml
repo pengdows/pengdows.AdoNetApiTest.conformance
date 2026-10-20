@@ -40,7 +40,7 @@ jobs:
       run: dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner --configuration Release --no-build -- run Sqlite MicrosoftSqlite8 --timeout 15
 
     - name: Upload matrix
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: conformance-results
         path: conformance-results/
@@ -49,7 +49,7 @@ jobs:
       run: dotnet pack src/pengdows.AdoNetApiTest.conformance/pengdows.AdoNetApiTest.conformance.csproj --configuration Release --no-build
 
     - name: Upload Package
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ github.event.repository.name }}.nupkg
         path: 'src/pengdows.AdoNetApiTest.conformance/**/*.nupkg'

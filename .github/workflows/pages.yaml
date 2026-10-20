@@ -59,7 +59,7 @@ jobs:
 
     - name: Upload matrix and logs
       if: always()
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: conformance-results
         path: conformance-results/

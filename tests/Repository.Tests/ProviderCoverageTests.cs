@@ -74,4 +74,31 @@ public class ProviderCoverageTests
 
 		Assert.True(offenders.Count == 0, "Provider projects missing test bases with Required tests:\n" + string.Join("\n", offenders));
 	}
+
+	/// <summary>
+	/// A fixture that declares a single writer (SQLite, DuckDB, pengdows.flatfile) only works when its test classes run one
+	/// at a time, and a project for one of those drivers must declare it.
+	/// </summary>
+	[Fact]
+	public void SingleWriterProjects_DeclareItAndRunTheirTestsOneAtATime()
+	{
+		var singleWriterDrivers = new[] { "Sqlite", "FlatFile", "DuckDB" };
+		var offenders = Directory.EnumerateDirectories(Path.Combine(RepositoryRoot(), "tests"), "*.Tests")
+			.Where(directory => !s_notProviders.Contains(Path.GetFileName(directory)))
+			.Select(directory =>
+			{
+				var code = string.Join("\n", SourceDirectories(directory)
+					.SelectMany(d => Directory.EnumerateFiles(d, "*.cs", SearchOption.TopDirectoryOnly))
+					.Select(File.ReadAllText));
+				var name = Path.GetFileName(directory);
+				var declares = code.Contains("ISingleWriterFixture");
+				var serial = code.Contains("DisableTestParallelization = true");
+				var expected = singleWriterDrivers.Any(d => name.Contains(d, StringComparison.Ordinal));
+				return declares == expected && serial == expected ? null : $"{name}: declares {declares}, serial {serial}, expected {expected}";
+			})
+			.Where(x => x is not null)
+			.ToList();
+
+		Assert.True(offenders.Count == 0, "Single-writer projects out of step:\n" + string.Join("\n", offenders));
+	}
 }

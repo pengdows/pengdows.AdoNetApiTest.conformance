@@ -4,9 +4,12 @@ using System.Data.Common;
 using DuckDB.NET.Data;
 using pengdows.AdoNetApiTest.conformance;
 
+// The database allows one writer at a time, so the test classes run one after another.
+[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]
+
 namespace DuckDB.Tests;
 
-public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, IDmlFixture, IParameterMarkerFixture, IDisposable
+public sealed class DuckDBDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IDmlFixture, IParameterMarkerFixture, IDisposable
 {
     public DbProviderFactory Factory => DuckDBClientFactory.Instance;
 

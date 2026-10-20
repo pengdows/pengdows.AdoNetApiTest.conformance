@@ -85,6 +85,10 @@ over the fixture's value, and when it is set the server fixtures start no contai
   DML and reader tests' statements for configurations and for the `DmlFixture<T>`/`SelectValueFixture<T>` wrappers that
   hand-written projects use. `Repository.Tests/ProviderCoverageTests` fails when a provider project leaves out a test
   base with Required tests, since that provider could only ever be INCOMPLETE.
+- **Single writer** — SQLite, DuckDB, Access and pengdows.flatfile allow one writer at a time. Their fixtures implement
+  `ISingleWriterFixture` and their projects set `[assembly: CollectionBehavior(DisableTestParallelization = true)]`
+  (a `file` config target does both unless `"singleWriter": false`); a test that needs two writers at once checks the
+  marker and reports not applicable. `ProviderCoverageTests` keeps the hand-written projects in step.
 - **Type fidelity** — `FidelityTestBase` is the shared runner; `TypeFidelityTestBase` takes a hand-written catalog
   (`SqlServerTypes`, `PostgreSqlTypes`, `OracleTypes`, ...) and `DataTypesFidelityTestBase` generates one from the
   provider's `GetSchema("DataTypes")` (plus `IServerTypesFixture` extras). Where a provider does not advertise SQL syntax,

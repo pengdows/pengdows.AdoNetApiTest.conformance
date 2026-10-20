@@ -3,9 +3,12 @@ using System.Data.Common;
 using System.Data.SQLite;
 using pengdows.AdoNetApiTest.conformance;
 
+// The database allows one writer at a time, so the test classes run one after another.
+[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]
+
 namespace FaithlifeSqlite.Tests;
 
-public class FaithlifeSqliteDbFactoryFixture : IDbFactoryFixture, IParameterMarkerFixture
+public class FaithlifeSqliteDbFactoryFixture : IDbFactoryFixture, ISingleWriterFixture, IParameterMarkerFixture
 {
 	public DbProviderFactory Factory { get; } = new FaithlifeSqliteFactory();
 	public string ConnectionString => "data source=temp.db";

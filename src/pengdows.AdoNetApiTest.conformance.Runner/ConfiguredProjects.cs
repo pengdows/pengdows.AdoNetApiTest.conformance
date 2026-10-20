@@ -51,9 +51,10 @@ internal static class ConfiguredProjects
 	}
 
 	/// <param name="DriverProject">A driver built from source instead of a package: its project file, relative to the repository root or absolute.</param>
+	/// <param name="SingleWriter">The database allows one writer at a time: <c>target.singleWriter</c>, true by default for a file target.</param>
 	internal sealed record Config(string Name, IReadOnlyList<(string Package, string Version)> Packages, bool StatesMarker,
 		string? RequiredOs = null, IReadOnlyList<string>? RequiredEnv = null, IReadOnlyDictionary<string, string>? ProcessEnvironment = null,
-		string? DriverProject = null);
+		string? DriverProject = null, bool SingleWriter = false);
 
 	/// <summary>Why the configuration cannot run on this machine, or <c>null</c>.</summary>
 	internal static string? NotRunReason(Config config, Func<string, string?>? getEnv = null)
@@ -118,7 +119,15 @@ internal static class ConfiguredProjects
 			}
 		}
 
-		return new Config(name, packages, marker, os, env, process, Text(driver, "project"));
+		var singleWriter = false;
+		if (TryGet(json, "target", out var target) && target.ValueKind == JsonValueKind.Object)
+		{
+			singleWriter = TryGet(target, "singleWriter", out var flag) && flag.ValueKind is JsonValueKind.True or JsonValueKind.False
+				? flag.GetBoolean()
+				: string.Equals(Text(target, "kind"), "file", StringComparison.OrdinalIgnoreCase);
+		}
+
+		return new Config(name, packages, marker, os, env, process, Text(driver, "project"), singleWriter);
 	}
 
 	private static bool TryGet(JsonElement element, string name, out JsonElement value)
@@ -178,10 +187,16 @@ internal static class ConfiguredProjects
 		text.AppendLine("using pengdows.AdoNetApiTest.conformance.Databases;");
 		text.AppendLine();
 		text.AppendLine("[assembly: Xunit.AssemblyFixture(typeof(ConfiguredServer))]");
+		if (config.SingleWriter)
+		{
+			text.AppendLine("// The database allows one writer at a time, so its test classes run one after another.");
+			text.AppendLine("[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]");
+		}
+
 		text.AppendLine();
 		text.AppendLine("namespace Configured." + config.Name + ";");
 		text.AppendLine();
-		var baseFixture = config.StatesMarker ? "ConfiguredMarkerFixture" : "ConfiguredFixture";
+		var baseFixture = (config.StatesMarker ? "ConfiguredMarkerFixture" : "ConfiguredFixture") + (config.SingleWriter ? ", ISingleWriterFixture" : string.Empty);
 		text.AppendLine($"public sealed class Fixture : {baseFixture}");
 		text.AppendLine("{");
 		text.AppendLine("}");

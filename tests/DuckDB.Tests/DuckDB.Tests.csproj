@@ -12,4 +12,14 @@
     <ProjectReference Include="../../../DuckDB.NET/DuckDB.NET.Data/Data.csproj" />
   </ItemGroup>
 
+  <!-- The source build has no native DuckDB; copy the library DuckDB.NET.Bindings downloaded for this machine when it
+       built (as DuckDB.NET's own benchmarks do) beside the assembly, where it is loaded from. -->
+  <ItemGroup>
+    <None Include="../../../DuckDB.NET/DuckDB.NET.Bindings/obj/runtimes/$(NETCoreSdkRuntimeIdentifier)/native/*.so;../../../DuckDB.NET/DuckDB.NET.Bindings/obj/runtimes/$(NETCoreSdkRuntimeIdentifier)/native/*.dylib;../../../DuckDB.NET/DuckDB.NET.Bindings/obj/runtimes/$(NETCoreSdkRuntimeIdentifier)/native/*.dll">
+      <Visible>false</Visible>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(FileName)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
 </Project>

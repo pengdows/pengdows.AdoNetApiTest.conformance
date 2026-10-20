@@ -80,6 +80,27 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains("public ValueFixture() => CreateValues();", code);
 	}
 
+	/// <summary>
+	/// A file database (SQLite, DuckDB, Access, pengdows.flatfile) allows one writer at a time: its test classes run one
+	/// after another, and its fixtures say so, so a test that needs two writers at once is not applicable.
+	/// </summary>
+	[Theory]
+	[InlineData("""{ "kind": "file" }""", true)]
+	[InlineData("""{ "kind": "file", "singleWriter": false }""", false)]
+	[InlineData("""{ "kind": "docker", "image": "i", "port": 1 }""", false)]
+	[InlineData("""{ "kind": "docker", "image": "i", "port": 1, "singleWriter": true }""", true)]
+	public void A_single_writer_target_runs_its_tests_one_at_a_time(string target, bool singleWriter)
+	{
+		Write("Example.json", $$"""{ "name": "Example", "driver": { "package": "P", "factory": "F" }, "connectionString": "x", "target": {{target}} }""");
+
+		var provider = Assert.Single(ConfiguredProjects.Discover(Path.Combine(m_root, "tests")));
+		var code = File.ReadAllText(Path.Combine(Path.GetDirectoryName(provider.Project)!, "Generated.cs"));
+
+		Assert.Equal(singleWriter, code.Contains("[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]"));
+		Assert.Equal(singleWriter, code.Contains("public sealed class Fixture : ConfiguredFixture, ISingleWriterFixture"));
+		Assert.Equal(singleWriter, code.Contains("public sealed class ValueFixture : ConfiguredFixture, ISingleWriterFixture"));
+	}
+
 	[Fact]
 	public void A_stated_parameter_marker_uses_the_marker_fixture()
 	{

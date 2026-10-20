@@ -152,6 +152,13 @@ public sealed class TargetConfig
 	/// <summary>Files to put in the container before it starts, by path, with their text (SAP HANA's password file).</summary>
 	public Dictionary<string, string> Files { get; set; } = new();
 
+	/// <summary>
+	/// The database allows one writer at a time (SQLite, DuckDB, Access, pengdows.flatfile): the test classes run one after
+	/// another and a test needing two writers at once is not applicable. True by default for a <c>file</c> target. Read by
+	/// the runner.
+	/// </summary>
+	public bool? SingleWriter { get; set; }
+
 	/// <summary>Runs the container privileged (IBM Db2 needs it).</summary>
 	public bool Privileged { get; set; }
 

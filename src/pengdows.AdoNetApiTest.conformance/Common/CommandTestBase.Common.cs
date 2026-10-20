@@ -460,6 +460,12 @@ public abstract partial class CommandTestBase<TFixture>
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.transaction", Because = "the docs state only the default for DbCommand.Transaction; rejecting a transaction from another connection is SqlClient behavior")]
 	public virtual void ExecuteReader_throws_when_transaction_mismatched()
 	{
+		if (Fixture is ISingleWriterFixture)
+		{
+			ConformanceOutcome.NotApplicable("The database allows one writer at a time, so two connections cannot each hold a transaction.");
+			return;
+		}
+
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectOneSql;

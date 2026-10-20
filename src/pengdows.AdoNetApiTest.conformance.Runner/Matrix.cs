@@ -33,6 +33,9 @@ internal sealed record ProviderSummary(
 	/// <summary>Common tests that reported nothing. Advisory: a Common test cannot hide a Required result, so it never fails the provider.</summary>
 	public int CommonNotRun { get; init; }
 
+	/// <summary>The full contract and each consumer profile, and whether the provider certifies against it.</summary>
+	public IReadOnlyList<Certification> Certifications { get; init; } = [];
+
 	/// <summary>The provenance its run recorded; empty when it recorded none.</summary>
 	public IReadOnlyDictionary<string, string> Provenance { get; init; } = new Dictionary<string, string>();
 }
@@ -70,6 +73,12 @@ internal sealed partial class Matrix
 	/// <summary>Pass only when every provider passed. A provider that did not run fails the matrix.</summary>
 	public Verdict Verdict { get; }
 
+	/// <summary>For each profile, its consumer's workarounds and the providers in this run that still need each.</summary>
+	public IReadOnlyDictionary<string, IReadOnlyList<WorkaroundStatus>> Workarounds { get; private init; } = new Dictionary<string, IReadOnlyList<WorkaroundStatus>>();
+
+	/// <summary>The consumer profiles the providers were certified against.</summary>
+	public IReadOnlyList<CertificationProfile> Profiles { get; private init; } = [];
+
 	/// <summary>The suite the run used: its commit, and whether the working tree had changes.</summary>
 	public IReadOnlyDictionary<string, string> Suite { get; set; } = new Dictionary<string, string>();
 
@@ -77,7 +86,8 @@ internal sealed partial class Matrix
 	/// Every Required test the shared library declares (<see cref="RequiredCatalog"/>). A test no provider reported still
 	/// gets a row, so a provider's Required total is the suite's, whichever providers run with it.
 	/// </param>
-	public static Matrix Build(IEnumerable<ProviderInput> inputs, IReadOnlyCollection<SuiteTest>? suite = null)
+	/// <param name="profiles">The consumer profiles each provider is certified against, besides the full contract.</param>
+	public static Matrix Build(IEnumerable<ProviderInput> inputs, IReadOnlyCollection<SuiteTest>? suite = null, IReadOnlyList<CertificationProfile>? profiles = null)
 	{
 		var providers = inputs.ToList();
 		var known = LearnFromTheBaseTests(providers);
@@ -139,7 +149,16 @@ internal sealed partial class Matrix
 		}
 
 		var fidelity = BuildFidelity(providers);
-		return new Matrix(providers.Select(p => Summarize(p, tests, fidelity, covered[p.Id].Count, allAreas.Count)).ToList(), tests, fidelity);
+		profiles ??= [];
+		var summaries = providers
+			.Select(p => Summarize(p, tests, fidelity, covered[p.Id].Count, allAreas.Count))
+			.Select(s => s with { Certifications = Certifier.Certify(s, tests, profiles, fidelity) })
+			.ToList();
+		return new Matrix(summaries, tests, fidelity)
+		{
+			Profiles = profiles,
+			Workarounds = profiles.ToDictionary(p => p.Id, p => Certifier.Workarounds(p, summaries, fidelity)),
+		};
 	}
 
 	private static List<FidelityRow> BuildFidelity(IEnumerable<ProviderInput> providers)

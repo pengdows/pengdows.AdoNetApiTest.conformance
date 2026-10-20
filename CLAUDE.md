@@ -85,6 +85,10 @@ over the fixture's value, and when it is set the server fixtures start no contai
   DML and reader tests' statements for configurations and for the `DmlFixture<T>`/`SelectValueFixture<T>` wrappers that
   hand-written projects use. `Repository.Tests/ProviderCoverageTests` fails when a provider project leaves out a test
   base with Required tests, since that provider could only ever be INCOMPLETE.
+- **Certification profiles** — `profiles/*.json` (embedded in the runner) list the tests a consumer of ADO.NET
+  (pengdows.crud, EF Core) relies on, each citing the consumer's call sites; `Certification.cs` turns each provider's
+  results into "certifies as ... compliant" statements beside the full-contract one (verdict PASS). A Required test
+  belongs in a profile when the consumer calls its member; a Common or Optional one only with a `because`.
 - **Single writer** — SQLite, DuckDB, Access and pengdows.flatfile allow one writer at a time. Their fixtures implement
   `ISingleWriterFixture` and their projects set `[assembly: CollectionBehavior(DisableTestParallelization = true)]`
   (a `file` config target does both unless `"singleWriter": false`); a test that needs two writers at once checks the

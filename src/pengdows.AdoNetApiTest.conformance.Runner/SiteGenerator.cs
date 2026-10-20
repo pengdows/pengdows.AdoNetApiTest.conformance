@@ -31,8 +31,21 @@ internal static class SiteGenerator
 			File.WriteAllText(Path.Combine(outDirectory, FileName(id)), ProviderPage(root, provider, tests, fidelity));
 		}
 
+		foreach (var profile in Profiles(root).Where(p => p.TryGetProperty("tests", out _)))
+		{
+			File.WriteAllText(Path.Combine(outDirectory, ProfileFileName(Text(profile, "id")!)), ProfilePage(root, profile));
+		}
+
 		return Path.Combine(outDirectory, "index.html");
 	}
+
+	internal static string ProfileFileName(string id) => "profile-" + FileName(id);
+
+	private static List<JsonElement> Profiles(JsonElement root) =>
+		root.TryGetProperty("certification-profiles", out var profiles) ? profiles.EnumerateArray().ToList() : [];
+
+	private static List<JsonElement> Certifications(JsonElement provider) =>
+		provider.TryGetProperty("certifications", out var certifications) ? certifications.EnumerateArray().ToList() : [];
 
 	internal static string FileName(string id) => new string(id.Select(c => char.IsLetterOrDigit(c) || c is '_' or '-' ? c : '_').ToArray()) + ".html";
 
@@ -68,9 +81,27 @@ internal static class SiteGenerator
 		body.Append("<dt><span class=\"badge untested\">Not tested</span></dt><dd>The provider could not be run, for the reason given.</dd>");
 		body.Append("</dl><p>Type fidelity and the comparison of a provider's <code>DataTypes</code> with its server are reported for every provider but do not decide the status.</p></section>");
 
+		var profiles = Profiles(root);
+		if (profiles.Count > 0)
+		{
+			body.Append("<section class=\"key\"><h2>Certifications</h2><p>Besides the full contract, a provider can certify for a consumer of ADO.NET: " +
+				"it passes every test of the members that consumer calls, and of the behavior it relies on. Each profile cites the consumer's own call sites.</p><dl>");
+			foreach (var profile in profiles)
+			{
+				var name = E(Text(profile, "name"));
+				var title = profile.TryGetProperty("tests", out var entries)
+					? $"<a href=\"{ProfileFileName(Text(profile, "id")!)}\">{name}</a>"
+					: name;
+				var what = Text(profile, "rule") ?? $"{entries.GetArrayLength()} tests drawn from {Text(profile, "consumer")}.";
+				body.Append(CultureInfo.InvariantCulture, $"<dt><span class=\"badge certified\">{name}</span></dt><dd>{title}: “{E(Text(profile, "statement"))}”. {E(what)}</dd>");
+			}
+
+			body.Append("</dl></section>");
+		}
+
 		body.Append("<section><h2>Providers</h2><div class=\"scroll\"><table class=\"providers\"><thead><tr>" +
 			"<th>Provider</th><th>Status</th><th>Driver</th><th>Server</th><th>Required</th><th class=\"num\">Failed</th>" +
-			"<th class=\"num\">Not covered</th><th class=\"num\">Optional failed</th><th class=\"num\">Types exact</th></tr></thead><tbody>");
+			"<th class=\"num\">Not covered</th><th class=\"num\">Optional failed</th><th class=\"num\">Types exact</th><th>Certifies</th></tr></thead><tbody>");
 		foreach (var provider in providers.OrderBy(p => Status(Text(p, "verdict")).Rank).ThenBy(p => Text(p, "id"), StringComparer.OrdinalIgnoreCase))
 		{
 			var id = Text(provider, "id")!;
@@ -98,6 +129,8 @@ internal static class SiteGenerator
 				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{Number(required, "not-covered")}</td>");
 				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{Number(counts2, "implemented-fail")}</td>");
 				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{(checkedTypes == 0 ? "—" : $"{Number(types, "exact")}/{checkedTypes}")}</td>");
+				var certified = Certifications(provider).Where(c => c.TryGetProperty("certified", out var v) && v.GetBoolean()).ToList();
+				body.Append("<td>").Append(certified.Count == 0 ? "—" : string.Join(" ", certified.Select(c => $"<span class=\"badge certified\">{E(Text(c, "name"))}</span>"))).Append("</td>");
 			}
 
 			body.Append("</tr>");
@@ -126,6 +159,35 @@ internal static class SiteGenerator
 			body.Append(CultureInfo.InvariantCulture,
 				$"<p class=\"summary\">{Bar(required)} <strong>{Number(required, "passed")}</strong> of {Number(required, "total")} Required tests passed: " +
 				$"{Number(required, "failed")} failed, {Number(required, "not-run")} not run, {Number(required, "not-covered")} not covered.</p>");
+		}
+
+		var certifications = Certifications(provider);
+		if (certifications.Count > 0)
+		{
+			body.Append("<section><h2>Certification</h2><ul class=\"certifications\">");
+			foreach (var certification in certifications)
+			{
+				var certified = certification.TryGetProperty("certified", out var v) && v.GetBoolean();
+				var link = Profiles(root).Any(p => Text(p, "id") == Text(certification, "id") && p.TryGetProperty("tests", out _))
+					? $" <a href=\"{ProfileFileName(Text(certification, "id")!)}\">(profile)</a>"
+					: string.Empty;
+				body.Append(CultureInfo.InvariantCulture, $"<li><span class=\"badge {(certified ? "certified" : "failed")}\">{E(Text(certification, "name"))}</span> {E(Text(certification, "statement"))}{link}");
+				var failures = certification.GetProperty("failures").EnumerateArray().ToList();
+				if (failures.Count > 0)
+				{
+					body.Append(CultureInfo.InvariantCulture, $": {failures.Count} of {Number(certification, "checked")} tests<ul>");
+					foreach (var failure in failures)
+					{
+						body.Append(CultureInfo.InvariantCulture, $"<li><code>{E(Text(failure, "area"))}.{E(Text(failure, "test"))}</code> {E(Text(failure, "outcome"))}</li>");
+					}
+
+					body.Append("</ul>");
+				}
+
+				body.Append("</li>");
+			}
+
+			body.Append("</ul></section>");
 		}
 
 		var provenance = Map(provider, "provenance");
@@ -293,6 +355,70 @@ internal static class SiteGenerator
 		var image = provenance.GetValueOrDefault("image");
 		var version = provenance.GetValueOrDefault("serverVersion");
 		return image is not null ? image.Split('/').Last() : version is not null ? "embedded, " + version : "—";
+	}
+
+	private static string ProfilePage(JsonElement root, JsonElement profile)
+	{
+		var name = Text(profile, "name");
+		var html = Page(name + " certification profile — ADO.NET provider conformance", out var body);
+		body.Append("<p class=\"back\"><a href=\"index.html\">← All providers</a></p>");
+		body.Append(CultureInfo.InvariantCulture, $"<header><h1>{E(name)} certification profile</h1><p class=\"lede\">A provider “{E(Text(profile, "statement"))}” when every test below passes, " +
+			$"is not applicable, or (where the consumer copes without the capability) is not implemented.</p></header>");
+		body.Append("<section><table class=\"facts\"><tbody>");
+		Fact(body, "Consumer", Text(profile, "consumer"));
+		body.Append(CultureInfo.InvariantCulture, $"<tr><th>Source</th><td><a href=\"{E(Text(profile, "source"))}\">{E(Text(profile, "source"))}</a></td></tr>");
+		Fact(body, "How the tests were chosen", Text(profile, "method"));
+		body.Append("</tbody></table></section>");
+		var entries = profile.GetProperty("tests").EnumerateArray().ToList();
+		body.Append(CultureInfo.InvariantCulture, $"<section><h2>Tests <span class=\"count\">{entries.Count}</span></h2><div class=\"scroll\"><table><thead><tr><th>Test</th><th>Member</th><th>Called at</th><th>Note</th></tr></thead><tbody>");
+		foreach (var entry in entries)
+		{
+			var sites = entry.GetProperty("sites").EnumerateArray().Select(s => s.GetString()!).ToList();
+			var links = string.Join("<br>", sites.Select(site => $"<a href=\"{E(site)}\">{E(SiteLabel(site))}</a>"));
+			var note = string.Join(" ", new[] { Text(entry, "because"), Text(entry, "if-not-implemented") is { } copes ? "Not implemented is accepted: " + copes : null }.Where(t => t is not null));
+			body.Append(CultureInfo.InvariantCulture, $"<tr><td><code>{E(Text(entry, "test"))}</code></td><td><code>{E(Text(entry, "member"))}</code></td><td>{links}</td><td>{E(note)}</td></tr>");
+		}
+
+		body.Append("</tbody></table></div></section>");
+		var workarounds = profile.TryGetProperty("workarounds", out var w) ? w.EnumerateArray().ToList() : [];
+		if (workarounds.Count > 0)
+		{
+			body.Append(CultureInfo.InvariantCulture, $"<section><h2>Workarounds <span class=\"count\">{workarounds.Count}</span></h2><p class=\"note\">Code the consumer carries only because some provider breaks a rule. A provider that still needs one does not certify; one no provider needs can be deleted.</p><div class=\"scroll\"><table><thead><tr><th>Workaround</th><th>Code</th><th>Still needed by</th></tr></thead><tbody>");
+			foreach (var workaround in workarounds)
+			{
+				var neededBy = workaround.GetProperty("needed-by").EnumerateArray().Select(x => x.GetString()!).ToList();
+				var tested = workaround.GetProperty("tested").GetBoolean();
+				var code = string.Join("<br>", workaround.GetProperty("code").EnumerateArray().Select(c => $"<a href=\"{E(c.GetString())}\">{E(SiteLabel(c.GetString()!))}</a>"));
+				var needed = !tested ? "no test covers it yet" : neededBy.Count == 0 ? "no provider in this run" : string.Join(", ", neededBy.Select(p => $"<a href=\"{FileName(p)}\">{E(p)}</a>"));
+				body.Append(CultureInfo.InvariantCulture, $"<tr><td><strong>{E(Text(workaround, "id"))}</strong><br>{E(Text(workaround, "what"))}</td><td>{code}</td><td>{needed}</td></tr>");
+			}
+
+			body.Append("</tbody></table></div></section>");
+		}
+
+		var excluded = profile.TryGetProperty("excluded", out var e) ? e.EnumerateArray().ToList() : [];
+		if (excluded.Count > 0)
+		{
+			body.Append(CultureInfo.InvariantCulture, $"<section><h2>Left out <span class=\"count\">{excluded.Count}</span></h2><p class=\"note\">Tests of members the consumer calls, for situations its code never creates.</p><div class=\"scroll\"><table><thead><tr><th>Test</th><th>Why</th></tr></thead><tbody>");
+			foreach (var exclusion in excluded)
+			{
+				body.Append(CultureInfo.InvariantCulture, $"<tr><td><code>{E(Text(exclusion, "test"))}</code></td><td>{E(Text(exclusion, "because"))}</td></tr>");
+			}
+
+			body.Append("</tbody></table></div></section>");
+		}
+
+		body.Append(Footer(root));
+		return Close(html, body);
+	}
+
+	// A call site link reads as its file and line.
+	private static string SiteLabel(string url)
+	{
+		var path = url.Split('#')[0];
+		var file = path[(path.LastIndexOf('/') + 1)..];
+		var line = url.Contains("#L", StringComparison.Ordinal) ? ":" + url[(url.IndexOf("#L", StringComparison.Ordinal) + 2)..] : string.Empty;
+		return file + line;
 	}
 
 	// An informational version may carry a build hash after '+'; the page shows the release.

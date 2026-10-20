@@ -157,6 +157,51 @@ same configuration is the same test. Type fidelity and the comparison of `DataTy
 provider but do not decide its status. The `Pages` workflow runs every provider GitHub's runners can run, builds the
 site and publishes it.
 
+### What a provider certifies for
+
+Besides its status, every run says what each provider certifies for, on the console after the provider lines, in
+`matrix.json`/`matrix.xml` (`certifications`) and on the site:
+
+```text
+Certification
+  Npgsql8 certifies as fully compliant against the entire ADO.NET DbProvider contract
+  Npgsql8 certifies as EF Core compliant
+  Npgsql8 certifies as pengdows.crud compliant
+  MySqlConnector does not certify as pengdows.crud compliant: 1 of 107 tests (DataReader.GetOrdinal_prefers_the_exact_case_match fail)
+```
+
+| Certification | When |
+| --- | --- |
+| Fully compliant against the entire ADO.NET DbProvider contract | The status is Certified (verdict PASS). |
+| A consumer's profile (`profiles/*.json`) | Every test the profile lists passes or does not apply. Not implemented is accepted for a Required test, and for an Optional capability the consumer copes without (the entry says how). Any other result, a test that never ran included, stops it, and the tests that did are named. |
+
+A profile is what one consumer of ADO.NET actually needs, not a guess: `pengdows.crud.json` from pengdows.crud 2.0.6 and
+`efcore.json` from Microsoft.EntityFrameworkCore.Relational 10.0.9. The members a consumer calls come from the IL of its
+own assembly, with the line from its PDB, plus the calls the IL cannot show (reflection through
+`nameof(DbDataReader.GetInt32)`, `GetSchema` collection names, `CommandBehavior` flags, `using` disposals). A Required
+test is in a profile when the consumer calls its member; a Common or Optional test only when the consumer relies on that
+behavior, which the entry's `because` says. Every entry links the consumer's call sites, and the site has a page per
+profile listing them, and the tests it leaves out (`excluded`) with why: tests of a member the consumer calls, for a
+situation its code never creates (pengdows.crud never prepares or executes a command without an open connection).
+
+A consumer's workarounds count against a provider. `workarounds` in a profile lists the code the consumer carries only
+because some provider breaks a rule (a `try` around a `Dispose` that throws, a fallback read for a type a driver
+refuses), with the tests or type-fidelity findings (type, path, status) that show whether a provider still does. A
+provider that needs one does not certify, and every run reports, per workaround, the providers that still need it:
+
+```text
+pengdows.crud workarounds
+  datasourceinformation-defaults: still needed by DuckDBNuGet, MicrosoftSqlite8
+  command-timeout-refused: no provider in this run needs it
+  mysqldata-prepared-dispose: no test covers it yet
+```
+
+A workaround no provider needs can be deleted from the consumer, as far as the providers in the run go; one no test
+covers is a gap in the suite. The EF Core profile is EF Core Relational's own use of ADO.NET; a database's EF provider can
+replace parts of it (Oracle's and Firebird's do their own batching). `Repository.Tests/ProfileTests` fails when a
+profile names a test the suite does not have or an entry cites no call site. The profiles are embedded in the runner,
+so `report` certifies against them too.
+
 ## Type fidelity
 
 For every type a database supports, a provider should store a CLR value and give back the same value, as the right CLR

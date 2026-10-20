@@ -1,0 +1,1175 @@
+{
+  "id": "pengdows.crud",
+  "name": "pengdows.crud",
+  "statement": "certifies as pengdows.crud compliant",
+  "consumer": "pengdows.crud 2.0.6",
+  "source": "https://github.com/pengdows/pengdows.crud/tree/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud",
+  "method": "Members come from the IL of the consumer's own assembly (every call, callvirt, newobj and ldftn naming a System.Data member, with the line from its PDB), plus reflection through nameof(DbDataReader.X), GetSchema collection names, CommandBehavior flags and the using statements that dispose a command, connection, reader or transaction. A Required test is included when the consumer calls its member; a Common or Optional test only when the consumer relies on that behavior, which \"because\" explains.",
+  "tests": [
+    {
+      "test": "Command.CommandText_can_be_set_to_empty_string",
+      "member": "DbCommand.CommandText",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L678",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L729",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L776"
+      ]
+    },
+    {
+      "test": "Command.CommandType_text_by_default",
+      "member": "DbCommand.CommandType",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L738",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1931"
+      ]
+    },
+    {
+      "test": "Command.Connection_can_be_unset",
+      "member": "DbCommand.Connection",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2493",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/InformixDialect.cs#L289",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L918"
+      ]
+    },
+    {
+      "test": "Command.CreateParameter_is_not_null",
+      "member": "DbCommand.CreateParameter",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/InformixDialect.cs#L309"
+      ]
+    },
+    {
+      "test": "Command.DisposeAsync_works",
+      "member": "DbCommand.DisposeAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1433",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1435",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/DuckDbDialect.cs#L293"
+      ]
+    },
+    {
+      "test": "Command.ExecuteNonQueryAsync_returns_result_producing_statement_count",
+      "member": "DbCommand.ExecuteNonQueryAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L681",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L733",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L805"
+      ]
+    },
+    {
+      "test": "Command.ExecuteNonQuery_returns_negative_one_for_SELECT",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReaderAsync_returns_reader",
+      "member": "DbCommand.ExecuteReaderAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1736",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L498"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReaderAsync_throws_on_error",
+      "member": "DbCommand.ExecuteReaderAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1736",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L498"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReader_binds_parameters",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L659",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L672",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L677"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReader_supports_CloseConnection",
+      "member": "DbCommand.ExecuteReader",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L498"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalarAsync_returns_first_value",
+      "member": "DbCommand.ExecuteScalarAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L928",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalarAsync_throws_on_error",
+      "member": "DbCommand.ExecuteScalarAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L928",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_DBNull_when_null",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_first_when_multiple_columns",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_first_when_multiple_rows",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_integer",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_real",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_string_when_text",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.Parameters_is_not_null",
+      "member": "DbCommand.Parameters",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L788",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L789",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L801"
+      ]
+    },
+    {
+      "test": "Command.Parameters_returns_same_object",
+      "member": "DbCommand.Parameters",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L788",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L789",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L801"
+      ]
+    },
+    {
+      "test": "Connection.Close_can_be_called_more_than_once",
+      "member": "DbConnection.Close",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L910"
+      ]
+    },
+    {
+      "test": "Connection.Close_works",
+      "member": "DbConnection.Close",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L910"
+      ]
+    },
+    {
+      "test": "Connection.ConnectionString_gets_and_sets_value",
+      "member": "DbConnection.ConnectionString",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L947",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L1556",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/DuckDbDialect.cs#L246"
+      ]
+    },
+    {
+      "test": "Connection.CreateCommand_returns_command",
+      "member": "DbConnection.CreateCommand",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L775",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L801",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1433"
+      ]
+    },
+    {
+      "test": "Connection.DataSource_returns_value",
+      "member": "DbConnection.DataSource",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L880"
+      ]
+    },
+    {
+      "test": "Connection.Database_returns_value",
+      "member": "DbConnection.Database",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L878"
+      ]
+    },
+    {
+      "test": "Connection.Dispose_can_be_called_more_than_once",
+      "member": "DbConnection.Dispose",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/FirebirdDialect.cs#L282"
+      ]
+    },
+    {
+      "test": "Connection.OpenAsync_works",
+      "member": "DbConnection.OpenAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L1560",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L563"
+      ]
+    },
+    {
+      "test": "Connection.Open_works",
+      "member": "DbConnection.Open",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L1564",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L418"
+      ]
+    },
+    {
+      "test": "Connection.ServerVersion_returns_value",
+      "member": "DbConnection.ServerVersion",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/DatabaseDetectionService.cs#L242",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L881"
+      ]
+    },
+    {
+      "test": "Connection.StateChange_is_not_raised_by_closing_a_closed_connection",
+      "member": "DbConnection.StateChange",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L281",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L817"
+      ]
+    },
+    {
+      "test": "Connection.State_closed_by_default",
+      "member": "DbConnection.State",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/DatabaseDetectionService.cs#L557",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L315",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L399"
+      ]
+    },
+    {
+      "test": "DataReader.Depth_returns_zero",
+      "member": "DbDataReader.Depth",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L559"
+      ]
+    },
+    {
+      "test": "DataReader.DisposeAsync_closes_reader",
+      "member": "DbDataReader.DisposeAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Core.cs#L544",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1570",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TableGateway.Core.cs#L343"
+      ]
+    },
+    {
+      "test": "DataReader.ExecuteScalar_returns_null_when_empty",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L931",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1872",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L557"
+      ]
+    },
+    {
+      "test": "DataReader.FieldCount_works",
+      "member": "DbDataReader.FieldCount",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Core.cs#L549",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L74",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L107"
+      ]
+    },
+    {
+      "test": "DataReader.GetBytes_reads_part_of_blob",
+      "member": "DbDataReader.GetBytes",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1171",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1194",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1231"
+      ]
+    },
+    {
+      "test": "DataReader.GetBytes_returns_length_when_buffer_is_null",
+      "member": "DbDataReader.GetBytes",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1171",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1194",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1231"
+      ]
+    },
+    {
+      "test": "DataReader.GetBytes_works",
+      "member": "DbDataReader.GetBytes",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1171",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1194",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1231"
+      ]
+    },
+    {
+      "test": "DataReader.GetBytes_works_when_buffer_is_large",
+      "member": "DbDataReader.GetBytes",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1171",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1194",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1231"
+      ]
+    },
+    {
+      "test": "DataReader.GetChars_reads_part_of_string",
+      "member": "DbDataReader.GetChars",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L342"
+      ]
+    },
+    {
+      "test": "DataReader.GetChars_returns_length_when_buffer_is_null",
+      "member": "DbDataReader.GetChars",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L342"
+      ]
+    },
+    {
+      "test": "DataReader.GetChars_works",
+      "member": "DbDataReader.GetChars",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L342"
+      ]
+    },
+    {
+      "test": "DataReader.GetChars_works_when_buffer_is_large",
+      "member": "DbDataReader.GetChars",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L342"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldType_works",
+      "member": "DbDataReader.GetFieldType",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L117",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L743",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L1594"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldValue_of_DBNull_throws_when_not_null",
+      "member": "DbDataReader.GetFieldValue",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ProviderValueFieldReader.cs#L215",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ReaderGetters.cs#L15",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/TypedFieldReader.cs#L22"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldValue_throws_before_read",
+      "member": "DbDataReader.GetFieldValue",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ProviderValueFieldReader.cs#L215",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ReaderGetters.cs#L15",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/TypedFieldReader.cs#L22"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldValue_throws_when_done",
+      "member": "DbDataReader.GetFieldValue",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ProviderValueFieldReader.cs#L215",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ReaderGetters.cs#L15",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/TypedFieldReader.cs#L22"
+      ]
+    },
+    {
+      "test": "DataReader.GetName_works",
+      "member": "DbDataReader.GetName",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Core.cs#L551",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L66",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L76"
+      ]
+    },
+    {
+      "test": "DataReader.GetOrdinal_falls_back_to_a_case_insensitive_match",
+      "member": "DbDataReader.GetOrdinal",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L413"
+      ]
+    },
+    {
+      "test": "DataReader.GetOrdinal_prefers_the_exact_case_match",
+      "member": "DbDataReader.GetOrdinal",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L413"
+      ]
+    },
+    {
+      "test": "DataReader.GetOrdinal_throws_when_out_of_range",
+      "member": "DbDataReader.GetOrdinal",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L413"
+      ]
+    },
+    {
+      "test": "DataReader.GetOrdinal_works",
+      "member": "DbDataReader.GetOrdinal",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L413"
+      ]
+    },
+    {
+      "test": "DataReader.GetProviderSpecificValue_works",
+      "member": "DbDataReader.GetProviderSpecificValue",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/DuckDbDialect.cs#L519"
+      ]
+    },
+    {
+      "test": "DataReader.GetString_works",
+      "member": "DbDataReader.GetString",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ProviderValueFieldReader.cs#L141",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/WideIntegerFieldReader.cs#L76",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L420"
+      ]
+    },
+    {
+      "test": "DataReader.GetValue_throws_before_read",
+      "member": "DbDataReader.GetValue",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L83",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L592",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L617"
+      ]
+    },
+    {
+      "test": "DataReader.GetValues_copies_only_what_fits_when_the_array_is_shorter",
+      "member": "DbDataReader.GetValues",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L518"
+      ]
+    },
+    {
+      "test": "DataReader.GetValues_with_an_empty_array_copies_nothing",
+      "member": "DbDataReader.GetValues",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L518"
+      ]
+    },
+    {
+      "test": "DataReader.GetValues_works",
+      "member": "DbDataReader.GetValues",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L518"
+      ]
+    },
+    {
+      "test": "DataReader.IsClosed_returns_false_when_active",
+      "member": "DbDataReader.IsClosed",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L560"
+      ]
+    },
+    {
+      "test": "DataReader.IsClosed_returns_true_when_closed",
+      "member": "DbDataReader.IsClosed",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L560"
+      ]
+    },
+    {
+      "test": "DataReader.IsDBNull_works",
+      "member": "DbDataReader.IsDBNull",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L429",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L772",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L652"
+      ]
+    },
+    {
+      "test": "DataReader.Item_by_name_works",
+      "member": "DbDataReader.Item",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TableGateway.Core.cs#L357",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L534",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L535"
+      ]
+    },
+    {
+      "test": "DataReader.Item_by_ordinal_works",
+      "member": "DbDataReader.Item",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TableGateway.Core.cs#L357",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L534",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L535"
+      ]
+    },
+    {
+      "test": "DataReader.NextResultAsync_returns_false_after_last_result",
+      "member": "DbDataReader.NextResultAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TableGateway.Core.cs#L354"
+      ]
+    },
+    {
+      "test": "DataReader.ReadAsync_returns_rows",
+      "member": "DbDataReader.ReadAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L271",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DataReaderMapper.cs#L327",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TableGateway.Core.cs#L354"
+      ]
+    },
+    {
+      "test": "DataReader.Read_works",
+      "member": "DbDataReader.Read",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L502",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L302"
+      ]
+    },
+    {
+      "test": "DataReader.RecordsAffected_returns_negative_1_after_close_when_no_rows",
+      "member": "DbDataReader.RecordsAffected",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L561",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L875"
+      ]
+    },
+    {
+      "test": "DbProviderFactory.DbProviderFactory_CreateConnection_is_not_null",
+      "member": "DbProviderFactory.CreateConnection",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L939",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L1547",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/FirebirdDialect.cs#L282"
+      ]
+    },
+    {
+      "test": "DbProviderFactory.DbProviderFactory_CreateParameter_is_not_null",
+      "member": "DbProviderFactory.CreateParameter",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2289"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQueryAsync_returns_affected_rows_for_DML",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_deleted_row_count",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_deleted_row_count_with_RETURNING",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_inserted_row_count",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_inserted_row_count_with_RETURNING",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_multirow_affected_count_for_DML",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_updated_row_count",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_zero_when_delete_matches_no_rows",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_zero_when_update_matches_no_rows",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L685",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L737",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L777"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteReader_returns_affected_rows_after_close_for_DML",
+      "member": "DbDataReader.RecordsAffected",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L561",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L875"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteReader_returns_affected_rows_after_close_with_RETURNING",
+      "member": "DbDataReader.RecordsAffected",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L561",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L875"
+      ]
+    },
+    {
+      "test": "Parameter.ParameterCollection_RemoveAt_succeeds",
+      "member": "DbParameterCollection.RemoveAt",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L631"
+      ]
+    },
+    {
+      "test": "Parameter.ParameterCollection_Remove_succeeds",
+      "member": "DbParameterCollection.Remove",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L980"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Direction_is_input",
+      "member": "DbParameter.Direction",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/ContextBase.cs#L56",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L532",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L578"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Precision_is_zero",
+      "member": "DbParameter.Precision",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L682",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L884",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2681"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Scale_is_zero",
+      "member": "DbParameter.Scale",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L680",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L681",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L885"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_properties_round_trip",
+      "member": "DbParameter.ParameterName",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Core.cs#L687",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L522",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L524"
+      ]
+    },
+    {
+      "test": "Transaction.BeginTransactionAsync_works",
+      "member": "DbConnection.BeginTransactionAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L860"
+      ]
+    },
+    {
+      "test": "Transaction.BeginTransaction_works",
+      "member": "DbConnection.BeginTransaction",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L844",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L849"
+      ]
+    },
+    {
+      "test": "Parameter.Bind_accepts_DBNull_value",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L659"
+      ],
+      "because": "A null value is sent as DBNull.Value."
+    },
+    {
+      "test": "Command.CommandTimeout_can_be_set_and_read",
+      "member": "DbCommand.CommandTimeout",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L730"
+      ],
+      "because": "The maintenance probe sets a timeout; today a refusal is caught and the probe skipped (a workaround)."
+    },
+    {
+      "test": "Command.Prepare_valid_command_remains_executable_or_reports_not_supported",
+      "member": "DbCommand.Prepare",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2043"
+      ],
+      "because": "Prepare on an open connection must work or be a no-op; today an exception disables preparing for the connection (a workaround)."
+    },
+    {
+      "test": "Command.Prepared_command_executes_again_with_new_parameter_values",
+      "member": "DbCommand.Prepare",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2043"
+      ],
+      "because": "A prepared command is executed again with new values."
+    },
+    {
+      "test": "Command.Prepared_command_runs_new_CommandText",
+      "member": "DbCommand.Prepare",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2043"
+      ],
+      "because": "A prepared command is reused with new text."
+    },
+    {
+      "test": "Parameter.DataSourceInformation_advertises_parameter_marker_format",
+      "member": "GetSchema.DataSourceInformation",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2739"
+      ],
+      "because": "The dialect reads its parameter marker from DataSourceInformation; today a missing collection falls back to SQL-92 defaults (a workaround)."
+    },
+    {
+      "test": "Connection.DataSourceInformation_parameter_marker_format_is_usable_when_advertised",
+      "member": "GetSchema.DataSourceInformation",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2739"
+      ],
+      "because": "The advertised marker is used to write SQL."
+    },
+    {
+      "test": "DbProviderFactory.DbProviderFactory_CreateConnectionStringBuilder_is_not_null",
+      "member": "DbProviderFactory.CreateConnectionStringBuilder",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L1875"
+      ],
+      "because": "Connection strings are read and written through the provider builder; today a missing builder is skipped (a workaround)."
+    },
+    {
+      "test": "Command.ExecuteReader_throws_on_error",
+      "member": "DbCommand.Transaction",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2140"
+      ],
+      "because": "A failed statement is recognised as a DbException; today AseException, which is not one, is recognised by name (a workaround)."
+    },
+    {
+      "test": "DataReader.GetValue_returns_DBNull_for_null",
+      "member": "DbDataReader.GetValue",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L83"
+      ],
+      "because": "NULL is read as DBNull.Value; today a C# null is accepted too (a workaround)."
+    },
+    {
+      "test": "Parameter.Reused_decimal_parameter_sends_a_wider_value_exactly",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L680"
+      ],
+      "because": "A reused decimal parameter must carry a wider value exactly; today Precision and Scale are widened by hand (a workaround)."
+    },
+    {
+      "test": "Command.Connection_can_be_unset_after_execute",
+      "member": "DbCommand.Connection",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2493",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L918"
+      ],
+      "because": "pengdows.crud works around this today: Setting Connection to null on a command that has run is wrapped in a try: Snowflake, SQLite and others throw."
+    },
+    {
+      "test": "Command.Dispose_Command_then_Connection_does_not_throw",
+      "member": "DbCommand.Dispose",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2500"
+      ],
+      "because": "pengdows.crud works around this today: Disposing a command is wrapped in a try that logs and carries on (Microsoft.Data.Sqlite throws)."
+    },
+    {
+      "test": "Command.Dispose_Connection_then_Command_does_not_throw",
+      "member": "DbCommand.Dispose",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2500"
+      ],
+      "because": "pengdows.crud works around this today: Disposing a command is wrapped in a try that logs and carries on (Microsoft.Data.Sqlite throws)."
+    },
+    {
+      "test": "Parameter.ResetDbType_works",
+      "member": "DbParameter.ResetDbType",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2252"
+      ],
+      "because": "pengdows.crud works around this today: ResetDbType on a pooled parameter is wrapped in a try for providers that do not support it."
+    }
+  ],
+  "excluded": [
+    {
+      "test": "Command.ExecuteNonQuery_throws_when_connection_closed",
+      "because": "Commands are only executed on an open connection."
+    },
+    {
+      "test": "Command.ExecuteNonQuery_throws_when_no_connection",
+      "because": "Commands are only executed with a connection set."
+    },
+    {
+      "test": "Command.Prepare_throws_when_connection_closed",
+      "because": "Prepare is only called on an open connection."
+    },
+    {
+      "test": "Command.Prepare_throws_when_no_connection",
+      "because": "Prepare is only called on a command with an open connection."
+    },
+    {
+      "test": "Parameter.ParameterCollection_RemoveAt_negative_one_throws",
+      "because": "RemoveAt is only called with the index of a parameter the command has (SqlDialect.ReplaceArgumentWithNull)."
+    },
+    {
+      "test": "Parameter.ParameterCollection_RemoveAt_zero_throws_when_empty",
+      "because": "RemoveAt is only called with the index of a parameter the command has (SqlDialect.ReplaceArgumentWithNull)."
+    },
+    {
+      "test": "Parameter.ParameterName_default_is_empty_string",
+      "because": "Every parameter gets its name before use (SqlDialect.CreateDbParameter)."
+    },
+    {
+      "test": "Parameter.Parameter_default_ParameterName_is_empty_string",
+      "because": "Every parameter gets its name before use (SqlDialect.CreateDbParameter)."
+    },
+    {
+      "test": "Parameter.Parameter_default_Value_is_null",
+      "because": "Every parameter gets its value before use (SqlDialect.CreateDbParameter)."
+    }
+  ],
+  "workarounds": [
+    {
+      "id": "command-connection-null",
+      "what": "Setting Connection to null on a command that has run is wrapped in a try: Snowflake, SQLite and others throw.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2493",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L918"
+      ],
+      "tests": [
+        "Command.Connection_can_be_unset_after_execute"
+      ]
+    },
+    {
+      "id": "command-dispose",
+      "what": "Disposing a command is wrapped in a try that logs and carries on (Microsoft.Data.Sqlite throws).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2500"
+      ],
+      "tests": [
+        "Command.Dispose_Command_then_Connection_does_not_throw",
+        "Command.Dispose_Connection_then_Command_does_not_throw"
+      ]
+    },
+    {
+      "id": "mysqldata-prepared-dispose",
+      "what": "A NullReferenceException from disposing a prepared MySql.Data command after EOF is treated as a clean dispose.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L226"
+      ],
+      "tests": []
+    },
+    {
+      "id": "statechange-detach-after-dispose",
+      "what": "Removing the StateChange handler after Dispose catches ObjectDisposedException (AdoNetCore.AseClient).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L817"
+      ],
+      "tests": []
+    },
+    {
+      "id": "non-dbexception-errors",
+      "what": "A provider error that is not a DbException is recognised by its type name (AdoNetCore.AseClient AseException).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2116"
+      ],
+      "tests": [
+        "Command.ExecuteReader_throws_on_error"
+      ]
+    },
+    {
+      "id": "getvalue-null",
+      "what": "A NULL read as C# null instead of DBNull.Value is accepted.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/BaseTableGateway.Reader.cs#L84"
+      ],
+      "tests": [
+        "DataReader.GetValue_returns_DBNull_for_null"
+      ]
+    },
+    {
+      "id": "decimal-widening",
+      "what": "A reused decimal parameter has its Precision and Scale widened by hand before a wider value is sent (SAP HANA).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L682"
+      ],
+      "tests": [
+        "Parameter.Reused_decimal_parameter_sends_a_wider_value_exactly"
+      ]
+    },
+    {
+      "id": "prepare-disable",
+      "what": "An exception from Prepare disables preparing for that connection and the command runs unprepared.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2057"
+      ],
+      "tests": [
+        "Command.Prepare_valid_command_remains_executable_or_reports_not_supported",
+        "Command.Prepared_command_executes_again_with_new_parameter_values",
+        "Command.Prepared_command_runs_new_CommandText"
+      ]
+    },
+    {
+      "id": "command-timeout-refused",
+      "what": "A refused CommandTimeout skips the maintenance probe.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.ConnectionLifecycle.cs#L730"
+      ],
+      "tests": [
+        "Command.CommandTimeout_can_be_set_and_read"
+      ]
+    },
+    {
+      "id": "datasourceinformation-defaults",
+      "what": "Without DataSourceInformation the dialect uses SQL-92 defaults and its own constants.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2747"
+      ],
+      "tests": [
+        "Parameter.DataSourceInformation_advertises_parameter_marker_format",
+        "Connection.DataSourceInformation_parameter_marker_format_is_usable_when_advertised"
+      ]
+    },
+    {
+      "id": "no-connection-string-builder",
+      "what": "A factory without a connection string builder is skipped when the connection string is read.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L1875"
+      ],
+      "tests": [
+        "DbProviderFactory.DbProviderFactory_CreateConnectionStringBuilder_is_not_null"
+      ]
+    },
+    {
+      "id": "resetdbtype-refused",
+      "what": "ResetDbType on a pooled parameter is wrapped in a try for providers that do not support it.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2252"
+      ],
+      "tests": [
+        "Parameter.ResetDbType_works"
+      ]
+    },
+    {
+      "id": "dbtype-object-refused",
+      "what": "Resetting a pooled parameter to DbType.Object is dropped for a provider that rejects it (Informix).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2272"
+      ],
+      "tests": []
+    },
+    {
+      "id": "npgsql-timestamp-reads",
+      "what": "GetValue, GetDateTime and GetFieldType on a timestamp column fall back to GetFieldValue<DateTime> (Npgsql 9).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L492",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L765",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedReader.cs#L794"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "^timestamp(?!.*with (local )?time zone)(?!tz)",
+          "statuses": [
+            "throws",
+            "wrong-type"
+          ],
+          "paths": [
+            "read",
+            "type",
+            "typed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guid-from-bytes",
+      "what": "A Guid column the provider cannot return is read from its bytes (Npgsql on Spanner uuid).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ProviderValueFieldReader.cs#L60"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "uuid|guid",
+          "statuses": [
+            "throws",
+            "wrong-type"
+          ],
+          "paths": [
+            "read",
+            "type",
+            "typed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nullable-element-arrays",
+      "what": "An array the provider refuses as T[] is read as an array of nullable elements (Npgsql on Spanner).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ProviderValueFieldReader.cs#L80"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "\\[\\]|array",
+          "statuses": [
+            "throws",
+            "wrong-type"
+          ],
+          "paths": [
+            "read",
+            "type",
+            "typed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wide-integer-text",
+      "what": "An integer that overflows Int64 is read back from its text.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/WideIntegerFieldReader.cs#L34"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "bigint|ubigint|hugeint|uint64|unsigned",
+          "statuses": [
+            "throws"
+          ],
+          "paths": [
+            "read",
+            "type",
+            "typed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "numeric-beyond-decimal",
+      "what": "A NUMBER beyond decimal falls back to GetDouble.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/NumericFieldReader.cs#L31"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "number|numeric|decimal",
+          "statuses": [
+            "throws"
+          ],
+          "paths": [
+            "read",
+            "type",
+            "typed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "offset-timestamp-reads",
+      "what": "A timestamp with time zone the provider reports as DateTime is read through GetValue or GetDateTimeOffset (Snowflake.Data, ODP.NET 21).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ColumnQuirkReads.cs#L45"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "timestamp.*with (local )?time zone|timestamp_ltz|timestamp_tz|timestamptz",
+          "statuses": [
+            "lossy"
+          ],
+          "paths": [
+            "read",
+            "type",
+            "typed"
+          ]
+        }
+      ]
+    }
+  ]
+}

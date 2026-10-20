@@ -92,7 +92,8 @@ over the fixture's value, and when it is set the server fixtures start no contai
 - **Type fidelity** — `FidelityTestBase` is the shared runner; `TypeFidelityTestBase` takes a hand-written catalog
   (`SqlServerTypes`, `PostgreSqlTypes`, `OracleTypes`, ...) and `DataTypesFidelityTestBase` generates one from the
   provider's `GetSchema("DataTypes")` (plus `IServerTypesFixture` extras). Where a provider does not advertise SQL syntax,
-  assume SQL-92 quoting, `;`, and `@name` parameters.
+  assume SQL-92 quoting and `;`; for parameters, probe `:name` (SQL-92) and then `@name` with a query and use the one that
+  returns the bound value.
 
 ### How outcomes flow
 

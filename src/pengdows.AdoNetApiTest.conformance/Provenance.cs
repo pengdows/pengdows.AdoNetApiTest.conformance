@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 
 namespace pengdows.AdoNetApiTest.conformance;
 
@@ -20,7 +19,8 @@ public static class Provenance
 {
 	public const string Variable = "CONFORMANCE_PROVENANCE";
 
-	private static int s_written;
+	private static readonly object s_lock = new();
+	private static List<KeyValuePair<string, string>> s_values;
 
 	/// <summary>The container image the server runs from; set by the server fixture.</summary>
 	public static string Image { get; set; }
@@ -28,36 +28,66 @@ public static class Provenance
 	/// <summary>Records the provenance on the first open connection of the process; later calls do nothing.</summary>
 	public static void Record(DbProviderFactory factory, DbConnection connection)
 	{
-		var path = Environment.GetEnvironmentVariable(Variable);
-		if (string.IsNullOrEmpty(path) || Interlocked.Exchange(ref s_written, 1) == 1)
+		if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(Variable)))
 		{
 			return;
 		}
 
-		var assembly = factory.GetType().Assembly;
-		string serverVersion = null;
+		lock (s_lock)
+		{
+			if (s_values is not null)
+			{
+				return;
+			}
+
+			var assembly = factory.GetType().Assembly;
+			string serverVersion = null;
+			try
+			{
+				serverVersion = connection.ServerVersion;
+			}
+			catch (Exception)
+			{
+			}
+
+			s_values = new List<KeyValuePair<string, string>>
+			{
+				new("driverAssembly", assembly.GetName().Name),
+				new("driverVersion", assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString()),
+				new("factory", factory.GetType().FullName),
+				new("serverVersion", serverVersion),
+				new("image", Image),
+				new("runtime", RuntimeInformation.FrameworkDescription),
+				new("os", RuntimeInformation.OSDescription),
+			};
+			Write();
+		}
+	}
+
+	/// <summary>
+	/// Records how the tests wrote a parameter in SQL (<c>@p</c>, <c>:p</c>, <c>?</c>) and where that came from:
+	/// <c>fixture</c>, <c>metadata</c> (DataSourceInformation), or <c>probe</c> (a query tried <c>:p</c>, then <c>@p</c>).
+	/// </summary>
+	public static void RecordParameterMarker(string marker, string source)
+	{
+		lock (s_lock)
+		{
+			if (s_values is null || s_values.Any(v => v.Key == "parameterMarker"))
+			{
+				return;
+			}
+
+			s_values.Add(new("parameterMarker", marker));
+			s_values.Add(new("parameterMarkerSource", source));
+			Write();
+		}
+	}
+
+	private static void Write()
+	{
 		try
 		{
-			serverVersion = connection.ServerVersion;
-		}
-		catch (Exception)
-		{
-		}
-
-		var values = new List<KeyValuePair<string, string>>
-		{
-			new("driverAssembly", assembly.GetName().Name),
-			new("driverVersion", assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString()),
-			new("factory", factory.GetType().FullName),
-			new("serverVersion", serverVersion),
-			new("image", Image),
-			new("runtime", RuntimeInformation.FrameworkDescription),
-			new("os", RuntimeInformation.OSDescription),
-		};
-
-		try
-		{
-			File.WriteAllText(path, "{" + string.Join(",", values.Where(v => v.Value is not null).Select(v => Quote(v.Key) + ":" + Quote(v.Value))) + "}");
+			File.WriteAllText(Environment.GetEnvironmentVariable(Variable), "{" + string.Join(",", s_values.Where(v => v.Value is not null).Select(v => Quote(v.Key) + ":" + Quote(v.Value))) + "}");
 		}
 		catch (IOException)
 		{

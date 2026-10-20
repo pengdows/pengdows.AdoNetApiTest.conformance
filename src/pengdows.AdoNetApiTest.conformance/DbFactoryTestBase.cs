@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,13 +157,15 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	/// Matches provider-neutral ADO.NET behavior: providers that
 	/// explicitly advertise the positional format '?' use that placeholder; named
 	/// providers receive their advertised marker plus the logical name. When
-	/// DataSourceInformation is missing or unusable, the marker is <c>@</c>, the .NET de
-	/// facto convention; the DataSourceInformation tests report the gap.
+	/// DataSourceInformation is missing or unusable, the suite asks the database instead of
+	/// guessing: a probe query binds a parameter as <c>:name</c> (SQL-92's named parameter)
+	/// and then as <c>@name</c>, and the first that returns the bound value is the marker.
+	/// The DataSourceInformation tests still report the missing metadata.
 	/// The logical <see cref="DbParameter.ParameterName"/> remains independent of
 	/// this SQL representation.
 	/// The positional-versus-named decision follows the ADO.NET
 	/// <see cref="DbMetaDataColumnNames.ParameterMarkerFormat"/> contract; the
-	/// fallback marker is checked against <see cref="DbMetaDataColumnNames.ParameterMarkerPattern"/>.
+	/// marker prefix may also come from <see cref="DbMetaDataColumnNames.ParameterMarkerPattern"/>.
 	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbmetadatacolumnnames.parametermarkerformat.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbmetadatacolumnnames.parametermarkerpattern.
@@ -171,11 +174,26 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	{
 		if (Fixture is IParameterMarkerFixture explicitMarker)
 		{
+			Provenance.RecordParameterMarker(explicitMarker.ParameterMarker("p"), "fixture");
 			return explicitMarker.ParameterMarker(name);
 		}
 
-		var marker = s_parameterMarkers.GetValue(Fixture, _ => ReadParameterMarker(connection));
+		var marker = s_parameterMarkers.GetValue(Fixture, _ => FindParameterMarker(connection));
 		return marker.IsPositional ? "?" : string.Concat(marker.Prefix, name.TrimStart('@', ':', '$', '?'));
+	}
+
+	private ParameterMarker FindParameterMarker(DbConnection connection)
+	{
+		var source = "metadata";
+		var marker = ReadParameterMarker(connection);
+		if (marker is null)
+		{
+			source = "probe";
+			marker = ProbeParameterMarker();
+		}
+
+		Provenance.RecordParameterMarker(marker.IsPositional ? "?" : marker.Prefix + "p", source);
+		return marker;
 	}
 
 	private static ParameterMarker ReadParameterMarker(DbConnection connection)
@@ -187,22 +205,54 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		}
 		catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException)
 		{
-			return DefaultMarker;
+			return null;
 		}
 
 		if (schema.Rows.Count == 0)
 		{
-			return DefaultMarker;
+			return null;
 		}
 
 		var row = schema.Rows[0];
 		var format = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerFormat) ? row[DbMetaDataColumnNames.ParameterMarkerFormat] as string : null;
 		var pattern = schema.Columns.Contains(DbMetaDataColumnNames.ParameterMarkerPattern) ? row[DbMetaDataColumnNames.ParameterMarkerPattern] as string : null;
-		return ParameterMarkerDiscovery.Discover(format, pattern) ?? DefaultMarker;
+		return ParameterMarkerDiscovery.Discover(format, pattern);
 	}
 
-	/// <summary>The marker when a provider does not say: <c>@name</c>, the .NET de facto convention though not SQL-92.</summary>
-	private static readonly ParameterMarker DefaultMarker = new(false, "@");
+	/// <summary>
+	/// For a provider whose metadata does not say: SQL-92 writes a named parameter <c>:name</c>, and .NET providers
+	/// commonly write <c>@name</c>. Each is tried on a connection of its own, so a failed attempt can't disturb a test's
+	/// connection or transaction. When neither returns the bound value, <c>@</c> stays, and the parameter tests show it.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	private ParameterMarker ProbeParameterMarker()
+	{
+		foreach (var prefix in s_probedPrefixes)
+		{
+			try
+			{
+				using var connection = CreateOpenConnection();
+				using var command = connection.CreateCommand();
+				command.CommandText = SelectSql(prefix + "probe");
+				var parameter = command.CreateParameter();
+				parameter.ParameterName = "probe";
+				parameter.Value = 7;
+				command.Parameters.Add(parameter);
+				if (Convert.ToInt32(command.ExecuteScalar(), CultureInfo.InvariantCulture) == 7)
+				{
+					return new ParameterMarker(false, prefix);
+				}
+			}
+			catch (Exception)
+			{
+				// this database does not take the prefix; try the next
+			}
+		}
+
+		return new ParameterMarker(false, "@");
+	}
+
+	private static readonly string[] s_probedPrefixes = [":", "@"];
 
 	/// <summary>
 	/// Formats a provider parameter from its logical name using the same named-versus-

@@ -245,8 +245,9 @@ file and compare matrices. A minimal file:
 
 The fixture waits until the driver can open a connection, so a server that accepts its port before its logins is not a
 problem. Where a database does not say how to write something, the defaults are SQL-92 double-quoted identifiers and
-single-quoted strings, `;` between statements, and `@name` for parameters (the .NET convention, though SQL-92 writes
-`:name`). The files in `providers/` are pengdows.crud's integration matrix: one per database it supports, with the driver
+single-quoted strings and `;` between statements. A parameter marker is never assumed: when `DataSourceInformation` gives
+none, a probe query binds a parameter as `:name` (SQL-92) and then as `@name` (the common .NET form), and the first that
+returns the bound value is used. The files in `providers/` are pengdows.crud's integration matrix: one per database it supports, with the driver
 version, image and settings its testbed uses, so both projects test the same pairs. The opt-in ones (Aurora, SAP HANA,
 InterBase, Snowflake) and Access (Windows only) report `NOT RUN` until their variables are set. A configured provider runs every test base with Required tests, plus the
 generated type-fidelity tests: the DML and reader tests use tables of their own, created with the `createTable` and

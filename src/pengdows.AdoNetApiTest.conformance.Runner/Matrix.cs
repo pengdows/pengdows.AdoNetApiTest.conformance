@@ -3,7 +3,11 @@ using System.Text.RegularExpressions;
 namespace pengdows.AdoNetApiTest.conformance.Runner;
 
 /// <summary>What one provider's test project produced, or why it produced nothing.</summary>
-internal sealed record ProviderInput(string Id, string Project, IReadOnlyList<RawResult>? Results, string? Error);
+internal sealed record ProviderInput(string Id, string Project, IReadOnlyList<RawResult>? Results, string? Error)
+{
+	/// <summary>What the provider's test process recorded about the driver, server and runtime, and its configuration's checksum.</summary>
+	public IReadOnlyDictionary<string, string>? Provenance { get; init; }
+}
 
 internal sealed record ProviderSummary(
 	string Id,
@@ -31,6 +35,9 @@ internal sealed record ProviderSummary(
 
 	/// <summary>Common tests that reported nothing. Advisory: a Common test cannot hide a Required result, so it never fails the provider.</summary>
 	public int CommonNotRun { get; init; }
+
+	/// <summary>The provenance its run recorded; empty when it recorded none.</summary>
+	public IReadOnlyDictionary<string, string> Provenance { get; init; } = new Dictionary<string, string>();
 }
 
 internal sealed record FidelityCell(FidelityStatus Status, string? Detail);
@@ -66,6 +73,9 @@ internal sealed partial class Matrix
 
 	/// <summary>Pass only when every provider passed. A provider that did not run fails the matrix.</summary>
 	public Verdict Verdict { get; }
+
+	/// <summary>The suite the run used: its commit, and whether the working tree had changes.</summary>
+	public IReadOnlyDictionary<string, string> Suite { get; set; } = new Dictionary<string, string>();
 
 	/// <param name="suite">
 	/// Every Required test the shared library declares (<see cref="RequiredCatalog"/>). A test no provider reported still
@@ -232,6 +242,7 @@ internal sealed partial class Matrix
 			RequiredNotCovered = requiredNotCovered,
 			RequiredWaived = requiredWaived,
 			CommonNotRun = commonNotRun,
+			Provenance = provider.Provenance ?? new Dictionary<string, string>(),
 		};
 	}
 

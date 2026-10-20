@@ -19,10 +19,23 @@ internal static class Program
 			return 0;
 		}
 
+		if (options.Command == Command.Site)
+		{
+			if (!File.Exists(options.Files[0]))
+			{
+				Console.Error.WriteLine($"No matrix at {options.Files[0]}; run the providers first or name a matrix.json.");
+				return 2;
+			}
+
+			Console.WriteLine($"Site: {SiteGenerator.Write(options.Files[0], options.SiteDirectory)}");
+			return 0;
+		}
+
 		try
 		{
 			var inputs = options.Command == Command.Report ? ReadFiles(options) : RunProviders(options);
 			var matrix = Matrix.Build(inputs, RequiredCatalog.Load());
+			matrix.Suite = RunProvenance.Suite(Directory.GetCurrentDirectory());
 			Write(options.JsonPath, MatrixJson.Write(matrix));
 			Write(options.XmlPath, MatrixXml.Write(matrix));
 			Console.WriteLine(ConsoleReport.Render(matrix));
@@ -42,7 +55,10 @@ internal static class Program
 			var id = CommandLine.ProviderIdFromFile(file);
 			try
 			{
-				return new ProviderInput(id, file, XunitXml.Parse(File.ReadAllText(file)), null);
+				return new ProviderInput(id, file, XunitXml.Parse(File.ReadAllText(file)), null)
+				{
+					Provenance = RunProvenance.Read(file, null),
+				};
 			}
 			catch (Exception exception) when (exception is System.Xml.XmlException or IOException)
 			{
@@ -61,7 +77,7 @@ internal static class Program
 			throw new ArgumentException($"Two providers are named {duplicate.Key}: {string.Join(" and ", duplicate.Select(p => p.Project))}.");
 		}
 
-		var providers = ProviderDiscovery.Select(all, options.Providers);
+		var providers = ProviderDiscovery.Select(all, options.Providers, options.Excluded);
 		var outputDirectory = Path.GetDirectoryName(Path.GetFullPath(options.JsonPath))!;
 
 		var inputs = new List<ProviderInput>();

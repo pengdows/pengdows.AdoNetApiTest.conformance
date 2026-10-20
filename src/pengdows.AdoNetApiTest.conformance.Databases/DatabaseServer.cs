@@ -56,6 +56,7 @@ public abstract class DatabaseServer<TServer> : IAsyncLifetime
 		s_port = m_container.GetMappedPublicPort(ContainerPort);
 		s_connectionString = (m_container as IDatabaseContainer)?.GetConnectionString();
 		s_host = m_container.Hostname;
+		Provenance.Image = m_container.Image.FullName;
 	}
 
 	public async ValueTask DisposeAsync()

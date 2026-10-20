@@ -5,6 +5,7 @@ internal enum Command
 	Help,
 	Run,
 	Report,
+	Site,
 }
 
 internal sealed record Options(
@@ -18,7 +19,9 @@ internal sealed record Options(
 	bool NoBuild,
 	TimeSpan Timeout,
 	string? TestsDirectory,
-	string? Error);
+	string? Error,
+	string SiteDirectory = "conformance-results/site",
+	IReadOnlyList<string>? Excluded = null);
 
 internal static class CommandLine
 {
@@ -27,9 +30,11 @@ internal static class CommandLine
 
 		  conformance run [provider ...] [options]    run provider test projects, write the matrix, print PASS or FAIL
 		  conformance report <result.xml ...>         build the matrix from xUnit -xml files that already exist
+		  conformance site [matrix.json] [--out <dir>] build the certification site from a matrix
 
-		A provider passes when it has no failed Required test and no failed Optional test. "Not implemented" is a pass.
-		Common differences are advisory. The exit code is 0 for PASS and 1 for FAIL (2 for a usage error).
+		A provider passes when every Required test ran and none failed, and no Optional test failed. "Not implemented"
+		is a pass; a Required test it has no tests for leaves it INCOMPLETE. Common differences are advisory. The exit
+		code is 0 for PASS and 1 for anything else (2 for a usage error).
 
 		Options:
 		  --json <file>       matrix as JSON   (default conformance-results/matrix.json)
@@ -39,6 +44,8 @@ internal static class CommandLine
 		  --no-build          run without building first
 		  --tests <dir>       the folder holding the provider test projects (default: found above the current folder)
 		  --timeout <min>     minutes allowed per provider (default 30)
+		  --exclude <names>   providers not to run, comma-separated (those that cannot run on this machine)
+		  --out <dir>         where site writes the pages (default conformance-results/site)
 		""";
 
 	private static readonly string s_resultsFolder = "conformance-results";
@@ -57,6 +64,7 @@ internal static class CommandLine
 		{
 			"run" => Command.Run,
 			"report" => Command.Report,
+			"site" => Command.Site,
 			_ => (Command?) null,
 		};
 		if (command is null)
@@ -94,6 +102,8 @@ internal static class CommandLine
 				case "--config": options = options with { Configuration = value }; break;
 				case "--framework": options = options with { Framework = value }; break;
 				case "--tests": options = options with { TestsDirectory = value }; break;
+				case "--out": options = options with { SiteDirectory = value }; break;
+				case "--exclude": options = options with { Excluded = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) }; break;
 				case "--timeout":
 					if (!double.TryParse(value, out var minutes) || minutes <= 0)
 					{
@@ -105,6 +115,13 @@ internal static class CommandLine
 				default:
 					return options with { Error = $"Unknown option '{arg}'." };
 			}
+		}
+
+		if (command == Command.Site)
+		{
+			return names.Count > 1
+				? options with { Error = "site takes one matrix file." }
+				: options with { Files = names.Count == 1 ? names : new[] { options.JsonPath } };
 		}
 
 		if (command == Command.Report)

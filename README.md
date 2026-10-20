@@ -125,6 +125,34 @@ To see only the hard result without the runner, filter a provider's tests by gro
 ## Type fidelity
 
 For every type a database supports, a provider should store a CLR value and give back the same value, as the right CLR
+## Certification site
+
+`site` turns a matrix into a static site: an index of every provider with its certification status, and a page per
+provider with the evidence behind it.
+
+```text
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run --exclude Informix,Ydb
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- site
+```
+
+`site` reads `conformance-results/matrix.json` (or the matrix named on the command line) and writes
+`conformance-results/site` (`--out` to change it). It needs nothing but the matrix, so a published matrix can be turned
+into the same site by anyone.
+
+| Status | Verdict | Meaning |
+| --- | --- | --- |
+| Certified | PASS | Every Required test ran and passed (or carries a documented waiver), and no Optional capability the provider implements failed. |
+| Incomplete | INCOMPLETE | Nothing failed, but some Required tests have not run for the provider, so it cannot be certified. |
+| Not certified | FAIL | A Required test, or an Optional capability the provider implements, failed; each failure links the documentation it breaks. |
+| Not tested | NOT RUN | The provider could not be run, for the reason shown. |
+
+Each provider page shows what was tested, as recorded by its own test process rather than its project file: the driver
+assembly and version that loaded, the server's version and container image, the runtime and operating system, and, for
+a configured provider, its configuration file and checksum, with the suite's commit. A run on another machine with the
+same configuration is the same test. Type fidelity and the comparison of `DataTypes` with the server are shown for every
+provider but do not decide its status. The `Pages` workflow runs every provider GitHub's runners can run, builds the
+site and publishes it.
+
 type. `TypeFidelityTestBase<TFixture>` checks that. A provider's fixture supplies a catalog of its native types
 (`ITypeFidelityFixture.Types`): the column definition, the `DbType` to bind with, the CLR type to expect, and values
 that matter (minimum, maximum, empty, `NULL`, the finest fractional second, Unicode outside the BMP, trailing spaces,

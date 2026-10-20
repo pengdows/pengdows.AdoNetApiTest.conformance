@@ -6,6 +6,17 @@ internal static class MatrixJson
 {
 	public const string Schema = "pengdows.AdoNetApiTest.conformance/matrix/1";
 
+	private static void WriteMap(Utf8JsonWriter json, string name, IReadOnlyDictionary<string, string> values)
+	{
+		json.WriteStartObject(name);
+		foreach (var (key, value) in values.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+		{
+			json.WriteString(key, value);
+		}
+
+		json.WriteEndObject();
+	}
+
 	public static string Write(Matrix matrix)
 	{
 		using var stream = new MemoryStream();
@@ -15,6 +26,7 @@ internal static class MatrixJson
 			json.WriteString("schema", Schema);
 			json.WriteString("generated", DateTimeOffset.UtcNow.ToString("O"));
 			json.WriteString("verdict", OutcomeInfo.Text(matrix.Verdict));
+			WriteMap(json, "suite", matrix.Suite);
 
 			json.WriteStartArray("legend");
 			foreach (var outcome in Enum.GetValues<Outcome>())
@@ -77,6 +89,7 @@ internal static class MatrixJson
 				json.WriteNumber("not-covered", provider.RequiredNotCovered);
 				json.WriteNumber("waived", provider.RequiredWaived);
 				json.WriteEndObject();
+				WriteMap(json, "provenance", provider.Provenance);
 				json.WriteEndObject();
 			}
 

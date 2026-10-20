@@ -164,6 +164,8 @@ public sealed class ConfiguredServer : IAsyncLifetime
 			}
 
 			// Read after any restart: Docker may map the port anew.
+			Provenance.Image = m_container.Image.FullName;
+
 			ConfiguredProvider.Values["host"] = m_container.Hostname;
 			ConfiguredProvider.Values["port"] = m_container.GetMappedPublicPort((ushort) target.Port).ToString(System.Globalization.CultureInfo.InvariantCulture);
 		}

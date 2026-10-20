@@ -43,7 +43,7 @@ internal static class ConfiguredProjects
 		WriteIfChanged(project, Project(config, root));
 		WriteIfChanged(Path.Combine(directory, "Generated.cs"), Code(config));
 		WriteIfChanged(Path.Combine(directory, "provider.json"), File.ReadAllText(configPath));
-		return new ProviderProject(config.Name, project, NotRunReason(config), config.ProcessEnvironment);
+		return new ProviderProject(config.Name, project, NotRunReason(config), config.ProcessEnvironment, Path.GetFullPath(configPath));
 	}
 
 	/// <param name="DriverProject">A driver built from source instead of a package: its project file, relative to the repository root or absolute.</param>

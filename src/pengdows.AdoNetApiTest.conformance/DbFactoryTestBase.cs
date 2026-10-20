@@ -52,6 +52,7 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		var connection = CreateConnection();
 		connection.ConnectionString = ConnectionString;
 		connection.Open();
+		Provenance.Record(Fixture.Factory, connection);
 		return connection;
 	}
 

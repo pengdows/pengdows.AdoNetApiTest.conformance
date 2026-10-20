@@ -16,6 +16,7 @@ internal static class ProviderRunner
 		var xml = Path.GetFullPath(Path.Combine(outputDirectory, provider.Id + ".xml"));
 		var log = Path.GetFullPath(Path.Combine(outputDirectory, provider.Id + ".log"));
 		File.Delete(xml);
+		File.Delete(RunProvenance.FileFor(xml));
 
 		var start = new ProcessStartInfo("dotnet")
 		{
@@ -24,6 +25,7 @@ internal static class ProviderRunner
 			UseShellExecute = false,
 		};
 		var output = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(provider.Project))!, "bin", options.Configuration, options.Framework);
+		start.Environment[Provenance.Variable] = RunProvenance.FileFor(xml);
 		foreach (var pair in provider.Environment ?? new Dictionary<string, string>())
 		{
 			start.Environment[pair.Key] = pair.Value.Replace("${output}", output, StringComparison.Ordinal);
@@ -86,7 +88,10 @@ internal static class ProviderRunner
 
 		try
 		{
-			return new ProviderInput(provider.Id, provider.Project, XunitXml.Parse(File.ReadAllText(xml)), null);
+			return new ProviderInput(provider.Id, provider.Project, XunitXml.Parse(File.ReadAllText(xml)), null)
+			{
+				Provenance = RunProvenance.Read(xml, provider.ConfigPath),
+			};
 		}
 		catch (Exception exception) when (exception is System.Xml.XmlException or IOException)
 		{

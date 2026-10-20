@@ -23,6 +23,8 @@ dotnet test tests/Runner.Tests/Runner.Tests.csproj           # runner tests (CI 
 dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite MicrosoftSqlite8
 dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite --no-build --timeout 15
 dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- report out/Sqlite.xml   # from existing xUnit XML
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run --exclude Informix,Ydb   # all but the named
+dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- site   # certification site from matrix.json
 dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- --help
 
 # One provider / one test

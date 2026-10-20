@@ -2,7 +2,9 @@
 
 **Testing the documented ADO.NET contract, not common provider conventions.**
 
-An independent, provider-neutral [xUnit.net](https://xunit.net/)-based conformance suite for .NET database providers. It tests the behavior promised by `System.Data.Common`, distinguishes optional capabilities from universal requirements, and investigates whether values survive database round trips intact. It does not assume any particular database, SQL dialect, or parameter marker.
+An independent, provider-neutral [xUnit.net](https://xunit.net/)-based conformance suite for .NET database providers. It tests the behavior promised by `System.Data.Common`, distinguishes optional capabilities from universal requirements, and investigates whether values survive database round trips intact.
+
+**Provider substitutability is not SQL dialect interchangeability.** Databases can legitimately differ in syntax, native types, and optional features. Providers must nevertheless honor the documented behavior of the ADO.NET interfaces they implement.
 
 ## Why this exists
 
@@ -11,6 +13,8 @@ An independent, provider-neutral [xUnit.net](https://xunit.net/)-based conforman
 In February 2010, I wrote [*Don't Hard Code Your DataProviders*](https://www.pengdows.com/don-t-hard-code-your-dataproviders/) about building database-independent .NET code with `DbProviderFactory` and the shared ADO.NET abstractions, rather than hard-coding `SqlConnection`, `SqlCommand`, or another vendor's classes. The article made a point that still matters: using the factory and common interfaces is the **starting point** for provider independence, not a claim that all database SQL dialects are interchangeable.
 
 That principle became central to [pengdows.crud](https://github.com/pengdows/pengdows.crud). Its data access code is designed to rely on the documented ADO.NET contract and on provider substitutability at that boundary, instead of branching on a provider's concrete type. If two providers implement the same contract, a consumer of that contract should not need a special case merely to get correct behavior.
+
+The distinction matters: SQL generation and database capabilities may need to be dialect-aware. But getting the documented behavior of `DbCommand`, `DbDataReader`, or `DbParameter` should not depend on recognizing a particular vendor's class. This is consistent with the broader [Pengdows philosophy](https://www.pengdows.com/about/): understand and respect the underlying system rather than pretend an abstraction makes its differences disappear.
 
 In practice, testing pengdows.crud across many providers exposed departures from that contract: incorrect values or types, wrong exceptions, inconsistent affected-row counts, and reader or connection lifecycle problems. I initially worked around provider defects in pengdows.crud. But each workaround added vendor-specific behavior to a library intended to avoid it, while leaving the underlying defect for every other ADO.NET consumer.
 
@@ -31,6 +35,8 @@ Shared tests distinguish three kinds of expectations:
 - **Required:** Behavior explicitly required by the documented ADO.NET contract. A violation is a conformance failure, subject to the suite's narrowly documented waiver rules.
 - **Optional:** Capabilities a provider may decline to implement. If it implements a capability, that implementation must pass the relevant tests.
 - **Common:** Useful interoperability observations that the contract does not require. Differences are reported as diagnostics, not conformance failures.
+
+**Evidence, not assumptions, determines conformance.** Required assertions cite authoritative ADO.NET API documentation. Provider fixtures account for SQL dialects, parameter markers, and available capabilities; unsupported or inapplicable scenarios are reported as such, not treated as contract violations. A failure should be reproducible and attributable to a documented requirement—not merely a difference from another provider.
 
 The suite also tests **data fidelity** across native database types: parameter writes, independent reads, and full round trips, including boundary values and CLR type information. Those findings are reported separately from strict contract verdicts so database-specific storage rules are not mistaken for provider bugs.
 

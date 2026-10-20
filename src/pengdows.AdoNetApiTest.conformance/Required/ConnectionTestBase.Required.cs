@@ -137,7 +137,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 		}
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.close")]
 	public virtual void Close_can_be_called_more_than_once()
 	{
 		using var connection = CreateOpenConnection();

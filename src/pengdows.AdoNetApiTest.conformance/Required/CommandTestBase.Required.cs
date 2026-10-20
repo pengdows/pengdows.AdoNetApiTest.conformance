@@ -30,7 +30,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal("", command.CommandText);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.commandtype")]
 	public virtual void CommandType_text_by_default()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -261,7 +261,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(42, Convert.ToInt32(command.ExecuteScalar()));
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.executenonquery")]
 	public virtual void ExecuteNonQuery_throws_when_no_connection()
 	{
 		using var command = Fixture.Factory.CreateCommand();
@@ -276,7 +276,7 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.ThrowsAny<InvalidOperationException>(() => command.ExecuteNonQuery());
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery")]
 	public virtual void ExecuteNonQuery_returns_negative_one_for_SELECT()
 	{
 		using var connection = CreateOpenConnection();

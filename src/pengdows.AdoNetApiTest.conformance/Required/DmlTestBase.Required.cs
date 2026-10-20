@@ -44,7 +44,7 @@ public abstract partial class DmlTestBase<TFixture>
 		=> await WithDmlStateAsync(async connection =>
 			Assert.Equal(1, await ExecuteAsync(connection, Fixture.DmlUpdateSql).ConfigureAwait(false))).ConfigureAwait(false);
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.executenonquery")]
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.recordsaffected")]
 	public virtual void ExecuteReader_returns_affected_rows_after_close_for_DML()
 		=> WithDmlState(connection =>
 		{

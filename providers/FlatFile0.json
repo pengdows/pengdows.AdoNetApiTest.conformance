@@ -9,5 +9,5 @@
   "target": {
     "kind": "file"
   },
-  "connectionString": "path=${tempdir}"
+  "connectionString": "path=${instancedir}"
 }

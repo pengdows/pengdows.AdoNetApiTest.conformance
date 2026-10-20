@@ -65,20 +65,25 @@ dotnet run --project src/pengdows.AdoNetApiTest.conformance.Runner -- run Sqlite
 provider and an overall verdict:
 
 ```text
-Sqlite    FAIL     Required 96/104 (5 failed, 3 waived) + 8 Required not covered  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
+Sqlite    FAIL        Required 96/112 (5 failed, 3 waived, 8 not covered)  |  Optional 24 implemented pass, 0 implemented fail, 7 not implemented  |  Common 276 differ  |  Types 499 exact, 0 lossy, 0 wrong type, 0 throws
 OVERALL: FAIL
 Matrix: conformance-results/matrix.json, conformance-results/matrix.xml
 ```
 
-`Required 146/156` is passed over total. The parenthesis says what became of the rest: `failed` tests ran and failed; `waived` tests failed but carry a waiver (see `deviation`);
-`not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result file from
-an older suite). `+ N Required not covered` counts Required tests in an area the provider has no tests for at all (such as
-`Dml` without a fixture); they are not in the total and do not fail the provider, but they are not passes either.
-`passed + failed + not run + waived` always equals the total, and the same three figures are in `matrix.json` and `matrix.xml`.
+`Required 96/112` is passed over total, and the total is the same for every provider: every Required test the shared
+library declares, read from the library itself, whichever providers run and whatever areas each has tests for. The
+parenthesis says what became of the rest: `failed` tests ran and failed; `waived` tests failed but carry a waiver (see
+`deviation`); `not run` tests belong to an area the provider covers but reported no result (a crashed test host, a result
+file from an older suite); `not covered` tests are in an area the provider has no tests for at all (such as `Dml` without
+a fixture). `passed + failed + not run + waived + not covered` always equals the total, and the same figures are in
+`matrix.json` and `matrix.xml`.
 
-The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it works in a script or CI job.
+The exit code is `0` for PASS, `1` for anything else (FAIL, INCOMPLETE, NOT RUN) and `2` for a usage error, so it works
+in a script or CI job.
 
-**A provider passes** when it has no failed Required test and no failed Optional test. Nothing is skipped:
+**A provider passes** when every Required test ran, none failed, and no Optional test failed. A Required test that never
+ran is not a pass: a provider with no failure but some Required tests not covered is `INCOMPLETE`, which says the gap is
+in its tests rather than in the driver, and it fails the overall verdict like `FAIL`. Nothing is skipped:
 
 | Outcome | Counts as | Meaning |
 | --- | --- | --- |
@@ -91,7 +96,7 @@ The exit code is `0` for PASS, `1` for FAIL and `2` for a usage error, so it wor
 | `different` | advisory | The provider departs from a common expectation the contract does not require. Never fails the provider. |
 | `deviation` | advisory | A Required test failed, but the test carries a **waiver**: the documentation states the behavior, yet a deviation cannot lose or alter data or change what a statement returns (for example a property only a designer reads). It is reported with its reason, counted in `waived`, and never fails the provider. |
 | `not-run` | fail | No result was reported, so nothing is known. For a **Common** test this is advisory instead (shown as `N not run` on the Common part of the console line): it cannot hide a Required result. |
-| `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Not counted against the provider; the console line says `Coverage N of M areas`. |
+| `not-covered` | advisory | The provider's test project has no tests for this area at all, so nothing is known about it. Counted in the Required total but not as a failure; a provider with any Required test not covered is `INCOMPLETE`, and the console line says `Coverage N of M areas`. |
 
 A provider whose test project could not run at all (a server that is down, a build that failed, a timeout) is reported as
 `NOT RUN` with the reason, and it fails the overall verdict: a provider that could not be tested is never reported as
@@ -194,11 +199,11 @@ file and compare matrices. A minimal file:
 
 | Key | What it says |
 | --- | --- |
-| `driver` | The NuGet `package` and `version` (exact or floating), the `DbProviderFactory` type (its `Instance`, or a new one), and any other `packages` the driver needs |
+| `driver` | The NuGet `package` and `version` (exact or floating), or a `project` to build it from source (a sibling checkout, relative to the repository root); the `DbProviderFactory` type (its `Instance`, or a new one); and any other `packages` the driver needs |
 | `target` | `docker`: an `image` started on a Docker-assigned host port for the `port` it listens on, with `env`, `command`, `tmpfs`, `privileged`, `files` put in the container, `waitForLog`, `sidecars` (containers it reaches by alias on a network of their own), `exec` shell commands run in it, and `setup` statements (on `setupConnectionString`); `exec` and `setup` are retried until `readySeconds` runs out, and every container is removed after the run. `cloud`: nothing is started and the connection string names environment variables. `file`: a database under `${tempdir}`, removed after the run |
 | `requires` | An `os` and environment variables (an opt-in switch, credentials) the provider needs; without them the runner reports it as `NOT RUN` with the reason, without building it |
 | `processEnvironment` | Variables the runner sets when it starts the test process, for a driver that reads them before any code runs; `${output}` is the test assembly's folder |
-| `connectionString` | With `${host}` and `${port}` (the container's), `${tempdir}`, and `${NAME}` for any environment variable; the `ConnectionString` environment variable overrides it |
+| `connectionString` | With `${host}` and `${port}` (the container's), `${tempdir}` (removed after the run), `${instancedir}` (a folder of each test class's own, for a file database that allows one writer per folder), and `${NAME}` for any environment variable; the `ConnectionString` environment variable overrides it |
 | `environment` | Environment variables set for the test process |
 | `dialect` | Only where the database differs from SQL-92: `select` (`SELECT {0} FROM dual`), `terminator`, `parameterMarker`, `renderAsText`, `createTable`, `dropTable` |
 | `types` | `query`: the server's own list of types; one the provider's `DataTypes` leaves out is a finding. `include`: types to test besides `DataTypes` (name, CLR type, column). `exclude`: types not to test, with the reason |

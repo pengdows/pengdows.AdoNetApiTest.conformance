@@ -23,7 +23,7 @@ internal sealed record ProviderSummary(
 	/// <summary>Required tests in an area the provider covers that reported nothing (a crashed host, a missing result). Counted in <see cref="RequiredTotal"/>.</summary>
 	public int RequiredNotRun { get; init; }
 
-	/// <summary>Required tests in an area the provider has no tests for. Not counted in <see cref="RequiredTotal"/>.</summary>
+	/// <summary>Required tests in an area the provider has no tests for. Counted in <see cref="RequiredTotal"/>; any makes the verdict at best INCOMPLETE.</summary>
 	public int RequiredNotCovered { get; init; }
 
 	/// <summary>Required tests that failed but carry a waiver. Counted in <see cref="RequiredTotal"/>, reported, and never fail the provider.</summary>
@@ -67,7 +67,11 @@ internal sealed partial class Matrix
 	/// <summary>Pass only when every provider passed. A provider that did not run fails the matrix.</summary>
 	public Verdict Verdict { get; }
 
-	public static Matrix Build(IEnumerable<ProviderInput> inputs)
+	/// <param name="suite">
+	/// Every Required test the shared library declares (<see cref="RequiredCatalog"/>). A test no provider reported still
+	/// gets a row, so a provider's Required total is the suite's, whichever providers run with it.
+	/// </param>
+	public static Matrix Build(IEnumerable<ProviderInput> inputs, IReadOnlyCollection<SuiteTest>? suite = null)
 	{
 		var providers = inputs.ToList();
 		var known = LearnFromTheBaseTests(providers);
@@ -85,6 +89,15 @@ internal sealed partial class Matrix
 				}
 
 				row.Raw[provider.Id] = raw;
+			}
+		}
+
+		foreach (var test in suite ?? Array.Empty<SuiteTest>())
+		{
+			var key = test.Area + "\u0001" + test.Method;
+			if (!rows.ContainsKey(key))
+			{
+				rows[key] = new RowBuilder(new TestInfo(test.Area, test.Method, Group.Required, test.Contract, test.Because, test.Waiver));
 			}
 		}
 
@@ -179,14 +192,14 @@ internal sealed partial class Matrix
 				hardFailure = true;
 			}
 
-			if (row.Group == Group.Required && cell.Outcome == Outcome.NotCovered)
-			{
-				requiredNotCovered++;
-			}
-			else if (row.Group == Group.Required)
+			if (row.Group == Group.Required)
 			{
 				requiredTotal++;
-				if (OutcomeInfo.EffectOf(cell.Outcome) == Effect.Pass)
+				if (cell.Outcome == Outcome.NotCovered)
+				{
+					requiredNotCovered++;
+				}
+				else if (OutcomeInfo.EffectOf(cell.Outcome) == Effect.Pass)
 				{
 					requiredPassed++;
 				}
@@ -208,7 +221,9 @@ internal sealed partial class Matrix
 		string? reason = provider.Error ?? (provider.Results is { Count: > 0 } ? null : "no tests reported");
 		var verdict = reason is not null
 			? Verdict.NotRun
-			: hardFailure ? Verdict.Fail : Verdict.Pass;
+			: hardFailure ? Verdict.Fail
+			: requiredNotCovered > 0 ? Verdict.Incomplete
+			: Verdict.Pass;
 
 		return new ProviderSummary(provider.Id, provider.Project, verdict, reason, counts, requiredPassed, requiredTotal, fidelity, areasCovered, areasTotal)
 		{

@@ -134,17 +134,21 @@ public class MatrixTests
 	}
 
 	[Fact]
-	public void An_area_the_provider_has_no_tests_for_is_not_covered_and_does_not_fail_it()
+	public void An_area_the_provider_has_no_tests_for_is_not_covered_and_leaves_it_incomplete()
 	{
 		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
 			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
 
-		var matrix = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) });
+		var matrix = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) }, Suite);
 
-		var row = matrix.Tests.Single(t => t.Name == "Batch_works");
+		var row = matrix.Tests.Single(t => t.Name == "Command_runs");
 		Assert.Equal(Outcome.NotCovered, row.Results["Partial"].Outcome);
 		Assert.Contains("Command", row.Results["Partial"].Detail);
-		Assert.Equal(Verdict.Pass, matrix.Providers.Single(p => p.Id == "Partial").Verdict);
+		Assert.Equal(Verdict.Incomplete, matrix.Providers.Single(p => p.Id == "Partial").Verdict);
+		Assert.Equal(Verdict.Fail, matrix.Verdict);
+
+		// An Optional test in an area the provider does not cover leaves nothing Required untested.
+		Assert.Equal(Outcome.NotCovered, matrix.Tests.Single(t => t.Name == "Batch_works").Results["Partial"].Outcome);
 	}
 
 	[Fact]
@@ -153,8 +157,8 @@ public class MatrixTests
 		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
 			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
 
-		var alone = Matrix.Build(new[] { Provider("Partial", partial) }).Providers.Single();
-		var together = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) }).Providers.Single(p => p.Id == "Partial");
+		var alone = Matrix.Build(new[] { Provider("Partial", partial) }, Suite).Providers.Single();
+		var together = Matrix.Build(new[] { Provider("Full", FullProvider()), Provider("Partial", partial) }, Suite).Providers.Single(p => p.Id == "Partial");
 
 		Assert.Equal(alone.Verdict, together.Verdict);
 		Assert.Equal(alone.RequiredPassed, together.RequiredPassed);
@@ -179,8 +183,8 @@ public class MatrixTests
 		Assert.Equal(1, summary.RequiredFailed);
 		Assert.Equal(1, summary.RequiredNotRun);
 		Assert.Equal(1, summary.RequiredNotCovered);
-		Assert.Equal(3, summary.RequiredTotal);
-		Assert.Equal(summary.RequiredTotal, summary.RequiredPassed + summary.RequiredFailed + summary.RequiredNotRun);
+		Assert.Equal(4, summary.RequiredTotal);
+		Assert.Equal(summary.RequiredTotal, summary.RequiredPassed + summary.RequiredFailed + summary.RequiredNotRun + summary.RequiredNotCovered);
 	}
 
 	[Fact]
@@ -224,7 +228,55 @@ public class MatrixTests
 
 		var s = Matrix.Build(new[] { Provider("P", xml) }).Providers.Single();
 
-		Assert.Equal(s.RequiredTotal, s.RequiredPassed + s.RequiredFailed + s.RequiredNotRun + s.RequiredWaived);
+		Assert.Equal(s.RequiredTotal, s.RequiredPassed + s.RequiredFailed + s.RequiredNotRun + s.RequiredWaived + s.RequiredNotCovered);
+	}
+
+	/// <summary>The Required tests of a tiny suite: two Connection tests and one Command test.</summary>
+	private static readonly SuiteTest[] Suite =
+	{
+		new("Command", "Command_runs", "https://learn.microsoft.com/x", null, null),
+		new("Connection", "Connection_closes", "https://learn.microsoft.com/x", null, null),
+		new("Connection", "Connection_opens", "https://learn.microsoft.com/x", null, null),
+	};
+
+	[Fact]
+	public void The_required_total_is_the_suite_s_even_for_a_test_no_provider_ran()
+	{
+		var partial = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
+
+		var matrix = Matrix.Build(new[] { Provider("Partial", partial) }, Suite);
+		var summary = matrix.Providers.Single();
+
+		Assert.Equal(3, summary.RequiredTotal);
+		Assert.Equal(2, summary.RequiredPassed);
+		Assert.Equal(1, summary.RequiredNotCovered);
+		Assert.Equal(Verdict.Incomplete, summary.Verdict);
+		Assert.Equal(Outcome.NotCovered, matrix.Tests.Single(t => t.Name == "Command_runs").Results["Partial"].Outcome);
+	}
+
+	[Fact]
+	public void A_provider_that_ran_every_required_test_without_failure_passes()
+	{
+		var full = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
+			.Test("Command_runs", "Pass", "Required", XmlBuilder.Base("Command", "Required"));
+
+		var summary = Matrix.Build(new[] { Provider("Full", full) }, Suite).Providers.Single();
+
+		Assert.Equal(Verdict.Pass, summary.Verdict);
+		Assert.Equal(3, summary.RequiredTotal);
+	}
+
+	[Fact]
+	public void The_catalog_lists_every_required_test_of_the_library_by_area()
+	{
+		var suite = RequiredCatalog.Load();
+
+		Assert.Contains(suite, t => t.Area == "Command" && t.Method == "Prepare_throws_when_no_connection");
+		Assert.Contains(suite, t => t.Area == "DataReader");
+		Assert.All(suite, t => Assert.StartsWith("https://", t.Contract));
+		Assert.Equal(suite.Count, suite.Select(t => t.Area + "." + t.Method).Distinct().Count());
 	}
 
 	[Fact]

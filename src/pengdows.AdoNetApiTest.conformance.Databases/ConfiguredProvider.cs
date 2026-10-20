@@ -66,6 +66,8 @@ public sealed class ConfiguredServer : IAsyncLifetime
 		m_tempDirectory = Path.Combine(Path.GetTempPath(), "conformance-" + config.Name + "-" + Guid.NewGuid().ToString("N"));
 		Directory.CreateDirectory(m_tempDirectory);
 		ConfiguredProvider.Values["tempdir"] = m_tempDirectory;
+		// The server-level checks (waiting for a connection) have no fixture; each fixture gets its own folder (ConfiguredFixture).
+		ConfiguredProvider.Values["instancedir"] = m_tempDirectory;
 		ConfiguredProvider.Values["output"] = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
 		var target = config.Target;
@@ -272,7 +274,20 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 {
 	public DbProviderFactory Factory => ConfiguredProvider.Factory;
 
-	public string ConnectionString => System.Environment.GetEnvironmentVariable("ConnectionString") ?? ConfiguredProvider.ConnectionString;
+	private readonly Lazy<string> m_instanceDirectory = new(() =>
+	{
+		var directory = Path.Combine(ConfiguredProvider.Values.TryGetValue("tempdir", out var temp) ? temp : Path.GetTempPath(), "instance-" + Guid.NewGuid().ToString("N"));
+		Directory.CreateDirectory(directory);
+		return directory;
+	});
+
+	/// <summary>
+	/// The configured connection string; <c>${instancedir}</c> in it is a folder of this fixture's own, for a file-based
+	/// provider that allows one writer per folder (pengdows.flatfile), since each test class has its own fixture.
+	/// </summary>
+	public string ConnectionString => System.Environment.GetEnvironmentVariable("ConnectionString")
+		?? ProviderConfig.Expand(ConfiguredProvider.Config.ConnectionString,
+			new Dictionary<string, string>(ConfiguredProvider.Values) { ["instancedir"] = m_instanceDirectory.Value });
 
 	private static DialectConfig Dialect => ConfiguredProvider.Config.Dialect;
 

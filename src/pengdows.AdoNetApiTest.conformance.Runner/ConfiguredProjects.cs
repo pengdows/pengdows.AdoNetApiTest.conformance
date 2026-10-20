@@ -46,8 +46,10 @@ internal static class ConfiguredProjects
 		return new ProviderProject(config.Name, project, NotRunReason(config), config.ProcessEnvironment);
 	}
 
+	/// <param name="DriverProject">A driver built from source instead of a package: its project file, relative to the repository root or absolute.</param>
 	internal sealed record Config(string Name, IReadOnlyList<(string Package, string Version)> Packages, bool StatesMarker,
-		string? RequiredOs = null, IReadOnlyList<string>? RequiredEnv = null, IReadOnlyDictionary<string, string>? ProcessEnvironment = null);
+		string? RequiredOs = null, IReadOnlyList<string>? RequiredEnv = null, IReadOnlyDictionary<string, string>? ProcessEnvironment = null,
+		string? DriverProject = null);
 
 	/// <summary>Why the configuration cannot run on this machine, or <c>null</c>.</summary>
 	internal static string? NotRunReason(Config config, Func<string, string?>? getEnv = null)
@@ -75,12 +77,17 @@ internal static class ConfiguredProjects
 			throw new ArgumentException($"{path}: \"name\" must be letters, digits or underscores; it names the provider and its project.");
 		}
 
-		if (!TryGet(json, "driver", out var driver) || Text(driver, "package") is not { } package)
+		if (!TryGet(json, "driver", out var driver) || (Text(driver, "package") is null && Text(driver, "project") is null))
 		{
-			throw new ArgumentException($"{path}: \"driver.package\" is required.");
+			throw new ArgumentException($"{path}: \"driver.package\" (a NuGet package) or \"driver.project\" (a project to build) is required.");
 		}
 
-		var packages = new List<(string, string)> { (package, Text(driver, "version") ?? "*") };
+		var packages = new List<(string, string)>();
+		if (Text(driver, "package") is { } package)
+		{
+			packages.Add((package, Text(driver, "version") ?? "*"));
+		}
+
 		if (TryGet(driver, "packages", out var more) && more.ValueKind == JsonValueKind.Object)
 		{
 			packages.AddRange(more.EnumerateObject().Select(p => (p.Name, p.Value.GetString() ?? "*")));
@@ -107,7 +114,7 @@ internal static class ConfiguredProjects
 			}
 		}
 
-		return new Config(name, packages, marker, os, env, process);
+		return new Config(name, packages, marker, os, env, process, Text(driver, "project"));
 	}
 
 	private static bool TryGet(JsonElement element, string name, out JsonElement value)
@@ -145,6 +152,11 @@ internal static class ConfiguredProjects
 		text.AppendLine("  </ItemGroup>");
 		text.AppendLine();
 		text.AppendLine("  <ItemGroup>");
+		if (config.DriverProject is { } driverProject)
+		{
+			text.AppendLine($"    <ProjectReference Include=\"{SecurityElement.Escape(Path.GetFullPath(Path.Combine(root, driverProject)))}\" />");
+		}
+
 		text.AppendLine($"    <ProjectReference Include=\"{Path.Combine(src, "pengdows.AdoNetApiTest.conformance.Databases", "pengdows.AdoNetApiTest.conformance.Databases.csproj")}\" />");
 		text.AppendLine($"    <ProjectReference Include=\"{Path.Combine(src, "pengdows.AdoNetApiTest.conformance", "pengdows.AdoNetApiTest.conformance.csproj")}\" />");
 		text.AppendLine("    <None Include=\"provider.json\" CopyToOutputDirectory=\"PreserveNewest\" />");

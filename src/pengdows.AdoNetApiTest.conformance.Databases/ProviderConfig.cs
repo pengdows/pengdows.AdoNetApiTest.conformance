@@ -64,9 +64,9 @@ public sealed class ProviderConfig
 	{
 		var config = JsonSerializer.Deserialize<ProviderConfig>(File.ReadAllText(path), s_options)
 			?? throw new InvalidOperationException($"{path} is empty.");
-		if (string.IsNullOrEmpty(config.Name) || config.Driver?.Package is null || config.Driver.Factory is null || config.ConnectionString is null)
+		if (string.IsNullOrEmpty(config.Name) || (config.Driver?.Package is null && config.Driver?.Project is null) || config.Driver.Factory is null || config.ConnectionString is null)
 		{
-			throw new InvalidOperationException($"{path} needs name, driver.package, driver.factory and connectionString.");
+			throw new InvalidOperationException($"{path} needs name, driver.package or driver.project, driver.factory and connectionString.");
 		}
 
 		config.Target ??= new TargetConfig { Kind = "cloud" };
@@ -92,6 +92,12 @@ public sealed class DriverConfig
 {
 	/// <summary>The NuGet package of the driver.</summary>
 	public string Package { get; set; }
+
+	/// <summary>
+	/// A driver built from source instead: its project file, relative to the repository root (a sibling checkout such as
+	/// <c>../pengdows.flatfile/pengdows.flatfile/pengdows.flatfile.csproj</c>). Read by the runner.
+	/// </summary>
+	public string Project { get; set; }
 
 	/// <summary>The package version: exact (<c>9.0.3</c>) or floating (<c>9.*</c>).</summary>
 	public string Version { get; set; } = "*";

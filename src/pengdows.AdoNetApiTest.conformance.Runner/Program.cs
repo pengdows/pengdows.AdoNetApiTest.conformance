@@ -22,7 +22,7 @@ internal static class Program
 		try
 		{
 			var inputs = options.Command == Command.Report ? ReadFiles(options) : RunProviders(options);
-			var matrix = Matrix.Build(inputs);
+			var matrix = Matrix.Build(inputs, RequiredCatalog.Load());
 			Write(options.JsonPath, MatrixJson.Write(matrix));
 			Write(options.XmlPath, MatrixXml.Write(matrix));
 			Console.WriteLine(ConsoleReport.Render(matrix));

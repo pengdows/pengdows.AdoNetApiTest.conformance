@@ -75,6 +75,7 @@ public sealed class ConfiguredProjectsTests : IDisposable
 	[InlineData("""{ "driver": { "package": "P" } }""", "name")]
 	[InlineData("""{ "name": "Bad Name", "driver": { "package": "P" } }""", "name")]
 	[InlineData("""{ "name": "Example" }""", "driver.package")]
+	[InlineData("""{ "name": "Example", "driver": { "factory": "F" } }""", "driver.project")]
 	public void An_incomplete_configuration_says_what_is_missing(string json, string field)
 	{
 		var path = Write("Bad.json", json);
@@ -112,5 +113,17 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Equal("windows", config.RequiredOs);
 		Assert.Equal(new[] { "INCLUDE_EXAMPLE" }, config.RequiredEnv);
 		Assert.Equal("${output}/native/lib", config.ProcessEnvironment!["LD_LIBRARY_PATH"]);
+	}
+
+	[Fact]
+	public void A_driver_built_from_source_is_a_project_reference()
+	{
+		Write("Local.json", """{ "name": "Local", "driver": { "project": "../driver/Driver.csproj", "factory": "F" }, "connectionString": "x" }""");
+
+		var provider = Assert.Single(ConfiguredProjects.Discover(Path.Combine(m_root, "tests")));
+		var project = File.ReadAllText(provider.Project);
+
+		Assert.Contains($"<ProjectReference Include=\"{Path.GetFullPath(Path.Combine(m_root, "../driver/Driver.csproj"))}\" />", project);
+		Assert.DoesNotContain("<PackageReference Include=\"\"", project);
 	}
 }

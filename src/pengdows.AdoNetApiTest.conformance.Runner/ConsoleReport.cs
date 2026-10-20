@@ -11,7 +11,7 @@ internal static class ConsoleReport
 		var width = Math.Max(8, matrix.Providers.Select(p => p.Id.Length).DefaultIfEmpty(0).Max());
 		foreach (var provider in matrix.Providers)
 		{
-			text.Append(provider.Id.PadRight(width)).Append("  ").Append(OutcomeInfo.Text(provider.Verdict).PadRight(7)).Append("  ");
+			text.Append(provider.Id.PadRight(width)).Append("  ").Append(OutcomeInfo.Text(provider.Verdict).PadRight(10)).Append("  ");
 			if (provider.Reason is not null)
 			{
 				text.Append(provider.Reason);
@@ -36,14 +36,14 @@ internal static class ConsoleReport
 					lost.Add(provider.RequiredWaived + " waived");
 				}
 
+				if (provider.RequiredNotCovered > 0)
+				{
+					lost.Add(provider.RequiredNotCovered + " not covered");
+				}
+
 				if (lost.Count > 0)
 				{
 					text.Append(" (").Append(string.Join(", ", lost)).Append(')');
-				}
-
-				if (provider.RequiredNotCovered > 0)
-				{
-					text.Append(" + ").Append(provider.RequiredNotCovered).Append(" Required not covered");
 				}
 
 				text.Append("  |  Optional ")

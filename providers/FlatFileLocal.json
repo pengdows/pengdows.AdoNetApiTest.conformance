@@ -1,0 +1,12 @@
+{
+  "name": "FlatFileLocal",
+  "description": "pengdows.flatfile built from the sibling checkout (../pengdows.flatfile), to compare unreleased source with the released package in FlatFile0.",
+  "driver": {
+    "project": "../pengdows.flatfile/pengdows.flatfile/pengdows.flatfile.csproj",
+    "factory": "pengdows.flatfile.FlatFileProviderFactory, pengdows.flatfile"
+  },
+  "target": {
+    "kind": "file"
+  },
+  "connectionString": "path=${instancedir}"
+}

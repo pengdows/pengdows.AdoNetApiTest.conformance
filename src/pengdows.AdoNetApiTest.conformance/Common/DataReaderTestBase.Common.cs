@@ -143,14 +143,46 @@ public partial class DataReaderTestBase<TFixture>
 	public virtual void HasRows_works_when_batching()
 	{
 		using var connection = CreateOpenConnection();
+		DataTable schema;
+		try
+		{
+			schema = connection.GetSchema(DbMetaDataCollectionNames.DataSourceInformation);
+		}
+		catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or ArgumentException)
+		{
+			ConformanceOutcome.NotImplemented("The provider does not expose DataSourceInformation; compound-statement support is unknown.");
+			return;
+		}
+
+		if (!schema.Columns.Contains(DbMetaDataColumnNames.StatementSeparatorPattern) || schema.Rows.Count == 0 ||
+			schema.Rows[0][DbMetaDataColumnNames.StatementSeparatorPattern] is DBNull ||
+			string.IsNullOrWhiteSpace(schema.Rows[0][DbMetaDataColumnNames.StatementSeparatorPattern] as string))
+		{
+			ConformanceOutcome.NotImplemented("The provider does not advertise a statement separator; compound statements are optional.");
+			return;
+		}
+
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectNoRowsThenOneSql;
-		using var reader = command.ExecuteReader();
+		DbDataReader reader;
+		try
+		{
+			reader = command.ExecuteReader();
+		}
+		catch (DbException ex)
+		{
+			ConformanceOutcome.Different("The provider advertises a statement separator but rejects compound statements: " + ex.Message);
+			return;
+		}
+
+		using (reader)
+		{
 		Assert.False(reader.HasRows);
 
 		reader.NextResult();
 
 		Assert.True(reader.HasRows);
+		}
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]

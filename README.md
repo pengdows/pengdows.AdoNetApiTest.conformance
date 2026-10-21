@@ -338,6 +338,8 @@ Bradley Grainger and contributors (Brice Lambson, Shay Rojansky, Yoh Deadfall) u
 codebase has diverged substantially and is not a drop-in continuation of the original test suite: it now implements
 its own contract-focused fixtures, provider configurations, certification runner, and reporting model. The upstream
 commit history is preserved in this repository, and the upstream copyright notice is kept in [LICENSE](LICENSE) as
-the MIT license requires. Changes since the fork are Copyright 2025-2026 Pengdows, under the same license.
+the MIT license requires. The fork relationship describes only where this project started; it does not describe the
+current project's purpose or implementation. Changes since the fork are Copyright 2025-2026 Pengdows, under the same
+license.
 
 [MIT](LICENSE)

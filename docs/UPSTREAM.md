@@ -39,6 +39,11 @@ The status badges come from GitHub through shields.io each time the page is view
 | Npgsql | [npgsql/npgsql#6682](https://github.com/npgsql/npgsql/pull/6682) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6682?label=) | Reading an interval with negative months as `TimeSpan` throws instead of losing data |
 | Npgsql | [npgsql/npgsql#6683](https://github.com/npgsql/npgsql/pull/6683) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6683?label=) | `DataTypes` advertises type modifiers from `pg_type.typmodin` |
 | Npgsql | [npgsql/npgsql#6684](https://github.com/npgsql/npgsql/pull/6684) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6684?label=) | `DataTypes` quotes the internal `"char"` type's `CreateFormat` |
+| Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#758](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/758), [#762](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/762) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/762?label=) | `Release` throws `NotSupportedException` when `SupportsSavepoints` is false |
+| Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#759](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/759), [#763](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/763) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/763?label=) | `GetOrdinal` case-insensitive fallback |
+| Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#471](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/471), [#764](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/764) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/764?label=) | `ServerVersion` returns the server's version |
+| Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#760](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/760), [#765](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/765) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/765?label=) | `CommandBehavior.CloseConnection` closes the connection with the reader |
+| Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#761](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/761), [#766](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/766) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/766?label=) | `ParameterName` reads back as set (marked breaking upstream) |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
 
 With its contract pull requests merged, DuckDB.NET passes every Required test. With #242, AseClient passes
@@ -50,6 +55,9 @@ With its contract pull requests merged, DuckDB.NET passes every Required test. W
   documents the behaviour it has: "Prior to Visual Studio 2010, Prepare threw an exception. Beginning in Visual Studio
   2010, this method does not throw an exception." It is the provider's documented choice, not an oversight.
 - **Faithlife.System.Data.SQLite**: the repository is archived.
+- **Ydb.Sdk row counts**: `ExecuteNonQuery` and `RecordsAffected` return -1 for INSERT, UPDATE and DELETE, which fails the
+  Required DML tests. YDB documents it as a limit of the database: [Basic Usage with ADO.NET](https://ydb.tech/docs/en/reference/languages-and-apis/ado-net/basic-usage)
+  says "YDB does not return the number of rows affected." The tests stay Required; YDB does not pass them.
 
 ## Drafts for trackers without pull requests
 

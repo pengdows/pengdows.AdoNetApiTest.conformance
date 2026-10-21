@@ -6,7 +6,9 @@ using Ydb.Sdk.Ado;
 
 namespace Ydb.Tests;
 
-public sealed class YdbDbFactoryFixture : IDbFactoryFixture, IDmlFixture, IDisposable
+/// <summary>YQL reads <c>'text'</c> as a byte string (<c>String</c>), so text is <c>'text'u</c> (<c>Utf8</c>); names are quoted with backticks.</summary>
+// The counted statements are INSERT, UPDATE and DELETE: ExecuteNonQuery owes a row count only for those, and -1 for UPSERT.
+public sealed class YdbDbFactoryFixture : IDbFactoryFixture, IDmlFixture, ISqlLiteralFixture, IDisposable
 {
     public DbProviderFactory Factory => YdbProviderFactory.Instance;
 
@@ -21,12 +23,16 @@ public sealed class YdbDbFactoryFixture : IDbFactoryFixture, IDmlFixture, IDispo
 	};
 
 	public IReadOnlyList<string> DmlCleanupSql => new[] { "DROP TABLE IF EXISTS people" };
-    public string DmlInsertSql => "UPSERT INTO people (id, name) VALUES (3, 'Carol');";
-    public string DmlMultiRowUpdateSql => "UPSERT INTO people (id, name) VALUES (1, 'Updated'), (2, 'Updated');";
-    public string DmlUpdateSql => "UPSERT INTO people (id, name) VALUES (1, 'Alicia');";
-    public string DmlUpdateNoRowsSql => "UPSERT INTO people SELECT 999, 'Nobody' WHERE false;";
+    public string DmlInsertSql => "INSERT INTO people (id, name) VALUES (3, 'Carol'u);";
+    public string DmlMultiRowUpdateSql => "UPDATE people SET name = 'Updated'u WHERE id IN (1, 2);";
+    public string DmlUpdateSql => "UPDATE people SET name = 'Alicia'u WHERE id = 1;";
+    public string DmlUpdateNoRowsSql => "UPDATE people SET name = 'Nobody'u WHERE id = 999;";
     public string DmlDeleteSql => "DELETE FROM people WHERE id = 2;";
     public string DmlDeleteNoRowsSql => "DELETE FROM people WHERE id = 999;";
+
+    public string TextLiteral(string text) => "'" + text.Replace("\\", "\\\\").Replace("'", "\\'") + "'u";
+
+    public string QuotedIdentifier(string name) => "`" + name.Replace("`", "\\`") + "`";
 
     public void Dispose()
     {

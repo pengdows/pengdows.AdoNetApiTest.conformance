@@ -87,31 +87,31 @@ public partial class DataReaderTestBase<TFixture>
 		=> X_diagnostic_when_closed(r => r.GetName(0), "GetName on a closed reader");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetString_works_utf8_two_bytes() => GetX_works(SelectSql("'Ä'"), r => r.GetString(0), "Ä");
+	public virtual void GetString_works_utf8_two_bytes() => GetX_works(SelectSql(Text("Ä")), r => r.GetString(0), "Ä");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetString_works_utf8_three_bytes() => GetX_works(SelectSql("'Ḁ'"), r => r.GetString(0), "Ḁ");
+	public virtual void GetString_works_utf8_three_bytes() => GetX_works(SelectSql(Text("Ḁ")), r => r.GetString(0), "Ḁ");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetString_works_utf8_four_bytes() => GetX_works(SelectSql("'😀'"), r => r.GetString(0), "😀");
+	public virtual void GetString_works_utf8_four_bytes() => GetX_works(SelectSql(Text("😀")), r => r.GetString(0), "😀");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetFieldValue_works_utf8_two_bytes() => GetX_works(SelectSql("'Ä'"), r => r.GetFieldValue<string>(0), "Ä");
+	public virtual void GetFieldValue_works_utf8_two_bytes() => GetX_works(SelectSql(Text("Ä")), r => r.GetFieldValue<string>(0), "Ä");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetFieldValue_works_utf8_three_bytes() => GetX_works(SelectSql("'Ḁ'"), r => r.GetFieldValue<string>(0), "Ḁ");
+	public virtual void GetFieldValue_works_utf8_three_bytes() => GetX_works(SelectSql(Text("Ḁ")), r => r.GetFieldValue<string>(0), "Ḁ");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetFieldValue_works_utf8_four_bytes() => GetX_works(SelectSql("'😀'"), r => r.GetFieldValue<string>(0), "😀");
+	public virtual void GetFieldValue_works_utf8_four_bytes() => GetX_works(SelectSql(Text("😀")), r => r.GetFieldValue<string>(0), "😀");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetValue_to_string_works_utf8_two_bytes() => GetX_works(SelectSql("'Ä'"), r => r.GetValue(0) as string, "Ä");
+	public virtual void GetValue_to_string_works_utf8_two_bytes() => GetX_works(SelectSql(Text("Ä")), r => r.GetValue(0) as string, "Ä");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetValue_to_string_works_utf8_three_bytes() => GetX_works(SelectSql("'Ḁ'"), r => r.GetValue(0) as string, "Ḁ");
+	public virtual void GetValue_to_string_works_utf8_three_bytes() => GetX_works(SelectSql(Text("Ḁ")), r => r.GetValue(0) as string, "Ḁ");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]
-	public virtual void GetValue_to_string_works_utf8_four_bytes() => GetX_works(SelectSql("'😀'"), r => r.GetValue(0) as string, "😀");
+	public virtual void GetValue_to_string_works_utf8_four_bytes() => GetX_works(SelectSql(Text("😀")), r => r.GetValue(0) as string, "😀");
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "null-array exception policy is not specified by DbDataReader")]
 	public virtual void GetValues_throws_for_null()

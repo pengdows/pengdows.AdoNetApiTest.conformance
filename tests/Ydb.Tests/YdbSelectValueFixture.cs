@@ -17,5 +17,8 @@ public sealed class YdbSelectValueFixture : SelectValueFixture<YdbDbFactoryFixtu
 		[DbType.String] = "Utf8",
 	};
 
+	/// <summary>YQL has no <c>X'..'</c> literal; <c>String::HexDecode</c> gives the bytes.</summary>
+	protected override string BinaryLiteral => "Unwrap(String::HexDecode('{0}'))";
+
 	protected override string CreateTableSql(string table, string column) => $"CREATE TABLE {table} (Id Int32, V {column}, PRIMARY KEY (Id))";
 }

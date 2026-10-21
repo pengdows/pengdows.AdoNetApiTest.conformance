@@ -227,7 +227,7 @@ public sealed class SelectValueTables
 /// connection and SELECT shape. Override <see cref="ColumnTypes"/> and <see cref="BinaryLiteral"/> where the database
 /// spells them differently.
 /// </summary>
-public class SelectValueFixture<TFactoryFixture> : ISelectValueFixture, IDeleteFixture, ISqlDialectFixture, IDisposable
+public class SelectValueFixture<TFactoryFixture> : ISelectValueFixture, IDeleteFixture, ISqlDialectFixture, ISqlLiteralFixture, IDisposable
 	where TFactoryFixture : IDbFactoryFixture, new()
 {
 	private readonly TFactoryFixture m_inner = new();
@@ -262,6 +262,10 @@ public class SelectValueFixture<TFactoryFixture> : ISelectValueFixture, IDeleteF
 	public string SelectStatement(string projection) => m_inner is ISqlDialectFixture dialect ? dialect.SelectStatement(projection) : $"SELECT {projection}";
 
 	public string StatementTerminator => m_inner is ISqlDialectFixture dialect ? dialect.StatementTerminator : ";";
+
+	public string TextLiteral(string text) => SqlLiterals.Text(m_inner, text);
+
+	public string QuotedIdentifier(string name) => SqlLiterals.Quoted(m_inner, name);
 
 	public IReadOnlyCollection<DbType> SupportedDbTypes => m_supported.Value;
 

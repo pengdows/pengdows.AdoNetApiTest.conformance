@@ -36,7 +36,7 @@ public partial class DataReaderTestBase<TFixture> : DbFactoryTestBase<TFixture>
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
 		// NB: Intentionally using a multi-byte UTF-8 character
-		command.CommandText = SelectSql("'ab¢d'");
+		command.CommandText = SelectSql(Text("ab¢d"));
 		using var reader = command.ExecuteReader();
 		reader.Read();
 		action(reader);

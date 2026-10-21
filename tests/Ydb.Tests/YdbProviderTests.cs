@@ -15,6 +15,9 @@ public sealed class YdbConnectionTests : ConnectionTestBase<YdbDbFactoryFixture>
 public sealed class YdbCommandTests : CommandTestBase<YdbDbFactoryFixture>
 {
     public YdbCommandTests(YdbDbFactoryFixture fixture) : base(fixture) { }
+
+    // YQL rejects ORDER BY a constant ("ORDER BY 1"); it orders by the column's name.
+    protected override string SelectTwoRowsSql => "SELECT 1 AS v UNION SELECT 2 AS v ORDER BY v;";
 }
 
 public sealed class YdbParameterTests : ParameterTestBase<YdbDbFactoryFixture>
@@ -35,6 +38,9 @@ public sealed class YdbDmlTests : DmlTestBase<YdbDbFactoryFixture>
 public sealed class YdbDataReaderTests : DataReaderTestBase<YdbSelectValueFixture>
 {
     public YdbDataReaderTests(YdbSelectValueFixture fixture) : base(fixture) { }
+
+    // YQL rejects ORDER BY a constant ("ORDER BY 1"); it orders by the column's name.
+    protected override string SelectTwoRowsSql => "SELECT 1 AS v UNION SELECT 2 AS v ORDER BY v;";
 }
 
 public sealed class YdbGetValueConversionTests : GetValueConversionTestBase<YdbSelectValueFixture>

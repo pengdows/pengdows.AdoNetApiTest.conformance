@@ -282,7 +282,8 @@ pengdows.crud carries for these drivers: an `inet` with a netmask, an `interval`
 is the provider's own type (Npgsql's `NpgsqlInet`) is expected by its text (`ClrText`). If a provider closes the
 connection after a rejected value, the finding says so and the next check uses a new connection. A fixture that
 implements `ITypeFidelityFixture` and a derived class are all another provider needs; a database that needs
-`FROM dual` or no statement terminator implements `ISqlDialectFixture` once on its fixture.
+`FROM dual` or no statement terminator implements `ISqlDialectFixture` once on its fixture, and one that spells text
+literals or quoted names differently (YQL's `'text'u` and backticks) implements `ISqlLiteralFixture`.
 
 ## Providers from a configuration file
 

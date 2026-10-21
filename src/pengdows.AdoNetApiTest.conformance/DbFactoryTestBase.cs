@@ -117,6 +117,12 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		? dialect.SelectStatement(projection) + dialect.StatementTerminator
 		: $"SELECT {projection};";
 
+	/// <summary>A text literal in the fixture's spelling (<see cref="ISqlLiteralFixture"/>), SQL-92 <c>'text'</c> by default.</summary>
+	protected string Text(string text) => SqlLiterals.Text(Fixture, text);
+
+	/// <summary>A quoted identifier in the fixture's spelling (<see cref="ISqlLiteralFixture"/>), SQL-92 <c>"name"</c> by default.</summary>
+	protected string Quoted(string name) => SqlLiterals.Quoted(Fixture, name);
+
 	/// <summary>Returns one scalar using the provider's portable SELECT shape.</summary>
 	protected virtual string SelectOneSql => SelectSql("1");
 
@@ -127,10 +133,10 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	protected virtual string SelectOneAsValueSql => SelectSql("1 AS value");
 
 	/// <summary>Returns one text scalar.</summary>
-	protected virtual string SelectTextSql => SelectSql("'test'");
+	protected virtual string SelectTextSql => SelectSql(Text("test"));
 
 	/// <summary>Returns one text scalar with a stable column name.</summary>
-	protected virtual string SelectTextAsIdSql => SelectSql("'test' AS Id");
+	protected virtual string SelectTextAsIdSql => SelectSql(Text("test") + " AS Id");
 
 	/// <summary>Returns two result sets containing one scalar each.</summary>
 	protected virtual string SelectTwoResultsSql => SelectSql("1") + " " + SelectSql("2");

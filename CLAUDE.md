@@ -67,8 +67,10 @@ over the fixture's value, and when it is set the server fixtures start no contai
   `Optional/XTestBase.Optional.cs`, `Common/XTestBase.Common.cs`.
   Capabilities are declared by fixture interfaces (`IDbFactoryFixture`, `ISelectValueFixture`, `IDmlFixture`,
   `ITransactionSemanticsFixture`, `ITypeFidelityFixture`, ...). SQL dialect differences go through overridable hooks
-  (`SelectSql`, `SelectOneSql`, ...) and `ParameterMarkerDiscovery` (reads `ParameterMarkerFormat`, falls back to `?`)
-  — never hard-code `@`, `FROM dual`, batching syntax or a provider's exception subclass in shared tests.
+  (`SelectSql`, `SelectOneSql`, ...), `ISqlDialectFixture`, `ISqlLiteralFixture` (write text as `Text("x")` and quoted
+  names as `Quoted("x")`) and parameter marker discovery (`ParameterMarkerFormat`, else a `:name` then `@name` probe)
+  — never hard-code `@`, `'text'`, `"name"`, `FROM dual`, batching syntax or a provider's exception subclass in shared
+  tests.
 - **`src/pengdows.AdoNetApiTest.conformance.Databases/`** — per-database setup/SQL helpers and type catalogs
   (`SqlServerTypes`, `SqliteTypes`) used by provider fixtures.
 - **`src/pengdows.AdoNetApiTest.conformance.Runner/`** — the `run`/`report` CLI. `ProviderDiscovery` treats every

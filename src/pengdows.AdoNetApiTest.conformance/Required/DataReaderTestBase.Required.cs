@@ -260,7 +260,7 @@ public partial class DataReaderTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql("1 AS \"a\", 2 AS \"A\"");
+		command.CommandText = SelectSql($"1 AS {Quoted("a")}, 2 AS {Quoted("A")}");
 		using var reader = ExecuteReaderWithNamesThatDifferOnlyInCase(command);
 		if (reader is null)
 		{
@@ -281,7 +281,7 @@ public partial class DataReaderTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql("1 AS \"b\", 2 AS \"value\"");
+		command.CommandText = SelectSql($"1 AS {Quoted("b")}, 2 AS {Quoted("value")}");
 		using var reader = command.ExecuteReader();
 		if (reader.GetName(1) != "value")
 		{
@@ -343,7 +343,7 @@ public partial class DataReaderTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql("'a', NULL");
+		command.CommandText = SelectSql(Text("a") + ", NULL");
 		using var reader = command.ExecuteReader();
 		var hasData = reader.Read();
 		Assert.True(hasData);
@@ -361,7 +361,7 @@ public partial class DataReaderTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql("'a', 'b'");
+		command.CommandText = SelectSql(Text("a") + ", " + Text("b"));
 		using var reader = command.ExecuteReader();
 		Assert.True(reader.Read());
 

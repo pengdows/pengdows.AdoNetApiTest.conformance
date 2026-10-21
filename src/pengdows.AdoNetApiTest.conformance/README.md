@@ -14,6 +14,14 @@ It began as [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest
 which tested what MySqlConnector and similar providers have in common. This suite tests the documented contract
 instead, so behavior that only some providers share is reported as advisory, never as a requirement.
 
+### Version lineage
+
+This package keeps the upstream project's history and MIT notices, but its package versions identify the Pengdows
+successor line. The `3.0.0-beta.*` line is therefore not an upstream-compatible patch release: it reflects the
+contract-focused test model, provider matrix, certification runner, and public API maintained in this repository.
+Consumers should pin the version line they have reviewed and treat a future major version as the point where this
+successor's public test API or contract model is intentionally incompatible.
+
 ### Usage
 
 Create a test project that uses [xunit](https://www.nuget.org/packages/xunit).

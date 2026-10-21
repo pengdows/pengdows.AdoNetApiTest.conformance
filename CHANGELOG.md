@@ -5,6 +5,8 @@ project's release notes are in [UPSTREAM-VERSION-HISTORY.md](UPSTREAM-VERSION-HI
 
 ## Unreleased
 
+* Documented that the `3.0.0-beta.*` package line is the Pengdows successor line: it preserves upstream history and
+  licensing, but is not an upstream-compatible patch release.
 * The console line, `matrix.json` and `matrix.xml` account for every Required test: passed, failed, not run, and not
   covered, so a crashed test host or a missing result can no longer hide inside "N/M".
 * Renamed to `pengdows.AdoNetApiTest.conformance`; copyright line for Pengdows added to the MIT license, upstream

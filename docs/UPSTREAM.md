@@ -26,7 +26,9 @@ The status badges come from GitHub through shields.io each time the page is view
 | Microsoft.Data.Sqlite | [dotnet/efcore#39190](https://github.com/dotnet/efcore/issues/39190), [dotnet/efcore#39188](https://github.com/dotnet/efcore/pull/39188) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39188?label=) | ADO.NET schema collections |
 | Microsoft.Data.Sqlite | [dotnet/efcore#39219](https://github.com/dotnet/efcore/pull/39219) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39219?label=) | Remaining schema metadata corrections |
 | Microsoft.Data.Sqlite | [dotnet/efcore#39336](https://github.com/dotnet/efcore/issues/39336), [dotnet/efcore#39337](https://github.com/dotnet/efcore/pull/39337) | ![open](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39337?label=) | A reader outlives its disposed command |
-| Microsoft.Data.Sqlite | [dotnet/efcore#39343](https://github.com/dotnet/efcore/issues/39343), [dotnet/efcore#39344](https://github.com/dotnet/efcore/pull/39344) | ![open](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39344?label=) | `GetOrdinal` throws `IndexOutOfRangeException`; `GetValues` accepts a short array |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39343](https://github.com/dotnet/efcore/issues/39343), [#39353](https://github.com/dotnet/efcore/pull/39353) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39353?label=) | `GetOrdinal` throws `IndexOutOfRangeException` for an unknown name |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39352](https://github.com/dotnet/efcore/issues/39352), [#39354](https://github.com/dotnet/efcore/pull/39354) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39354?label=) | `GetValues` copies only what fits in a short array |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39344](https://github.com/dotnet/efcore/pull/39344) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39344?label=) | Combined `GetOrdinal`/`GetValues` fix, split into #39353 and #39354 |
 | Microsoft.Data.SqlClient | [dotnet/SqlClient#4874](https://github.com/dotnet/SqlClient/pull/4874) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/SqlClient/4874?label=) | `ParameterCollection.RemoveAt(int)` throws `ArgumentOutOfRangeException` |
 | FirebirdClient | [FirebirdSQL/NETProvider#1276](https://github.com/FirebirdSQL/NETProvider/pull/1276) | ![closed](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1276?label=) | Provider substitutability (superseded) |
 | FirebirdClient | [FirebirdSQL/NETProvider#1282](https://github.com/FirebirdSQL/NETProvider/issues/1282), [FirebirdSQL/NETProvider#1283](https://github.com/FirebirdSQL/NETProvider/pull/1283) | ![closed](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1283?label=) | Combined fix, split into the four below |
@@ -35,7 +37,16 @@ The status badges come from GitHub through shields.io each time the page is view
 | FirebirdClient | [FirebirdSQL/NETProvider#1286](https://github.com/FirebirdSQL/NETProvider/issues/1286), [FirebirdSQL/NETProvider#1290](https://github.com/FirebirdSQL/NETProvider/pull/1290) | ![open](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1290?label=) | `GetFieldType` is `byte[]` for OCTETS |
 | FirebirdClient | [FirebirdSQL/NETProvider#1287](https://github.com/FirebirdSQL/NETProvider/issues/1287), [FirebirdSQL/NETProvider#1291](https://github.com/FirebirdSQL/NETProvider/pull/1291) | ![open](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1291?label=) | `RemoveAt(int)` follows `IList` |
 | AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#241](https://github.com/DataAction/AdoNetCore.AseClient/pull/241) | ![open](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/241?label=) | Read BIGTIME columns (TDS_BIGTIMEN 0xBC) |
-| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#242](https://github.com/DataAction/AdoNetCore.AseClient/pull/242) | ![open](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/242?label=) | Defaults, `DbException`, reader exceptions, `CloseConnection`, `ExecuteNonQuery` -1, `Prepare` |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#243](https://github.com/DataAction/AdoNetCore.AseClient/pull/243) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/243?label=) | `CommandType` defaults to `Text` |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#244](https://github.com/DataAction/AdoNetCore.AseClient/pull/244) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/244?label=) | `ParameterName` defaults to `""` |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#245](https://github.com/DataAction/AdoNetCore.AseClient/pull/245) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/245?label=) | `AseException` derives from `DbException` |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#246](https://github.com/DataAction/AdoNetCore.AseClient/pull/246) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/246?label=) | Execute methods throw `InvalidOperationException` without an open connection |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#247](https://github.com/DataAction/AdoNetCore.AseClient/pull/247) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/247?label=) | Value access throws `InvalidOperationException` / `IndexOutOfRangeException` |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#248](https://github.com/DataAction/AdoNetCore.AseClient/pull/248) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/248?label=) | `GetOrdinal` throws `IndexOutOfRangeException` for an unknown name |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#249](https://github.com/DataAction/AdoNetCore.AseClient/pull/249) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/249?label=) | `CommandBehavior.CloseConnection` closes the connection |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#250](https://github.com/DataAction/AdoNetCore.AseClient/pull/250) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/250?label=) | `ExecuteNonQuery` returns -1 for non-DML |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#251](https://github.com/DataAction/AdoNetCore.AseClient/pull/251) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/251?label=) | `Prepare` requires an open connection |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#242](https://github.com/DataAction/AdoNetCore.AseClient/pull/242) | ![status](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/242?label=) | Combined contract fixes, split into #243–#251 |
 | Npgsql | [npgsql/npgsql#6682](https://github.com/npgsql/npgsql/pull/6682) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6682?label=) | Reading an interval with negative months as `TimeSpan` throws instead of losing data |
 | Npgsql | [npgsql/npgsql#6683](https://github.com/npgsql/npgsql/pull/6683) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6683?label=) | `DataTypes` advertises type modifiers from `pg_type.typmodin` |
 | Npgsql | [npgsql/npgsql#6684](https://github.com/npgsql/npgsql/pull/6684) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6684?label=) | `DataTypes` quotes the internal `"char"` type's `CreateFormat` |
@@ -46,7 +57,7 @@ The status badges come from GitHub through shields.io each time the page is view
 | Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#761](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/761), [#766](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/766) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/766?label=) | `ParameterName` reads back as set (marked breaking upstream) |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
 
-With its contract pull requests merged, DuckDB.NET passes every Required test. With #242, AseClient passes
+With its contract pull requests merged, DuckDB.NET passes every Required test. With #243–#251, AseClient passes
 105 of 112; the other two are ASE server behaviour and a parameter-name convention that no contract sentence covers.
 
 ## Not sent
@@ -80,7 +91,7 @@ With its contract pull requests merged, DuckDB.NET passes every Required test. W
 
 ### System.Data.SQLite: [SQLite forum](https://sqlite.org/forum/) (System.Data.SQLite)
 
-> **System.Data.SQLite 1.0.119: ParameterName default and GetOrdinal for an unknown column**
+> **System.Data.SQLite 1.0.119: ParameterName default, GetOrdinal, Prepare without a connection, and savepoints**
 >
 > 1. `new SQLiteParameter().ParameterName` is `null`. [DbParameter.ParameterName](https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.parametername):
 >    "The default is an empty string ("")."
@@ -88,6 +99,15 @@ With its contract pull requests merged, DuckDB.NET passes every Required test. W
 >    "If the index of the named field is not found, an `IndexOutOfRangeException` is thrown."
 > 3. `Prepare()` on a command with no connection, or a closed one, does not throw. [IDbCommand.Prepare](https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare)
 >    documents `InvalidOperationException`: "The Connection is not set. -or- The Connection is not Open()."
+>
+> 4. `GetOrdinal` returns the first column that matches ignoring case, even when another column matches exactly: for
+>    `SELECT 1 AS a, 2 AS A`, `GetOrdinal("A")` is 0. [IDataRecord.GetOrdinal](https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getordinal):
+>    "`GetOrdinal` performs a case-sensitive lookup first. If it fails, a second case-insensitive search is made."
+> 5. `SQLiteTransaction.SupportsSavepoints` is `false` and `Save`/`Rollback(string)` throw `NotSupportedException`, but
+>    `Release(string)` returns normally (the base class does nothing). [DbTransaction.SupportsSavepoints](https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints):
+>    "If `false`, the methods SaveAsync, RollbackAsync and ReleaseAsync as well as their synchronous counterparts are
+>    expected to throw NotSupportedException." Since SQLite has `SAVEPOINT`, `RELEASE` and `ROLLBACK TO`, implementing
+>    them (and returning `true`) would be the better fix; otherwise `Release` should throw too.
 >
 > Found by [`ParameterName_default_is_empty_string`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/ParameterTestBase.Required.cs#L92), [`GetOrdinal_throws_when_out_of_range`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/DataReaderTestBase.Required.cs#L252) and
 > [`Prepare_throws_when_no_connection`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/CommandTestBase.Required.cs#L142) in the pengdows ADO.NET conformance suite.

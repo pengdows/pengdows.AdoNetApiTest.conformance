@@ -1,0 +1,149 @@
+name: Publish NuGet packages
+
+# The library, database fixtures, and runner are released together because the runner's
+# generated projects reference the matching library packages.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Read version
+        id: version
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)
+          if [[ -z "$version" ]]; then
+            echo "No <Version> in Directory.Build.props." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version is already published
+        id: nuget_check
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          published=0
+          for id in pengdows.AdoNetApiTest.conformance pengdows.AdoNetApiTest.conformance.Databases pengdows.AdoNetApiTest.conformance.Runner; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' \
+              "https://api.nuget.org/v3-flatcontainer/${id,,}/${version}/${id,,}.${version}.nupkg")
+            echo "${id} ${version}: HTTP ${status}"
+            if [[ "$status" == "200" ]]; then
+              published=$((published + 1))
+            fi
+          done
+          if (( published == 3 )); then
+            echo "Version ${version} is already fully published; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif (( published > 0 )); then
+            echo "Version ${version} is only partly published; resolve NuGet state before retrying." >&2
+            exit 1
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check release tag
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          tag="v${{ steps.version.outputs.version }}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            tagged=$(git rev-list -n1 "$tag")
+            if [[ "$tagged" != "$GITHUB_SHA" ]]; then
+              echo "Tag ${tag} already exists on ${tagged}; update Directory.Build.props." >&2
+              exit 1
+            fi
+          fi
+
+      - name: Set up .NET
+        if: steps.nuget_check.outputs.skip != 'true'
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: dotnet restore pengdows.AdoNetApiTest.conformance.sln
+
+      - name: Build
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: dotnet build pengdows.AdoNetApiTest.conformance.sln --configuration Release --no-restore
+
+      - name: Test packaging and runner behavior
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          dotnet test tests/Runner.Tests/Runner.Tests.csproj --configuration Release --no-build
+          dotnet test tests/Repository.Tests/Repository.Tests.csproj --configuration Release --no-build
+
+      - name: Pack
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          mkdir -p artifacts/packages
+          dotnet pack src/pengdows.AdoNetApiTest.conformance/pengdows.AdoNetApiTest.conformance.csproj --configuration Release --no-build --output artifacts/packages
+          dotnet pack src/pengdows.AdoNetApiTest.conformance.Databases/pengdows.AdoNetApiTest.conformance.Databases.csproj --configuration Release --no-build --output artifacts/packages
+          dotnet pack src/pengdows.AdoNetApiTest.conformance.Runner/pengdows.AdoNetApiTest.conformance.Runner.csproj --configuration Release --no-build --output artifacts/packages
+
+      - name: Verify packages
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          for id in pengdows.AdoNetApiTest.conformance pengdows.AdoNetApiTest.conformance.Databases pengdows.AdoNetApiTest.conformance.Runner; do
+            test -f "artifacts/packages/${id}.${version}.nupkg"
+          done
+
+      - name: Log in to NuGet (Trusted Publishing)
+        if: steps.nuget_check.outputs.skip != 'true'
+        id: nuget_login
+        uses: NuGet/login@v1
+        with:
+          user: pengdows
+
+      - name: Push packages
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          for id in pengdows.AdoNetApiTest.conformance pengdows.AdoNetApiTest.conformance.Databases pengdows.AdoNetApiTest.conformance.Runner; do
+            dotnet nuget push "artifacts/packages/${id}.${version}.nupkg" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key "$NUGET_API_KEY"
+          done
+        env:
+          NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY }}
+
+      - name: Configure git identity
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Tag release
+        if: steps.nuget_check.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          tag="v${{ steps.version.outputs.version }}"
+          if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            git tag -a "$tag" -m "Release ${tag}"
+            git push origin "$tag"
+          fi

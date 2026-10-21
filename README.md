@@ -52,8 +52,16 @@ The history of reported issues and submitted fixes belongs in [docs/UPSTREAM.md]
 
 ## How to Use
 
-The NuGet package is not published yet. Until it is, reference the `src/pengdows.AdoNetApiTest.conformance`
-project directly (the library is unsigned).
+The reusable test library will be published as `pengdows.AdoNetApiTest.conformance`; the database fixtures will be
+published as `pengdows.AdoNetApiTest.conformance.Databases`. Both are unsigned. The `conformance` runner is distributed as a
+`.NET tool` and can run the embedded provider configurations without a checkout:
+
+```bash
+dotnet tool install --global pengdows.AdoNetApiTest.conformance.Runner --prerelease
+conformance run FlatFile0
+```
+
+For local development, reference the project directly and run the source runner as described below.
 
 Create a class that implements `IDbFactoryFixture`: the
 `Factory` property must return a `DbProviderFactory` for your ADO.NET implementation,

@@ -6,7 +6,6 @@
     <Title>ADO.NET Provider Conformance Tests</Title>
     <Description>Conformance tests for ADO.NET providers: documented System.Data.Common contract behavior and type fidelity. Successor to mysql-net/AdoNetApiTest.</Description>
     <Copyright>Copyright 2017 Bradley Grainger; Copyright 2025-2026 Pengdows</Copyright>
-    <Version>3.0.0-beta.1</Version>
     <Authors>Pengdows;Bradley Grainger</Authors>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

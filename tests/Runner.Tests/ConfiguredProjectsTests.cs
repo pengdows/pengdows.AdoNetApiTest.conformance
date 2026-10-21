@@ -166,4 +166,20 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains($"<ProjectReference Include=\"{Path.GetFullPath(Path.Combine(m_root, "../driver/Driver.csproj"))}\" />", project);
 		Assert.DoesNotContain("<PackageReference Include=\"\"", project);
 	}
+
+	[Fact]
+	public void Package_mode_generates_a_runnable_project_from_published_packages()
+	{
+		var path = Write("Example.json", """{ "name": "Example", "driver": { "package": "P", "factory": "F" }, "connectionString": "x" }""");
+
+		var provider = ConfiguredProjects.Generate(path, m_root, Path.Combine(m_root, "tests"), packageMode: true, packageVersion: "3.0.0-beta.1");
+		var project = File.ReadAllText(provider.Project);
+
+		Assert.Contains("<OutputType>Exe</OutputType>", project);
+		Assert.Contains("<UseAppHost>true</UseAppHost>", project);
+		Assert.Contains("<PackageReference Include=\"pengdows.AdoNetApiTest.conformance\" Version=\"3.0.0-beta.1\" />", project);
+		Assert.Contains("<PackageReference Include=\"pengdows.AdoNetApiTest.conformance.Databases\" Version=\"3.0.0-beta.1\" />", project);
+		Assert.Contains("<PackageReference Include=\"Microsoft.NET.Test.Sdk\" Version=\"18.0.1\" />", project);
+		Assert.DoesNotContain("<ProjectReference", project);
+	}
 }

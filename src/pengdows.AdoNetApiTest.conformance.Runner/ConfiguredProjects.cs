@@ -24,8 +24,10 @@ internal static class ConfiguredProjects
 	private static readonly string[] s_valueTestBases = { "DataReader", "Dml", "GetValueConversion" };
 
 	public static IReadOnlyList<ProviderProject> Discover(string testsDirectory)
+		=> Discover(testsDirectory, Path.GetDirectoryName(Path.GetFullPath(testsDirectory).TrimEnd(Path.DirectorySeparatorChar))!, packageMode: false, packageVersion: null);
+
+	public static IReadOnlyList<ProviderProject> Discover(string testsDirectory, string root, bool packageMode, string? packageVersion)
 	{
-		var root = Path.GetDirectoryName(Path.GetFullPath(testsDirectory).TrimEnd(Path.DirectorySeparatorChar))!;
 		var providers = Path.Combine(root, "providers");
 		if (!Directory.Exists(providers))
 		{
@@ -34,17 +36,44 @@ internal static class ConfiguredProjects
 
 		return Directory.EnumerateFiles(providers, "*.json")
 			.OrderBy(path => path, StringComparer.Ordinal)
-			.Select(path => Generate(path, root, testsDirectory))
+			.Select(path => Generate(path, root, testsDirectory, packageMode, packageVersion))
 			.ToList();
 	}
 
-	public static ProviderProject Generate(string configPath, string root, string testsDirectory)
+	public static IReadOnlyList<ProviderProject> DiscoverEmbedded(string root, string testsDirectory, string packageVersion)
+	{
+		var providers = Path.Combine(root, "providers");
+		Directory.CreateDirectory(providers);
+		var assembly = typeof(ConfiguredProjects).Assembly;
+		var paths = new List<string>();
+		foreach (var resource in assembly.GetManifestResourceNames().Where(name => name.StartsWith("providers/", StringComparison.Ordinal)))
+		{
+			var name = resource["providers/".Length..];
+			var path = Path.Combine(providers, name);
+			using var input = assembly.GetManifestResourceStream(resource)!;
+			using var output = File.Create(path);
+			input.CopyTo(output);
+			paths.Add(path);
+		}
+
+		return paths
+			.OrderBy(path => path, StringComparer.Ordinal)
+			.Select(path => Generate(path, root, testsDirectory, packageMode: true, packageVersion))
+			.ToList();
+	}
+
+	public static ProviderProject Generate(string configPath, string root, string testsDirectory, bool packageMode = false, string? packageVersion = null)
 	{
 		var config = Read(configPath);
+		if (packageMode && config.DriverProject is not null)
+		{
+			return new ProviderProject(config.Name, string.Empty, $"requires a source checkout ({config.DriverProject})", ConfigPath: configPath);
+		}
+
 		var directory = Path.Combine(testsDirectory, "obj", "providers", config.Name + ".Tests");
 		Directory.CreateDirectory(directory);
 		var project = Path.Combine(directory, config.Name + ".Tests.csproj");
-		WriteIfChanged(project, Project(config, root));
+		WriteIfChanged(project, Project(config, root, packageMode, packageVersion));
 		WriteIfChanged(Path.Combine(directory, "Generated.cs"), Code(config));
 		WriteIfChanged(Path.Combine(directory, "provider.json"), File.ReadAllText(configPath));
 		return new ProviderProject(config.Name, project, NotRunReason(config), config.ProcessEnvironment, Path.GetFullPath(configPath));
@@ -145,7 +174,7 @@ internal static class ConfiguredProjects
 		return false;
 	}
 
-	internal static string Project(Config config, string root)
+	internal static string Project(Config config, string root, bool packageMode = false, string? packageVersion = null)
 	{
 		var src = Path.Combine(root, "src");
 		var text = new StringBuilder();
@@ -154,6 +183,11 @@ internal static class ConfiguredProjects
 		text.AppendLine();
 		text.AppendLine("  <PropertyGroup>");
 		text.AppendLine("    <TargetFramework>net10.0</TargetFramework>");
+		if (packageMode)
+		{
+			text.AppendLine("    <OutputType>Exe</OutputType>");
+			text.AppendLine("    <UseAppHost>true</UseAppHost>");
+		}
 		text.AppendLine("  </PropertyGroup>");
 		text.AppendLine();
 		text.AppendLine("  <ItemGroup>");
@@ -162,16 +196,32 @@ internal static class ConfiguredProjects
 			text.AppendLine($"    <PackageReference Include=\"{SecurityElement.Escape(package)}\" Version=\"{SecurityElement.Escape(version)}\" />");
 		}
 
+		if (packageMode)
+		{
+			text.AppendLine("    <PackageReference Include=\"Microsoft.NET.Test.Sdk\" Version=\"18.0.1\" />");
+			text.AppendLine("    <PackageReference Include=\"xunit.v3\" Version=\"3.2.1\" />");
+			text.AppendLine("    <PackageReference Include=\"xunit.runner.visualstudio\" Version=\"3.1.5\" />");
+		}
+
 		text.AppendLine("  </ItemGroup>");
 		text.AppendLine();
 		text.AppendLine("  <ItemGroup>");
-		if (config.DriverProject is { } driverProject)
+		if (!packageMode && config.DriverProject is { } driverProject)
 		{
 			text.AppendLine($"    <ProjectReference Include=\"{SecurityElement.Escape(Path.GetFullPath(Path.Combine(root, driverProject)))}\" />");
 		}
 
-		text.AppendLine($"    <ProjectReference Include=\"{Path.Combine(src, "pengdows.AdoNetApiTest.conformance.Databases", "pengdows.AdoNetApiTest.conformance.Databases.csproj")}\" />");
-		text.AppendLine($"    <ProjectReference Include=\"{Path.Combine(src, "pengdows.AdoNetApiTest.conformance", "pengdows.AdoNetApiTest.conformance.csproj")}\" />");
+		if (packageMode)
+		{
+			var version = SecurityElement.Escape(packageVersion ?? throw new ArgumentNullException(nameof(packageVersion)));
+			text.AppendLine($"    <PackageReference Include=\"pengdows.AdoNetApiTest.conformance.Databases\" Version=\"{version}\" />");
+			text.AppendLine($"    <PackageReference Include=\"pengdows.AdoNetApiTest.conformance\" Version=\"{version}\" />");
+		}
+		else
+		{
+			text.AppendLine($"    <ProjectReference Include=\"{Path.Combine(src, "pengdows.AdoNetApiTest.conformance.Databases", "pengdows.AdoNetApiTest.conformance.Databases.csproj")}\" />");
+			text.AppendLine($"    <ProjectReference Include=\"{Path.Combine(src, "pengdows.AdoNetApiTest.conformance", "pengdows.AdoNetApiTest.conformance.csproj")}\" />");
+		}
 		text.AppendLine("    <None Include=\"provider.json\" CopyToOutputDirectory=\"PreserveNewest\" />");
 		text.AppendLine("  </ItemGroup>");
 		text.AppendLine();

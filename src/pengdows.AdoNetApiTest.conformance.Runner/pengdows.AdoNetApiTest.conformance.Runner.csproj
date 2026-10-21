@@ -2,6 +2,23 @@
 
   <PropertyGroup>
     <AssemblyName>conformance</AssemblyName>
+    <PackageId>pengdows.AdoNetApiTest.conformance.Runner</PackageId>
+    <Title>ADO.NET Provider Conformance Runner</Title>
+    <Description>Runs ADO.NET provider conformance tests and produces certification reports.</Description>
+    <Authors>Pengdows;Bradley Grainger</Authors>
+    <PackageTags>ado.net;database;test;conformance;dotnet-tool</PackageTags>
+    <PackageProjectUrl>https://github.com/pengdows/pengdows.AdoNetApiTest.conformance</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/pengdows/pengdows.AdoNetApiTest.conformance.git</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>conformance</ToolCommandName>
+    <PackageType>DotnetTool</PackageType>
+    <IsPackable>true</IsPackable>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
     <RootNamespace>pengdows.AdoNetApiTest.conformance.Runner</RootNamespace>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -18,6 +35,8 @@
   <ItemGroup>
     <!-- The consumer profiles travel with the runner, so a report from result files certifies against them too. -->
     <EmbeddedResource Include="..\..\profiles\*.json" LogicalName="profiles/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\providers\*.json" LogicalName="providers/%(Filename)%(Extension)" />
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

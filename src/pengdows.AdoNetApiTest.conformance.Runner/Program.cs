@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace pengdows.AdoNetApiTest.conformance.Runner;
 
 internal static class Program
@@ -68,9 +70,24 @@ internal static class Program
 
 	private static List<ProviderInput> RunProviders(Options options)
 	{
-		var testsDirectory = options.TestsDirectory ?? FindTestsDirectory()
-			?? throw new ArgumentException("Could not find the tests folder above the current folder; pass --tests <dir>.");
-		var all = ProviderDiscovery.Discover(testsDirectory).Concat(ConfiguredProjects.Discover(testsDirectory)).ToList();
+		var testsDirectory = options.TestsDirectory ?? FindTestsDirectory();
+		var packaged = testsDirectory is null;
+		IReadOnlyList<ProviderProject> discovered;
+		if (packaged)
+		{
+			var root = Path.Combine(Path.GetTempPath(), "pengdows-conformance", Guid.NewGuid().ToString("N"));
+			testsDirectory = Path.Combine(root, "tests");
+			Directory.CreateDirectory(testsDirectory);
+			var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
+				?? throw new InvalidOperationException("The runner package has no informational version.");
+			discovered = ConfiguredProjects.DiscoverEmbedded(root, testsDirectory, version);
+		}
+		else
+		{
+			discovered = ProviderDiscovery.Discover(testsDirectory!).Concat(ConfiguredProjects.Discover(testsDirectory!)).ToList();
+		}
+
+		var all = discovered.ToList();
 		var duplicate = all.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
 		if (duplicate is not null)
 		{

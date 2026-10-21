@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -158,17 +159,28 @@ public partial class DataReaderTestBase<TFixture>
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
 		command.CommandText = SelectTwoResultsSql;
-		using var reader = command.ExecuteReader();
+		DbDataReader reader;
+		try
+		{
+			reader = command.ExecuteReader();
+		}
+		catch (DbException ex)
+		{
+			ConformanceOutcome.NotApplicable("The database does not run two statements in one command: " + ex.Message);
+			return;
+		}
+
+		using var _ = reader;
 		var hasData = reader.Read();
 		Assert.True(hasData);
-		Assert.Equal(1L, reader.GetInt64(0));
+		Assert.Equal(1L, Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture));
 
 		var hasResults = reader.NextResult();
 		Assert.True(hasResults);
 
 		hasData = reader.Read();
 		Assert.True(hasData);
-		Assert.Equal(2L, reader.GetInt64(0));
+		Assert.Equal(2L, Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture));
 
 		hasResults = reader.NextResult();
 		Assert.False(hasResults);

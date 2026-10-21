@@ -62,32 +62,6 @@ public abstract partial class CommandTestBase<TFixture>
 	}
 
 	/// <summary>
-	/// A provider that supports preparation must leave a valid command executable
-	/// after Prepare. Providers that do not support preparation may report that
-	/// explicitly with NotSupportedException.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepare.
-	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepare")]
-	public virtual void Prepare_valid_command_remains_executable_or_reports_not_supported()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		try
-		{
-			command.Prepare();
-		}
-		catch (NotSupportedException)
-		{
-			ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
-			return;
-		}
-
-		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
-	}
-
-	/// <summary>
 	/// A prepared command is executed again with new parameter values, the reason to prepare it. MySql.Data's Prepare
 	/// against TiDB threw KeyNotFoundException, and pengdows.crud turns preparation off for several providers.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
@@ -175,4 +149,90 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(1, Convert.ToInt32(await command.ExecuteScalarAsync().ConfigureAwait(false)));
 	}
 #endif
+
+	/// <summary>
+	/// UpdatedRowSource controls how command results update a data source and is
+	/// part of the DbCommand property contract.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "Only a provider with a DataAdapter needs the members DbDataAdapter.Update reads; one that has a DataAdapter must support all of them.")]
+	public virtual void UpdatedRowSource_can_be_set_and_read()
+	{
+		if (!ImplementsDataAdapter())
+		{
+			return;
+		}
+
+		using var command = Fixture.Factory.CreateCommand();
+		command.UpdatedRowSource = UpdateRowSource.FirstReturnedRecord;
+		Assert.Equal(UpdateRowSource.FirstReturnedRecord, command.UpdatedRowSource);
+	}
+
+	/// <summary>
+	/// DesignTimeVisible is a common command property and must preserve the
+	/// value assigned by the consumer.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Because = "Design-time support is optional; a provider whose new commands are DesignTimeVisible opts in and must then support all of it.")]
+	public virtual void DesignTimeVisible_can_be_set_and_read()
+	{
+		if (!ImplementsDesignTime())
+		{
+			return;
+		}
+
+		using var command = Fixture.Factory.CreateCommand();
+		command.DesignTimeVisible = false;
+		Assert.False(command.DesignTimeVisible);
+		command.DesignTimeVisible = true;
+		Assert.True(command.DesignTimeVisible);
+	}
+
+	/// <summary>
+	/// "The default is true."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Because = "Design-time support is optional; a provider whose new commands are DesignTimeVisible opts in and must then support all of it.")]
+	public virtual void DesignTimeVisible_default_is_true()
+	{
+		if (!ImplementsDesignTime())
+		{
+			return;
+		}
+
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.True(command.DesignTimeVisible);
+	}
+
+	/// <summary>
+	/// "The default is Both unless the command is automatically generated."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "Only a provider with a DataAdapter needs the members DbDataAdapter.Update reads; one that has a DataAdapter must support all of them.")]
+	public virtual void UpdatedRowSource_default_is_Both()
+	{
+		if (!ImplementsDataAdapter())
+		{
+			return;
+		}
+
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.Equal(UpdateRowSource.Both, command.UpdatedRowSource);
+	}
+
+	/// <summary>
+	/// "Throws a ArgumentException if the value entered was not one of the UpdateRowSource values."
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
+	/// </summary>
+	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Because = "Only a provider with a DataAdapter needs the members DbDataAdapter.Update reads; one that has a DataAdapter must support all of them.")]
+	public virtual void UpdatedRowSource_throws_for_a_value_that_is_not_defined()
+	{
+		if (!ImplementsDataAdapter())
+		{
+			return;
+		}
+
+		using var command = Fixture.Factory.CreateCommand();
+		Assert.ThrowsAny<ArgumentException>(() => command.UpdatedRowSource = (UpdateRowSource) 99);
+	}
 }

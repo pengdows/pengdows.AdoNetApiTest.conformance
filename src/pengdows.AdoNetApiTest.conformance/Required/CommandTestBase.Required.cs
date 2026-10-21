@@ -37,67 +37,6 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.Equal(CommandType.Text, command.CommandType);
 	}
 
-	/// <summary>
-	/// UpdatedRowSource controls how command results update a data source and is
-	/// part of the DbCommand property contract.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void UpdatedRowSource_can_be_set_and_read()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		command.UpdatedRowSource = UpdateRowSource.FirstReturnedRecord;
-		Assert.Equal(UpdateRowSource.FirstReturnedRecord, command.UpdatedRowSource);
-	}
-
-	/// <summary>
-	/// DesignTimeVisible is a common command property and must preserve the
-	/// value assigned by the consumer.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Waiver = "Only Visual Studio designers and data-adapter UI components read this property; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void DesignTimeVisible_can_be_set_and_read()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		command.DesignTimeVisible = false;
-		Assert.False(command.DesignTimeVisible);
-		command.DesignTimeVisible = true;
-		Assert.True(command.DesignTimeVisible);
-	}
-
-	/// <summary>
-	/// "The default is true."
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.designtimevisible", Waiver = "Only Visual Studio designers and data-adapter UI components read this property; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void DesignTimeVisible_default_is_true()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		Assert.True(command.DesignTimeVisible);
-	}
-
-	/// <summary>
-	/// "The default is Both unless the command is automatically generated."
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void UpdatedRowSource_default_is_Both()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		Assert.Equal(UpdateRowSource.Both, command.UpdatedRowSource);
-	}
-
-	/// <summary>
-	/// "Throws a ArgumentException if the value entered was not one of the UpdateRowSource values."
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.updatedrowsource", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void UpdatedRowSource_throws_for_a_value_that_is_not_defined()
-	{
-		using var command = Fixture.Factory.CreateCommand();
-		Assert.ThrowsAny<ArgumentException>(() => command.UpdatedRowSource = (UpdateRowSource) 99);
-	}
-
 #if !NETSTANDARD2_0
 	/// <summary>
 	/// DisposeAsync must complete the command disposal contract without requiring
@@ -155,6 +94,25 @@ public abstract partial class CommandTestBase<TFixture>
 		using var connection = CreateConnection();
 		using var command = connection.CreateCommand();
 		Assert.ThrowsAny<InvalidOperationException>(() => command.Prepare());
+	}
+
+	/// <summary>
+	/// With an open connection, Prepare creates a prepared (or compiled) version
+	/// of the command on the data source. The provider may implement that as a
+	/// no-op for TableDirect or StoredProcedure commands, but the call itself
+	/// should succeed and the valid command must remain executable.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
+	public virtual void Prepare_valid_command_succeeds_when_connection_open()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		command.Prepare();
+
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
 	}
 
 

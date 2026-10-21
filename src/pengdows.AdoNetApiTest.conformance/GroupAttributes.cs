@@ -26,12 +26,6 @@ public abstract class ConformanceFactAttribute : FactAttribute, ITraitAttribute
 	/// <summary>Why the test belongs to its group, when the group is not obvious from <see cref="Contract"/>.</summary>
 	public string Because { get; set; }
 
-	/// <summary>
-	/// Required only. The documentation states this behavior, but a deviation cannot lose or alter data or change what a
-	/// statement returns, so it is reported as a <c>deviation</c> instead of failing the provider. The text says why.
-	/// </summary>
-	public string Waiver { get; set; }
-
 	/// <inheritdoc />
 	public IReadOnlyCollection<KeyValuePair<string, string>> GetTraits()
 	{
@@ -44,11 +38,6 @@ public abstract class ConformanceFactAttribute : FactAttribute, ITraitAttribute
 		if (!string.IsNullOrEmpty(Because))
 		{
 			traits.Add(new("Because", Because));
-		}
-
-		if (!string.IsNullOrEmpty(Waiver))
-		{
-			traits.Add(new("Waiver", Waiver));
 		}
 
 		return traits;

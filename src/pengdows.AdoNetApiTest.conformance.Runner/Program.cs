@@ -34,7 +34,7 @@ internal static class Program
 		try
 		{
 			var inputs = options.Command == Command.Report ? ReadFiles(options) : RunProviders(options);
-			var matrix = Matrix.Build(inputs, RequiredCatalog.Load());
+			var matrix = Matrix.Build(inputs, RequiredCatalog.Load(), CertificationProfile.Load());
 			matrix.Suite = RunProvenance.Suite(Directory.GetCurrentDirectory());
 			Write(options.JsonPath, MatrixJson.Write(matrix));
 			Write(options.XmlPath, MatrixXml.Write(matrix));

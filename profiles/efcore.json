@@ -1,0 +1,622 @@
+{
+  "id": "efcore",
+  "name": "EF Core",
+  "statement": "certifies as EF Core compliant",
+  "consumer": "Microsoft.EntityFrameworkCore.Relational 10.0.9",
+  "source": "https://github.com/dotnet/efcore/tree/v10.0.9/src/EFCore.Relational",
+  "method": "Members come from the IL of the consumer's own assembly (every call, callvirt, newobj and ldftn naming a System.Data member, with the line from its PDB), plus reflection through nameof(DbDataReader.X), GetSchema collection names, CommandBehavior flags and the using statements that dispose a command, connection, reader or transaction. A Required test is included when the consumer calls its member; a Common or Optional test only when the consumer relies on that behavior, which \"because\" explains.",
+  "tests": [
+    {
+      "test": "Command.CommandText_can_be_set_to_empty_string",
+      "member": "DbCommand.CommandText",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalQueryStringFactory.cs#L27",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalQueryStringFactory.cs#L36",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L835"
+      ]
+    },
+    {
+      "test": "Command.CommandType_text_by_default",
+      "member": "DbCommand.CommandType",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L375",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L437",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L499"
+      ]
+    },
+    {
+      "test": "Command.Connection_can_be_unset",
+      "member": "DbCommand.Connection",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1674",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1739"
+      ]
+    },
+    {
+      "test": "Command.CreateParameter_is_not_null",
+      "member": "DbCommand.CreateParameter",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalGeometryTypeMapping.cs#L89",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTypeMapping.cs#L557"
+      ]
+    },
+    {
+      "test": "Command.DisposeAsync_works",
+      "member": "DbCommand.DisposeAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L883",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L278"
+      ]
+    },
+    {
+      "test": "Command.ExecuteNonQueryAsync_returns_result_producing_statement_count",
+      "member": "DbCommand.ExecuteNonQueryAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L217",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L242",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L321"
+      ]
+    },
+    {
+      "test": "Command.ExecuteNonQuery_returns_negative_one_for_SELECT",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Command.ExecuteNonQuery_throws_when_connection_closed",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Command.ExecuteNonQuery_throws_when_no_connection",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReaderAsync_returns_reader",
+      "member": "DbCommand.ExecuteReaderAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L687",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L707"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReaderAsync_throws_on_error",
+      "member": "DbCommand.ExecuteReaderAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L687",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L707"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReader_binds_parameters",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/DbParameterCollectionExtensions.cs#L39",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalGeometryTypeMapping.cs#L98",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTypeMapping.cs#L570"
+      ]
+    },
+    {
+      "test": "Command.ExecuteReader_supports_CloseConnection",
+      "member": "DbCommand.ExecuteReader",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L555",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L573"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalarAsync_returns_first_value",
+      "member": "DbCommand.ExecuteScalarAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L439",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L463"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalarAsync_throws_on_error",
+      "member": "DbCommand.ExecuteScalarAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L439",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L463"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_DBNull_when_null",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_first_when_multiple_columns",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_first_when_multiple_rows",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_integer",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_real",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "Command.ExecuteScalar_returns_string_when_text",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "Command.Parameters_is_not_null",
+      "member": "DbCommand.Parameters",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalQueryStringFactory.cs#L25",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalQueryStringFactory.cs#L31",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/RawRelationalParameter.cs#L51"
+      ]
+    },
+    {
+      "test": "Command.Parameters_returns_same_object",
+      "member": "DbCommand.Parameters",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalQueryStringFactory.cs#L25",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalQueryStringFactory.cs#L31",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/RawRelationalParameter.cs#L51"
+      ]
+    },
+    {
+      "test": "Connection.CloseAsync_works",
+      "member": "DbConnection.CloseAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L1001"
+      ]
+    },
+    {
+      "test": "Connection.Close_can_be_called_more_than_once",
+      "member": "DbConnection.Close",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L926"
+      ]
+    },
+    {
+      "test": "Connection.Close_works",
+      "member": "DbConnection.Close",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L926"
+      ]
+    },
+    {
+      "test": "Connection.ConnectionString_gets_and_sets_value",
+      "member": "DbConnection.ConnectionString",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L109",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L112",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L115"
+      ]
+    },
+    {
+      "test": "Connection.CreateCommand_returns_command",
+      "member": "DbConnection.CreateCommand",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L815",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L832",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L273"
+      ]
+    },
+    {
+      "test": "Connection.DataSource_returns_value",
+      "member": "DbConnection.DataSource",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1583",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1638",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1674"
+      ]
+    },
+    {
+      "test": "Connection.Database_returns_value",
+      "member": "DbConnection.Database",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1583",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1638",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Diagnostics/Internal/RelationalCommandDiagnosticsLogger.cs#L1674"
+      ]
+    },
+    {
+      "test": "Connection.OpenAsync_works",
+      "member": "DbConnection.OpenAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L813"
+      ]
+    },
+    {
+      "test": "Connection.Open_works",
+      "member": "DbConnection.Open",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L755"
+      ]
+    },
+    {
+      "test": "Connection.State_closed_by_default",
+      "member": "DbConnection.State",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L625",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L631",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L658"
+      ]
+    },
+    {
+      "test": "DataReader.CloseAsync_closes_reader",
+      "member": "DbDataReader.CloseAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L227",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L252"
+      ]
+    },
+    {
+      "test": "DataReader.DisposeAsync_closes_reader",
+      "member": "DbDataReader.DisposeAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L218",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L276"
+      ]
+    },
+    {
+      "test": "DataReader.ExecuteScalar_returns_null_when_empty",
+      "member": "DbCommand.ExecuteScalar",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L330",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L349"
+      ]
+    },
+    {
+      "test": "DataReader.FieldCount_works",
+      "member": "DbDataReader.FieldCount",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L1202",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/FromSqlQueryingEnumerable.cs#L163",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Update/AffectedCountModificationCommandBatch.cs#L300"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldType_works",
+      "member": "DbDataReader.GetFieldType",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L1209"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldValue_of_DBNull_throws_when_not_null",
+      "member": "DbDataReader.GetFieldValue",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Extensions/RelationalPropertyExtensions.cs#L23",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L1900",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/RelationalShapedQueryCompilingExpressionVisitor.ShaperProcessingExpressionVisitor.cs#L44"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldValue_throws_before_read",
+      "member": "DbDataReader.GetFieldValue",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Extensions/RelationalPropertyExtensions.cs#L23",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L1900",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/RelationalShapedQueryCompilingExpressionVisitor.ShaperProcessingExpressionVisitor.cs#L44"
+      ]
+    },
+    {
+      "test": "DataReader.GetFieldValue_throws_when_done",
+      "member": "DbDataReader.GetFieldValue",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Extensions/RelationalPropertyExtensions.cs#L23",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L1900",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/RelationalShapedQueryCompilingExpressionVisitor.ShaperProcessingExpressionVisitor.cs#L44"
+      ]
+    },
+    {
+      "test": "DataReader.GetName_works",
+      "member": "DbDataReader.GetName",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L1210",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/FromSqlQueryingEnumerable.cs#L163"
+      ]
+    },
+    {
+      "test": "DataReader.GetString_works",
+      "member": "DbDataReader.GetString",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Migrations/HistoryRepository.cs#L273",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Migrations/HistoryRepository.cs#L311",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTypeMapping.cs#L273"
+      ]
+    },
+    {
+      "test": "DataReader.IsClosed_returns_false_when_active",
+      "member": "DbDataReader.IsClosed",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L274"
+      ]
+    },
+    {
+      "test": "DataReader.IsClosed_returns_true_when_closed",
+      "member": "DbDataReader.IsClosed",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L274"
+      ]
+    },
+    {
+      "test": "DataReader.IsDBNull_works",
+      "member": "DbDataReader.IsDBNull",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Extensions/RelationalPropertyExtensions.cs#L26",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L959",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L973"
+      ]
+    },
+    {
+      "test": "DataReader.NextResultAsync_returns_false_after_last_result",
+      "member": "DbDataReader.NextResultAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L209",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Update/AffectedCountModificationCommandBatch.cs#L190"
+      ]
+    },
+    {
+      "test": "DataReader.ReadAsync_returns_rows",
+      "member": "DbDataReader.ReadAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L919",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/RelationalShapedQueryCompilingExpressionVisitor.ShaperProcessingExpressionVisitor.ClientMethods.cs#L566",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/RelationalShapedQueryCompilingExpressionVisitor.ShaperProcessingExpressionVisitor.ClientMethods.cs#L930"
+      ]
+    },
+    {
+      "test": "DataReader.Read_works",
+      "member": "DbDataReader.Read",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L891",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/GroupBySingleQueryingEnumerable.cs#L273",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/GroupBySplitQueryingEnumerable.cs#L289"
+      ]
+    },
+    {
+      "test": "DataReader.RecordsAffected_returns_negative_1_after_close_when_no_rows",
+      "member": "DbDataReader.RecordsAffected",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L174",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L211",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L123"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQueryAsync_returns_affected_rows_for_DML",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_deleted_row_count",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_deleted_row_count_with_RETURNING",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_inserted_row_count",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_inserted_row_count_with_RETURNING",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_multirow_affected_count_for_DML",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_updated_row_count",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_zero_when_delete_matches_no_rows",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteNonQuery_returns_zero_when_update_matches_no_rows",
+      "member": "DbCommand.ExecuteNonQuery",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L108",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L127",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTransaction.cs#L276"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteReader_returns_affected_rows_after_close_for_DML",
+      "member": "DbDataReader.RecordsAffected",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L174",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L211",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L123"
+      ]
+    },
+    {
+      "test": "Dml.ExecuteReader_returns_affected_rows_after_close_with_RETURNING",
+      "member": "DbDataReader.RecordsAffected",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L174",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/BufferedDataReader.cs#L211",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalDataReader.cs#L123"
+      ]
+    },
+    {
+      "test": "Parameter.ParameterName_default_is_empty_string",
+      "member": "DbParameter.ParameterName",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L227",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L230",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L244"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Direction_is_input",
+      "member": "DbParameter.Direction",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/DbParameterCollectionExtensions.cs#L39",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/RawRelationalParameter.cs#L56",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalGeometryTypeMapping.cs#L90"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_ParameterName_is_empty_string",
+      "member": "DbParameter.ParameterName",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L227",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L230",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L244"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Precision_is_zero",
+      "member": "DbParameter.Precision",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/DbParameterCollectionExtensions.cs#L39"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Scale_is_zero",
+      "member": "DbParameter.Scale",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/DbParameterCollectionExtensions.cs#L39"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_default_Value_is_null",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/Internal/DbParameterCollectionExtensions.cs#L39",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalGeometryTypeMapping.cs#L98",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTypeMapping.cs#L570"
+      ]
+    },
+    {
+      "test": "Parameter.Parameter_properties_round_trip",
+      "member": "DbParameter.ParameterName",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L227",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L230",
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Query/Internal/RelationalParameterProcessor.cs#L244"
+      ]
+    },
+    {
+      "test": "Transaction.BeginTransactionAsync_works",
+      "member": "DbConnection.BeginTransactionAsync",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L428"
+      ]
+    },
+    {
+      "test": "Transaction.BeginTransaction_works",
+      "member": "DbConnection.BeginTransaction",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalConnection.cs#L369"
+      ]
+    },
+    {
+      "test": "Parameter.Bind_accepts_DBNull_value",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalTypeMapping.cs#L570"
+      ],
+      "because": "A null value is sent as DBNull.Value."
+    },
+    {
+      "test": "DataReader.NextResult_works",
+      "member": "DbDataReader.NextResult",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Update/AffectedCountModificationCommandBatch.cs#L69"
+      ],
+      "because": "A batch of modification commands is read one result set per command."
+    },
+    {
+      "test": "Command.CommandTimeout_can_be_set_and_read",
+      "member": "DbCommand.CommandTimeout",
+      "sites": [
+        "https://github.com/dotnet/efcore/blob/v10.0.9/src/EFCore.Relational/Storage/RelationalCommand.cs#L844"
+      ],
+      "ifNotImplemented": "Set only when the application configures a command timeout."
+    }
+  ],
+  "excluded": []
+}

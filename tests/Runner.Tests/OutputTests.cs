@@ -175,8 +175,9 @@ public class OutputTests
 		Assert.Contains("required-not-covered=\"0\"", xml);
 	}
 
+	/// <summary>A Waiver trait from an older suite build neither excuses the failure nor reaches any output.</summary>
 	[Fact]
-	public void Waived_deviations_are_shown_and_never_hidden()
+	public void A_Waiver_trait_is_a_plain_failure_in_every_output()
 	{
 		var xml = new XmlBuilder()
 			.Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
@@ -184,16 +185,15 @@ public class OutputTests
 		var matrix = Matrix.Build(new[] { new ProviderInput("P", "P.Tests", XunitXml.Parse(xml.ToString()), null) });
 
 		var line = ConsoleReport.Render(matrix).Split('\n').Single(l => l.StartsWith("P ", StringComparison.Ordinal));
-		Assert.Contains("PASS", line);
-		Assert.Contains("Required 1/2 (1 waived)", line);
+		Assert.Contains("FAIL", line);
+		Assert.Contains("Required 1/2 (1 failed)", line);
 
-		using var json = JsonDocument.Parse(MatrixJson.Write(matrix));
-		Assert.Equal(1, json.RootElement.GetProperty("providers")[0].GetProperty("required").GetProperty("waived").GetInt32());
-		var test = json.RootElement.GetProperty("tests").EnumerateArray().Single(t => t.GetProperty("name").GetString() == "B");
-		Assert.Equal("only a designer reads it", test.GetProperty("waiver").GetString());
-		Assert.Equal("deviation", test.GetProperty("results").GetProperty("P").GetProperty("outcome").GetString());
-		var xmlOut = MatrixXml.Write(matrix);
-		Assert.Contains("required-waived=\"1\"", xmlOut);
+		var json = MatrixJson.Write(matrix);
+		using var document = JsonDocument.Parse(json);
+		var test = document.RootElement.GetProperty("tests").EnumerateArray().Single(t => t.GetProperty("name").GetString() == "B");
+		Assert.Equal("fail", test.GetProperty("results").GetProperty("P").GetProperty("outcome").GetString());
+		Assert.DoesNotContain("waive", json, StringComparison.OrdinalIgnoreCase);
+		Assert.DoesNotContain("waive", MatrixXml.Write(matrix), StringComparison.OrdinalIgnoreCase);
 	}
 
 	[Fact]

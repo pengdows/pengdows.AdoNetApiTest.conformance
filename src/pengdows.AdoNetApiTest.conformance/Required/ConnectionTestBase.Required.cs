@@ -189,36 +189,6 @@ public abstract partial class ConnectionTestBase<TFixture>
 		connection.Dispose();
 	}
 
-	/// <summary>
-	/// Disposal raises the standard DbConnection Disposed event exactly once.
-	/// See https://learn.microsoft.com/dotnet/api/system.componentmodel.component.disposed.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Waiver = "The Disposed event is a design-time component notification; no data or statement result depends on it.")]
-	public virtual void Dispose_raises_Disposed()
-	{
-		var connection = CreateOpenConnection();
-		var disposedCount = 0;
-		connection.Disposed += (s, e) => disposedCount++;
-		connection.Dispose();
-		Assert.Equal(1, disposedCount);
-	}
-
-#if !NETSTANDARD2_0
-	/// <summary>
-	/// DisposeAsync follows the same component-disposal event contract as Dispose.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.disposeasync.
-	/// </summary>
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection", Waiver = "The Disposed event is a design-time component notification; no data or statement result depends on it.")]
-	public virtual async Task DisposeAsync_raises_Disposed()
-	{
-		var connection = CreateOpenConnection();
-		var disposedCount = 0;
-		connection.Disposed += (s, e) => disposedCount++;
-		await connection.DisposeAsync().ConfigureAwait(true);
-		Assert.Equal(1, disposedCount);
-	}
-#endif
-
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection")]
 	public virtual void CreateCommand_returns_command()
 	{

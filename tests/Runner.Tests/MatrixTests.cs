@@ -187,8 +187,9 @@ public class MatrixTests
 		Assert.Equal(summary.RequiredTotal, summary.RequiredPassed + summary.RequiredFailed + summary.RequiredNotRun + summary.RequiredNotCovered);
 	}
 
+	/// <summary>Results from an older suite build can still carry a Waiver trait; nothing excuses a Required failure.</summary>
 	[Fact]
-	public void A_waived_required_failure_is_reported_but_does_not_fail_the_provider()
+	public void A_Waiver_trait_does_not_excuse_a_Required_failure()
 	{
 		var xml = new XmlBuilder()
 			.Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
@@ -197,29 +198,15 @@ public class MatrixTests
 		var matrix = Matrix.Build(new[] { Provider("P", xml) });
 
 		var summary = matrix.Providers.Single();
-		Assert.Equal(Verdict.Pass, summary.Verdict);
+		Assert.Equal(Verdict.Fail, summary.Verdict);
 		Assert.Equal(1, summary.RequiredPassed);
-		Assert.Equal(0, summary.RequiredFailed);
-		Assert.Equal(1, summary.RequiredWaived);
+		Assert.Equal(1, summary.RequiredFailed);
 		Assert.Equal(2, summary.RequiredTotal);
-		Assert.Equal(Outcome.Deviation, matrix.Tests.Single(t => t.Name == "Designer_flag").Results["P"].Outcome);
-		Assert.Equal("only a designer reads it", matrix.Tests.Single(t => t.Name == "Designer_flag").Waiver);
+		Assert.Equal(Outcome.Fail, matrix.Tests.Single(t => t.Name == "Designer_flag").Results["P"].Outcome);
 	}
 
 	[Fact]
-	public void The_waiver_is_learned_from_a_provider_that_did_not_override_the_test()
-	{
-		var plain = new XmlBuilder().Test("Designer_flag", "Pass", "Required", XmlBuilder.Base("Command", "Required"), waiver: "only a designer reads it");
-		var overridden = new XmlBuilder().Test("Designer_flag", "Fail", group: null, failure: "false");
-
-		var matrix = Matrix.Build(new[] { Provider("Plain", plain), Provider("Overrides", overridden) });
-
-		Assert.Equal(Outcome.Deviation, matrix.Tests.Single().Results["Overrides"].Outcome);
-		Assert.Equal(Verdict.Pass, matrix.Providers.Single(p => p.Id == "Overrides").Verdict);
-	}
-
-	[Fact]
-	public void Required_tests_are_accounted_for_including_waived()
+	public void Required_tests_are_accounted_for()
 	{
 		var xml = new XmlBuilder()
 			.Test("A", "Pass", "Required", XmlBuilder.Base("Connection", "Required"))
@@ -228,15 +215,16 @@ public class MatrixTests
 
 		var s = Matrix.Build(new[] { Provider("P", xml) }).Providers.Single();
 
-		Assert.Equal(s.RequiredTotal, s.RequiredPassed + s.RequiredFailed + s.RequiredNotRun + s.RequiredWaived + s.RequiredNotCovered);
+		Assert.Equal(2, s.RequiredFailed);
+		Assert.Equal(s.RequiredTotal, s.RequiredPassed + s.RequiredFailed + s.RequiredNotRun + s.RequiredNotCovered);
 	}
 
 	/// <summary>The Required tests of a tiny suite: two Connection tests and one Command test.</summary>
 	private static readonly SuiteTest[] Suite =
 	{
-		new("Command", "Command_runs", "https://learn.microsoft.com/x", null, null),
-		new("Connection", "Connection_closes", "https://learn.microsoft.com/x", null, null),
-		new("Connection", "Connection_opens", "https://learn.microsoft.com/x", null, null),
+		new("Command", "Command_runs", "https://learn.microsoft.com/x", null),
+		new("Connection", "Connection_closes", "https://learn.microsoft.com/x", null),
+		new("Connection", "Connection_opens", "https://learn.microsoft.com/x", null),
 	};
 
 	[Fact]

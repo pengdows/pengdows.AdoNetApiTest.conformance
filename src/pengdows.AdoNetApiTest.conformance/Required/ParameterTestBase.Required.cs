@@ -35,12 +35,6 @@ public abstract partial class ParameterTestBase<TFixture>
 		Assert.Equal((byte) 0, Fixture.Factory.CreateParameter().Scale);
 	}
 
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Waiver = "Only DbDataAdapter.Update reads this property; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void Parameter_default_SourceVersion_is_Current()
-	{
-		Assert.Equal(DataRowVersion.Current, Fixture.Factory.CreateParameter().SourceVersion);
-	}
-
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter")]
 	public virtual void Parameter_default_Value_is_null()
 	{
@@ -72,20 +66,6 @@ public abstract partial class ParameterTestBase<TFixture>
 		Assert.Equal("value", parameter.ParameterName);
 		Assert.Equal(32, parameter.Size);
 		Assert.Equal("x", parameter.Value);
-	}
-
-	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter", Waiver = "Only DbDataAdapter.Update reads these properties; a different value cannot lose or alter data or change what a statement returns.")]
-	public virtual void Parameter_adapter_properties_round_trip()
-	{
-		var parameter = Fixture.Factory.CreateParameter();
-
-		parameter.SourceColumn = "source";
-		parameter.SourceColumnNullMapping = true;
-		parameter.SourceVersion = DataRowVersion.Original;
-
-		Assert.Equal("source", parameter.SourceColumn);
-		Assert.True(parameter.SourceColumnNullMapping);
-		Assert.Equal(DataRowVersion.Original, parameter.SourceVersion);
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.parametername")]

@@ -6,22 +6,42 @@ submitted, and holds drafts for the trackers that do not take pull requests.
 
 ## Pull requests and issues
 
-| Provider | Link | Contract |
-|---|---|---|
-| DuckDB.NET | [#372](https://github.com/Giorgi/DuckDB.NET/pull/372) | `CommandType` defaults to `Text`, `Direction` to `Input` |
-| DuckDB.NET | [#373](https://github.com/Giorgi/DuckDB.NET/pull/373) | `Close` can be called more than once |
-| DuckDB.NET | [#374](https://github.com/Giorgi/DuckDB.NET/pull/374) | `ExecuteNonQuery` and `RecordsAffected` report -1 for non-DML |
-| DuckDB.NET | [#375](https://github.com/Giorgi/DuckDB.NET/pull/375) | `GetOrdinal` case-insensitive fallback, `IndexOutOfRangeException` |
-| DuckDB.NET | [#376](https://github.com/Giorgi/DuckDB.NET/pull/376) | `GetValues` copies only what the array holds |
-| DuckDB.NET | [#377](https://github.com/Giorgi/DuckDB.NET/pull/377) | `GetBytes` and `GetChars` |
-| DuckDB.NET | [#378](https://github.com/Giorgi/DuckDB.NET/pull/378) | `Prepare` requires an open connection |
-| Microsoft.Data.Sqlite | [dotnet/efcore#39343](https://github.com/dotnet/efcore/issues/39343), [#39344](https://github.com/dotnet/efcore/pull/39344) | `GetOrdinal` throws `IndexOutOfRangeException`; `GetValues` accepts a short array |
-| Microsoft.Data.Sqlite | [dotnet/efcore#39336](https://github.com/dotnet/efcore/issues/39336), [#39337](https://github.com/dotnet/efcore/pull/39337) | A reader outlives its disposed command |
-| Microsoft.Data.SqlClient | [dotnet/SqlClient#4874](https://github.com/dotnet/SqlClient/pull/4874) | `ParameterCollection.RemoveAt(int)` throws `ArgumentOutOfRangeException` |
-| FirebirdClient | [FirebirdSQL/NETProvider#1282](https://github.com/FirebirdSQL/NETProvider/issues/1282), [#1283](https://github.com/FirebirdSQL/NETProvider/pull/1283) | `HasRows`, `RecordsAffected`, `GetFieldType` for OCTETS, `RemoveAt(int)` |
-| AdoNetCore.AseClient | [#242](https://github.com/DataAction/AdoNetCore.AseClient/pull/242) | Defaults, `DbException`, reader exceptions, `CloseConnection`, `ExecuteNonQuery` -1, `Prepare` |
+The status badges come from GitHub through shields.io each time the page is viewed.
 
-With all seven DuckDB.NET pull requests applied, DuckDB.NET passes every Required test. With #242, AseClient passes
+| Provider | Link | Status | Contract |
+|---|---|---|---|
+| DuckDB.NET | [Giorgi/DuckDB.NET#357](https://github.com/Giorgi/DuckDB.NET/pull/357) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/357?label=) | `CommandBehavior.CloseConnection` closes the connection last (regression test) |
+| DuckDB.NET | [Giorgi/DuckDB.NET#359](https://github.com/Giorgi/DuckDB.NET/pull/359) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/359?label=) | Negative intervals read and write |
+| DuckDB.NET | [Giorgi/DuckDB.NET#360](https://github.com/Giorgi/DuckDB.NET/pull/360) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/360?label=) | A `TimeSpan` parameter with no inferred type binds as an interval |
+| DuckDB.NET | [Giorgi/DuckDB.NET#364](https://github.com/Giorgi/DuckDB.NET/pull/364) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/364?label=) | `GetSchema("DataTypes")` and metadata probing (replaces #363) |
+| DuckDB.NET | [Giorgi/DuckDB.NET#369](https://github.com/Giorgi/DuckDB.NET/pull/369) | ![open](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/369?label=) | A `DbType` set explicitly survives assigning `Value` afterwards |
+| DuckDB.NET | [Giorgi/DuckDB.NET#372](https://github.com/Giorgi/DuckDB.NET/pull/372) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/372?label=) | `CommandType` defaults to `Text`, `Direction` to `Input` |
+| DuckDB.NET | [Giorgi/DuckDB.NET#373](https://github.com/Giorgi/DuckDB.NET/pull/373) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/373?label=) | `Close` can be called more than once |
+| DuckDB.NET | [Giorgi/DuckDB.NET#374](https://github.com/Giorgi/DuckDB.NET/pull/374) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/374?label=) | `ExecuteNonQuery` and `RecordsAffected` report -1 for non-DML |
+| DuckDB.NET | [Giorgi/DuckDB.NET#375](https://github.com/Giorgi/DuckDB.NET/pull/375) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/375?label=) | `GetOrdinal` case-insensitive fallback, `IndexOutOfRangeException` |
+| DuckDB.NET | [Giorgi/DuckDB.NET#376](https://github.com/Giorgi/DuckDB.NET/pull/376) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/376?label=) | `GetValues` copies only what the array holds |
+| DuckDB.NET | [Giorgi/DuckDB.NET#377](https://github.com/Giorgi/DuckDB.NET/pull/377) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/377?label=) | `GetBytes` and `GetChars` |
+| DuckDB.NET | [Giorgi/DuckDB.NET#378](https://github.com/Giorgi/DuckDB.NET/pull/378) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/378?label=) | `Prepare` requires an open connection |
+| DuckDB.NET | [Giorgi/DuckDB.NET#379](https://github.com/Giorgi/DuckDB.NET/pull/379) | ![merged](https://img.shields.io/github/issues/detail/state/Giorgi/DuckDB.NET/379?label=) | Closing a never-opened connection (regression test) |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39190](https://github.com/dotnet/efcore/issues/39190), [dotnet/efcore#39188](https://github.com/dotnet/efcore/pull/39188) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39188?label=) | ADO.NET schema collections |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39219](https://github.com/dotnet/efcore/pull/39219) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39219?label=) | Remaining schema metadata corrections |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39336](https://github.com/dotnet/efcore/issues/39336), [dotnet/efcore#39337](https://github.com/dotnet/efcore/pull/39337) | ![open](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39337?label=) | A reader outlives its disposed command |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39343](https://github.com/dotnet/efcore/issues/39343), [dotnet/efcore#39344](https://github.com/dotnet/efcore/pull/39344) | ![open](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39344?label=) | `GetOrdinal` throws `IndexOutOfRangeException`; `GetValues` accepts a short array |
+| Microsoft.Data.SqlClient | [dotnet/SqlClient#4874](https://github.com/dotnet/SqlClient/pull/4874) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/SqlClient/4874?label=) | `ParameterCollection.RemoveAt(int)` throws `ArgumentOutOfRangeException` |
+| FirebirdClient | [FirebirdSQL/NETProvider#1276](https://github.com/FirebirdSQL/NETProvider/pull/1276) | ![closed](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1276?label=) | Provider substitutability (superseded) |
+| FirebirdClient | [FirebirdSQL/NETProvider#1282](https://github.com/FirebirdSQL/NETProvider/issues/1282), [FirebirdSQL/NETProvider#1283](https://github.com/FirebirdSQL/NETProvider/pull/1283) | ![closed](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1283?label=) | Combined fix, split into the four below |
+| FirebirdClient | [FirebirdSQL/NETProvider#1284](https://github.com/FirebirdSQL/NETProvider/issues/1284), [FirebirdSQL/NETProvider#1288](https://github.com/FirebirdSQL/NETProvider/pull/1288) | ![open](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1288?label=) | `HasRows` reports whether rows exist |
+| FirebirdClient | [FirebirdSQL/NETProvider#1285](https://github.com/FirebirdSQL/NETProvider/issues/1285), [FirebirdSQL/NETProvider#1289](https://github.com/FirebirdSQL/NETProvider/pull/1289) | ![open](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1289?label=) | `RecordsAffected` |
+| FirebirdClient | [FirebirdSQL/NETProvider#1286](https://github.com/FirebirdSQL/NETProvider/issues/1286), [FirebirdSQL/NETProvider#1290](https://github.com/FirebirdSQL/NETProvider/pull/1290) | ![open](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1290?label=) | `GetFieldType` is `byte[]` for OCTETS |
+| FirebirdClient | [FirebirdSQL/NETProvider#1287](https://github.com/FirebirdSQL/NETProvider/issues/1287), [FirebirdSQL/NETProvider#1291](https://github.com/FirebirdSQL/NETProvider/pull/1291) | ![open](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1291?label=) | `RemoveAt(int)` follows `IList` |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#241](https://github.com/DataAction/AdoNetCore.AseClient/pull/241) | ![open](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/241?label=) | Read BIGTIME columns (TDS_BIGTIMEN 0xBC) |
+| AdoNetCore.AseClient | [DataAction/AdoNetCore.AseClient#242](https://github.com/DataAction/AdoNetCore.AseClient/pull/242) | ![open](https://img.shields.io/github/issues/detail/state/DataAction/AdoNetCore.AseClient/242?label=) | Defaults, `DbException`, reader exceptions, `CloseConnection`, `ExecuteNonQuery` -1, `Prepare` |
+| Npgsql | [npgsql/npgsql#6682](https://github.com/npgsql/npgsql/pull/6682) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6682?label=) | Reading an interval with negative months as `TimeSpan` throws instead of losing data |
+| Npgsql | [npgsql/npgsql#6683](https://github.com/npgsql/npgsql/pull/6683) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6683?label=) | `DataTypes` advertises type modifiers from `pg_type.typmodin` |
+| Npgsql | [npgsql/npgsql#6684](https://github.com/npgsql/npgsql/pull/6684) | ![open](https://img.shields.io/github/issues/detail/state/npgsql/npgsql/6684?label=) | `DataTypes` quotes the internal `"char"` type's `CreateFormat` |
+| TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
+
+With its contract pull requests merged, DuckDB.NET passes every Required test. With #242, AseClient passes
 105 of 112; the other two are ASE server behaviour and a parameter-name convention that no contract sentence covers.
 
 ## Not sent

@@ -7,17 +7,14 @@ internal static class Classifier
 {
 	/// <summary>
 	/// Turns a raw result into an outcome. Nothing may be skipped, so a skip is a failure in the groups that can fail.
-	/// A Common test never fails the provider: a failure there is a difference. A Required test with a waiver reports its
-	/// failure as a deviation; a skip is never excused.
+	/// A Common test never fails the provider: a failure there is a difference. A Required failure is always a failure.
 	/// </summary>
-	public static Cell Classify(RawResult raw, Group group, string? waiver = null)
+	public static Cell Classify(RawResult raw, Group group)
 	{
 		switch (raw.Result)
 		{
 			case "Fail":
-				return group == Group.Required && !string.IsNullOrWhiteSpace(waiver)
-					? new Cell(Outcome.Deviation, raw.Failure)
-					: new Cell(Failed(group), raw.Failure);
+				return new Cell(Failed(group), raw.Failure);
 			case "Skip":
 			case "NotRun":
 				return new Cell(Failed(group), "skipped" + (string.IsNullOrWhiteSpace(raw.SkipReason) ? string.Empty : ": " + raw.SkipReason));

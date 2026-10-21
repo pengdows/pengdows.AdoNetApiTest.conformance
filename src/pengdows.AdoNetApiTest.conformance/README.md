@@ -102,11 +102,12 @@ exposed as the xUnit trait `Category`:
 | Optional | `[OptionalFact]` | `Optional/` | The behavior belongs to a capability a provider may decline. | Passes as `not-implemented` when the provider does not offer the capability; when it does, failure is a hard failure (`implemented-fail`). |
 | Common | `[CommonFact]` | `Common/` | Interoperability behavior the contract does not require, including the generated `GetValueConversionTestBase` matrix. Providers legitimately differ here. | Advisory: a difference is reported as `different`, never part of the hard result. |
 
-A Required test can carry a **waiver**: `[RequiredFact(Contract = "…", Waiver = "why a deviation does not matter")]`. Use it
-when the documentation states the behavior but a provider that differs cannot lose or alter data or change what a
-statement returns (a property only a designer reads, for example). The failure is reported as a `deviation`, with the
-reason, and never fails the provider. A guard test requires a reason of at least 20 characters, the documentation link,
-and a Required test.
+A Required test is required: nothing excuses its failure. Behavior that belongs to a capability a provider may decline
+is Optional instead, and every test of that capability asks the provider the same question first: a provider that has
+the capability must pass all of its tests, and one that does not reports them `not-implemented`. The members only
+`DbDataAdapter.Update` reads (`UpdatedRowSource`, `SourceColumn`, `SourceVersion`, ...) apply when the factory creates a
+DataAdapter; design time (`DesignTimeVisible`, the component `Disposed` event) applies when a new command is
+`DesignTimeVisible`.
 
 Each attribute carries the documentation page it is based on (`Contract = "https://…"`), and `Because` records why a
 test sits in its group when that is not obvious. Tests for one API area are partial classes, so

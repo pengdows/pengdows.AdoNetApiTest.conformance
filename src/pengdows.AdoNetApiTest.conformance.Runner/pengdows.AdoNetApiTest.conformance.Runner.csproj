@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The consumer profiles travel with the runner, so a report from result files certifies against them too. -->
+    <EmbeddedResource Include="..\..\profiles\*.json" LogicalName="profiles/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- The Required tests are read from the library, so every provider's Required total is the suite's. -->
     <ProjectReference Include="..\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
   </ItemGroup>

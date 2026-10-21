@@ -85,6 +85,10 @@ over the fixture's value, and when it is set the server fixtures start no contai
   DML and reader tests' statements for configurations and for the `DmlFixture<T>`/`SelectValueFixture<T>` wrappers that
   hand-written projects use. `Repository.Tests/ProviderCoverageTests` fails when a provider project leaves out a test
   base with Required tests, since that provider could only ever be INCOMPLETE.
+- **Certification profiles** — `profiles/*.json` (embedded in the runner) list the tests a consumer of ADO.NET
+  (pengdows.crud, EF Core) relies on, each citing the consumer's call sites; `Certification.cs` turns each provider's
+  results into "certifies as ... compliant" statements beside the full-contract one (verdict PASS). A Required test
+  belongs in a profile when the consumer calls its member; a Common or Optional one only with a `because`.
 - **Single writer** — SQLite, DuckDB, Access and pengdows.flatfile allow one writer at a time. Their fixtures implement
   `ISingleWriterFixture` and their projects set `[assembly: CollectionBehavior(DisableTestParallelization = true)]`
   (a `file` config target does both unless `"singleWriter": false`); a test that needs two writers at once checks the
@@ -92,15 +96,17 @@ over the fixture's value, and when it is set the server fixtures start no contai
 - **Type fidelity** — `FidelityTestBase` is the shared runner; `TypeFidelityTestBase` takes a hand-written catalog
   (`SqlServerTypes`, `PostgreSqlTypes`, `OracleTypes`, ...) and `DataTypesFidelityTestBase` generates one from the
   provider's `GetSchema("DataTypes")` (plus `IServerTypesFixture` extras). Where a provider does not advertise SQL syntax,
-  assume SQL-92 quoting, `;`, and `@name` parameters.
+  assume SQL-92 quoting and `;`; for parameters, probe `:name` (SQL-92) and then `@name` with a query and use the one that
+  returns the bound value.
 
 ### How outcomes flow
 
 Group attributes `[RequiredFact]`, `[OptionalFact]`, `[CommonFact]` (`GroupAttributes.cs`) emit `Category`,
-`Contract`, `Because` and `Waiver` traits. Tests never skip; instead they call `ConformanceOutcome.NotImplemented /
+`Contract` and `Because` traits. Tests never skip; instead they call `ConformanceOutcome.NotImplemented /
 NotApplicable / Different(reason)` (and `Finding(...)` for type fidelity), which writes a `[CONFORMANCE outcome]` line
-and an xUnit attachment that the runner's `Classifier` reads. A Required test with `Waiver = "..."` that fails becomes
-an advisory `deviation`. `SoftWarning.Report` is for Common tests only.
+and an xUnit attachment that the runner's `Classifier` reads. There are no waivers: a Required failure is a failure. A
+capability a provider may decline is Optional, and its tests share one opt-in check (`ImplementsDataAdapter`,
+`ImplementsDesignTime`): a provider that has it passes all of them. `SoftWarning.Report` is for Common tests only.
 
 ## Rules enforced by `tests/Repository.Tests` (they will fail the build)
 
@@ -109,7 +115,6 @@ an advisory `deviation`. `SoftWarning.Report` is for Common tests only.
   Required belongs only to behavior a quoted sentence on a learn.microsoft.com page states.
 - No skips anywhere (`Assert.Skip`, `Skip =`, `SkippableFact`, `SkipException`, ...), in `src/` or provider projects.
 - Use `Assert.ThrowsAny`/`ThrowsAnyAsync`, never `Assert.Throws` — a documented exception's subclass must pass.
-- Waivers: Required only, a reason of 20+ characters, and still a learn.microsoft.com `Contract`.
 - Required files never call `SoftWarning.Report`.
 - The old upstream project names (listed in `tests/Repository.Tests/RenameTests.cs`) appear only in history/credit files;
   `LICENSE` keeps the upstream notice; docs don't describe skips or soft warnings.

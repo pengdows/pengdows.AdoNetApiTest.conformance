@@ -87,9 +87,126 @@ internal static class MatrixJson
 				json.WriteNumber("failed", provider.RequiredFailed);
 				json.WriteNumber("not-run", provider.RequiredNotRun);
 				json.WriteNumber("not-covered", provider.RequiredNotCovered);
-				json.WriteNumber("waived", provider.RequiredWaived);
 				json.WriteEndObject();
+				json.WriteStartArray("certifications");
+				foreach (var certification in provider.Certifications)
+				{
+					json.WriteStartObject();
+					json.WriteString("id", certification.Id);
+					json.WriteString("name", certification.Name);
+					json.WriteBoolean("certified", certification.Certified);
+					json.WriteString("statement", certification.Sentence(provider.Id));
+					json.WriteNumber("checked", certification.Checked);
+					json.WriteStartArray("failures");
+					foreach (var failure in certification.Failures)
+					{
+						json.WriteStartObject();
+						json.WriteString("area", failure.Area);
+						json.WriteString("test", failure.Test);
+						json.WriteString("outcome", OutcomeInfo.CodeOf(failure.Outcome));
+						json.WriteEndObject();
+					}
+
+					json.WriteEndArray();
+					json.WriteEndObject();
+				}
+
+				json.WriteEndArray();
 				WriteMap(json, "provenance", provider.Provenance);
+				json.WriteEndObject();
+			}
+
+			json.WriteEndArray();
+
+			json.WriteStartArray("certification-profiles");
+			json.WriteStartObject();
+			json.WriteString("id", Certifier.FullContractId);
+			json.WriteString("name", Certifier.FullContractName);
+			json.WriteString("statement", Certifier.FullContractStatement);
+			json.WriteString("rule", "The provider's verdict is PASS: every Required test ran and passed, and no Optional capability it implements failed.");
+			json.WriteEndObject();
+			foreach (var profile in matrix.Profiles)
+			{
+				json.WriteStartObject();
+				json.WriteString("id", profile.Id);
+				json.WriteString("name", profile.Name);
+				json.WriteString("statement", profile.Statement);
+				json.WriteString("consumer", profile.Consumer);
+				json.WriteString("source", profile.Source);
+				json.WriteString("method", profile.Method);
+				json.WriteStartArray("tests");
+				foreach (var entry in profile.Tests)
+				{
+					json.WriteStartObject();
+					json.WriteString("test", entry.Test);
+					json.WriteString("member", entry.Member);
+					json.WriteStartArray("sites");
+					foreach (var site in entry.Sites)
+					{
+						json.WriteStringValue(site);
+					}
+
+					json.WriteEndArray();
+					if (entry.Because is not null)
+					{
+						json.WriteString("because", entry.Because);
+					}
+
+					if (entry.IfNotImplemented is not null)
+					{
+						json.WriteString("if-not-implemented", entry.IfNotImplemented);
+					}
+
+					json.WriteEndObject();
+				}
+
+				json.WriteEndArray();
+				json.WriteStartArray("workarounds");
+				foreach (var status in matrix.Workarounds.GetValueOrDefault(profile.Id) ?? [])
+				{
+					var workaround = status.Workaround;
+					json.WriteStartObject();
+					json.WriteString("id", workaround.Id);
+					json.WriteString("what", workaround.What);
+					json.WriteBoolean("tested", workaround.Tested);
+					json.WriteStartArray("code");
+					workaround.Code.ToList().ForEach(json.WriteStringValue);
+					json.WriteEndArray();
+					json.WriteStartArray("tests");
+					workaround.Tests.ToList().ForEach(json.WriteStringValue);
+					json.WriteEndArray();
+					json.WriteStartArray("fidelity");
+					foreach (var criterion in workaround.Fidelity)
+					{
+						json.WriteStartObject();
+						json.WriteString("type", criterion.TypePattern);
+						json.WriteStartArray("statuses");
+						criterion.Statuses.ToList().ForEach(json.WriteStringValue);
+						json.WriteEndArray();
+						json.WriteStartArray("paths");
+						criterion.Paths.ToList().ForEach(json.WriteStringValue);
+						json.WriteEndArray();
+						json.WriteEndObject();
+					}
+
+					json.WriteEndArray();
+					json.WriteStartArray("needed-by");
+					status.NeededBy.ToList().ForEach(json.WriteStringValue);
+					json.WriteEndArray();
+					json.WriteEndObject();
+				}
+
+				json.WriteEndArray();
+				json.WriteStartArray("excluded");
+				foreach (var exclusion in profile.Excluded)
+				{
+					json.WriteStartObject();
+					json.WriteString("test", exclusion.Test);
+					json.WriteString("because", exclusion.Because);
+					json.WriteEndObject();
+				}
+
+				json.WriteEndArray();
 				json.WriteEndObject();
 			}
 
@@ -105,11 +222,6 @@ internal static class MatrixJson
 				if (test.Contract is not null)
 				{
 					json.WriteString("contract", test.Contract);
-				}
-
-				if (test.Waiver is not null)
-				{
-					json.WriteString("waiver", test.Waiver);
 				}
 
 				if (test.Because is not null)

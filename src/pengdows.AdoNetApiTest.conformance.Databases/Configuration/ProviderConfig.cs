@@ -64,12 +64,46 @@ public sealed class ProviderConfig
 	{
 		var config = JsonSerializer.Deserialize<ProviderConfig>(File.ReadAllText(path), s_options)
 			?? throw new InvalidOperationException($"{path} is empty.");
-		if (string.IsNullOrEmpty(config.Name) || (config.Driver?.Package is null && config.Driver?.Project is null) || config.Driver.Factory is null || config.ConnectionString is null)
+		if (string.IsNullOrWhiteSpace(config.Name) || !Regex.IsMatch(config.Name, "^[A-Za-z0-9_]+$"))
 		{
-			throw new InvalidOperationException($"{path} needs name, driver.package or driver.project, driver.factory and connectionString.");
+			throw new InvalidOperationException($"{path} needs a name containing only letters, digits and underscores.");
+		}
+
+		if (config.Driver is null || string.IsNullOrWhiteSpace(config.Driver.Factory))
+		{
+			throw new InvalidOperationException($"{path} needs driver.factory.");
+		}
+
+		var hasPackage = !string.IsNullOrWhiteSpace(config.Driver.Package);
+		var hasProject = !string.IsNullOrWhiteSpace(config.Driver.Project);
+		if (hasPackage == hasProject)
+		{
+			throw new InvalidOperationException($"{path} needs exactly one of driver.package or driver.project.");
+		}
+
+		if (string.IsNullOrWhiteSpace(config.ConnectionString))
+		{
+			throw new InvalidOperationException($"{path} needs connectionString.");
 		}
 
 		config.Target ??= new TargetConfig { Kind = "cloud" };
+		var kind = config.Target.Kind?.Trim().ToLowerInvariant();
+		if (kind is not ("docker" or "cloud" or "file"))
+		{
+			throw new InvalidOperationException($"{path} target.kind must be docker, cloud or file.");
+		}
+
+		if (kind == "docker" && (string.IsNullOrWhiteSpace(config.Target.Image) || config.Target.Port is < 1 or > 65535))
+		{
+			throw new InvalidOperationException($"{path} docker targets need image and a port from 1 through 65535.");
+		}
+
+		if (config.Target.ReadySeconds <= 0)
+		{
+			throw new InvalidOperationException($"{path} target.readySeconds must be greater than zero.");
+		}
+
+		config.Target.Kind = kind;
 		return config;
 	}
 

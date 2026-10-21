@@ -32,10 +32,12 @@ internal static class ConfiguredProjects
 			return Array.Empty<ProviderProject>();
 		}
 
-		return Directory.EnumerateFiles(providers, "*.json")
+		var projects = Directory.EnumerateFiles(providers, "*.json")
 			.OrderBy(path => path, StringComparer.Ordinal)
 			.Select(path => Generate(path, root, testsDirectory, framework))
 			.ToList();
+		RemoveStaleProjects(Path.Combine(testsDirectory, "obj", "providers"), projects.Select(project => project.Id));
+		return projects;
 	}
 
 	public static ProviderProject Generate(string configPath, string root, string testsDirectory, string framework = "net10.0")
@@ -228,6 +230,23 @@ internal static class ConfiguredProjects
 		if (!File.Exists(path) || File.ReadAllText(path) != content)
 		{
 			File.WriteAllText(path, content);
+		}
+	}
+
+	private static void RemoveStaleProjects(string directory, IEnumerable<string> currentProviders)
+	{
+		if (!Directory.Exists(directory))
+		{
+			return;
+		}
+
+		var current = currentProviders.Select(name => name + ".Tests").ToHashSet(StringComparer.OrdinalIgnoreCase);
+		foreach (var stale in Directory.EnumerateDirectories(directory, "*.Tests", SearchOption.TopDirectoryOnly))
+		{
+			if (!current.Contains(Path.GetFileName(stale)))
+			{
+				Directory.Delete(stale, recursive: true);
+			}
 		}
 	}
 }

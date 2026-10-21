@@ -75,6 +75,19 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains("<TargetFramework>net8.0</TargetFramework>", project);
 	}
 
+	[Fact]
+	public void Stale_generated_projects_are_removed()
+	{
+		var generated = Path.Combine(m_root, "tests", "obj", "providers", "Removed.Tests");
+		Directory.CreateDirectory(generated);
+		File.WriteAllText(Path.Combine(generated, "old.cs"), "stale");
+		Write("Example.json", "{ \"name\": \"Example\", \"driver\": { \"package\": \"P\" } }");
+
+		ConfiguredProjects.Discover(Path.Combine(m_root, "tests"));
+
+		Assert.False(Directory.Exists(generated));
+	}
+
 	/// <summary>
 	/// The reader tests' value tables are created before any test opens a connection: a file database that allows one
 	/// writer per folder (pengdows.flatfile) refuses them while a test holds its connection.

@@ -180,6 +180,28 @@ public class Sql92FixtureTests
 /// <summary>A configuration states the binary literal and column types its database spells differently.</summary>
 public class ProviderConfigSelectValueTests
 {
+	[Theory]
+	[InlineData("{ \"name\": \"Bad-Name\", \"driver\": { \"package\": \"P\", \"factory\": \"F\" }, \"connectionString\": \"c\" }", "name")]
+	[InlineData("{ \"name\": \"X\", \"driver\": { \"package\": \"P\", \"project\": \"D\", \"factory\": \"F\" }, \"connectionString\": \"c\" }", "exactly one")]
+	[InlineData("{ \"name\": \"X\", \"driver\": { \"package\": \"P\", \"factory\": \"F\" }, \"target\": { \"kind\": \"unknown\" }, \"connectionString\": \"c\" }", "target.kind")]
+	[InlineData("{ \"name\": \"X\", \"driver\": { \"package\": \"P\", \"factory\": \"F\" }, \"target\": { \"kind\": \"docker\", \"image\": \"i\" }, \"connectionString\": \"c\" }", "docker targets")]
+	public void Invalid_provider_configuration_is_rejected(string json, string expected)
+	{
+		var path = System.IO.Path.GetTempFileName();
+		try
+		{
+			System.IO.File.WriteAllText(path, json);
+
+			var exception = Assert.Throws<System.InvalidOperationException>(() => ProviderConfig.Load(path));
+
+			Assert.Contains(expected, exception.Message);
+		}
+		finally
+		{
+			System.IO.File.Delete(path);
+		}
+	}
+
 	[Fact]
 	public void Dialect_ReadsBinaryLiteralAndValueTypes()
 	{

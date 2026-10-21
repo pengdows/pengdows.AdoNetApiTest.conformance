@@ -72,39 +72,46 @@ internal static class Program
 	{
 		var testsDirectory = options.TestsDirectory ?? FindTestsDirectory();
 		var packaged = testsDirectory is null;
+		PackagedWorkspace? workspace = null;
 		IReadOnlyList<ProviderProject> discovered;
-		if (packaged)
+		try
 		{
-			var root = Path.Combine(Path.GetTempPath(), "pengdows-conformance", Guid.NewGuid().ToString("N"));
-			testsDirectory = Path.Combine(root, "tests");
-			Directory.CreateDirectory(testsDirectory);
-			var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
-				?? throw new InvalidOperationException("The runner package has no informational version.");
-			discovered = ConfiguredProjects.DiscoverEmbedded(root, testsDirectory, version);
+			if (packaged)
+			{
+				workspace = PackagedWorkspace.Create();
+				testsDirectory = workspace.TestsDirectory;
+				var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
+					?? throw new InvalidOperationException("The runner package has no informational version.");
+				discovered = ConfiguredProjects.DiscoverEmbedded(workspace.Root, testsDirectory, version);
+			}
+			else
+			{
+				discovered = ProviderDiscovery.Discover(testsDirectory!).Concat(ConfiguredProjects.Discover(testsDirectory!)).ToList();
+			}
+
+			var all = discovered.ToList();
+			var duplicate = all.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
+			if (duplicate is not null)
+			{
+				throw new ArgumentException($"Two providers are named {duplicate.Key}: {string.Join(" and ", duplicate.Select(p => p.Project))}.");
+			}
+
+			var providers = ProviderDiscovery.Select(all, options.Providers, options.Excluded);
+			var outputDirectory = Path.GetDirectoryName(Path.GetFullPath(options.JsonPath))!;
+
+			var inputs = new List<ProviderInput>();
+			foreach (var provider in providers)
+			{
+				Console.Error.WriteLine($"Running {provider.Id} ...");
+				inputs.Add(ProviderRunner.Run(provider, options, outputDirectory));
+			}
+
+			return inputs;
 		}
-		else
+		finally
 		{
-			discovered = ProviderDiscovery.Discover(testsDirectory!).Concat(ConfiguredProjects.Discover(testsDirectory!)).ToList();
+			workspace?.Dispose();
 		}
-
-		var all = discovered.ToList();
-		var duplicate = all.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
-		if (duplicate is not null)
-		{
-			throw new ArgumentException($"Two providers are named {duplicate.Key}: {string.Join(" and ", duplicate.Select(p => p.Project))}.");
-		}
-
-		var providers = ProviderDiscovery.Select(all, options.Providers, options.Excluded);
-		var outputDirectory = Path.GetDirectoryName(Path.GetFullPath(options.JsonPath))!;
-
-		var inputs = new List<ProviderInput>();
-		foreach (var provider in providers)
-		{
-			Console.Error.WriteLine($"Running {provider.Id} ...");
-			inputs.Add(ProviderRunner.Run(provider, options, outputDirectory));
-		}
-
-		return inputs;
 	}
 
 	private static string? FindTestsDirectory()

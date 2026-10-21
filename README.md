@@ -63,6 +63,9 @@ conformance run FlatFile0
 
 For local development, reference the project directly and run the source runner as described below.
 
+All three packages share the `<Version>` in `Directory.Build.props`. To publish a new release, update that value and
+push `main`; the release workflow packs, publishes, and tags the matching version.
+
 Create a class that implements `IDbFactoryFixture`: the
 `Factory` property must return a `DbProviderFactory` for your ADO.NET implementation,
 and the `ConnectionString` property must return a valid connection string that the test

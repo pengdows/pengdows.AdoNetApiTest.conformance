@@ -182,4 +182,16 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains("<PackageReference Include=\"Microsoft.NET.Test.Sdk\" Version=\"18.0.1\" />", project);
 		Assert.DoesNotContain("<ProjectReference", project);
 	}
+
+	[Fact]
+	public void A_packaged_runner_workspace_is_removed_when_disposed()
+	{
+		var workspace = PackagedWorkspace.Create();
+		var root = workspace.Root;
+		File.WriteAllText(Path.Combine(workspace.TestsDirectory, "generated.txt"), "temporary");
+
+		workspace.Dispose();
+
+		Assert.False(Directory.Exists(root));
+	}
 }

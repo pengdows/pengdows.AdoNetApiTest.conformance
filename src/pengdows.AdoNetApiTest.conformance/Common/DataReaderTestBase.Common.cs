@@ -154,9 +154,7 @@ public partial class DataReaderTestBase<TFixture>
 			return;
 		}
 
-		if (!schema.Columns.Contains(DbMetaDataColumnNames.StatementSeparatorPattern) || schema.Rows.Count == 0 ||
-			schema.Rows[0][DbMetaDataColumnNames.StatementSeparatorPattern] is DBNull ||
-			string.IsNullOrWhiteSpace(schema.Rows[0][DbMetaDataColumnNames.StatementSeparatorPattern] as string))
+		if (!AdvertisesStatementSeparator(schema))
 		{
 			ConformanceOutcome.NotImplemented("The provider does not advertise a statement separator; compound statements are optional.");
 			return;
@@ -183,6 +181,17 @@ public partial class DataReaderTestBase<TFixture>
 
 		Assert.True(reader.HasRows);
 		}
+	}
+
+	private static bool AdvertisesStatementSeparator(DataTable schema)
+	{
+		if (!schema.Columns.Contains(DbMetaDataColumnNames.StatementSeparatorPattern) || schema.Rows.Count == 0)
+		{
+			return false;
+		}
+
+		var value = schema.Rows[0][DbMetaDataColumnNames.StatementSeparatorPattern];
+		return value is string separator && !string.IsNullOrWhiteSpace(separator);
 	}
 
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader", Because = "useful provider interoperability diagnostic, but not an ADO.NET contract")]

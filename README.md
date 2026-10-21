@@ -22,11 +22,11 @@ Eventually, the better answer was to **reproduce the problems and submit fixes t
 
 ### Why a separate conformance suite?
 
-I found [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest), a project for comparing ADO.NET provider behavior, and initially tried to expand it. Its original purpose was useful, but some tests relied on conventions rather than documented requirements—for example, assuming that every provider supports named parameters with an `@` prefix. A provider that uses positional parameters or a different marker should not fail simply because it is unlike SQL Server.
+I found [mysql-net/AdoNetTest](https://github.com/mysql-net/AdoNetTest), a project for comparing ADO.NET provider behavior, and initially tried to expand it. Its original purpose was useful, but some tests relied on conventions rather than documented requirements—for example, assuming that every provider supports named parameters with an `@` prefix. A provider that uses positional parameters or a different marker should not fail simply because it is unlike SQL Server.
 
 That revealed the essential distinction: **providers can behave differently without violating ADO.NET, and providers can behave alike while sharing an incorrect assumption.**
 
-Extending those tests into a contract-focused suite required a different foundation. This project grew out of that effort. It is derived from the original project, with its history and MIT license preserved, but pursues its own goal: testing **what the ADO.NET documentation requires**, not enforcing whichever behavior is most common.
+Extending those tests into a contract-focused suite required a different foundation. This project grew out of that effort and has since diverged substantially from the original codebase: its shared fixtures, provider matrix, contract classification, certification runner, reports, and upstream-fix workflow are maintained here for a different purpose. It remains derived from the original project, with its history and MIT license preserved, but pursues its own goal: testing **what the ADO.NET documentation requires**, not enforcing whichever behavior is most common.
 
 ### What we test
 
@@ -333,9 +333,11 @@ out of the supported types; a value a type cannot hold leaves its row out, so th
 
 ## Origin and license
 
-This project is a derivative of [mysql-net/AdoNetApiTest](https://github.com/mysql-net/AdoNetApiTest), created by
-Bradley Grainger and contributors (Brice Lambson, Shay Rojansky, Yoh Deadfall) under the MIT license. The upstream
-commit history is preserved in this repository, and the upstream copyright notice is kept in [LICENSE](LICENSE)
-as the MIT license requires. Changes since the fork are Copyright 2025-2026 Pengdows, under the same license.
+This project began as a derivative of [mysql-net/AdoNetTest](https://github.com/mysql-net/AdoNetTest), created by
+Bradley Grainger and contributors (Brice Lambson, Shay Rojansky, Yoh Deadfall) under the MIT license. The current
+codebase has diverged substantially and is not a drop-in continuation of the original test suite: it now implements
+its own contract-focused fixtures, provider configurations, certification runner, and reporting model. The upstream
+commit history is preserved in this repository, and the upstream copyright notice is kept in [LICENSE](LICENSE) as
+the MIT license requires. Changes since the fork are Copyright 2025-2026 Pengdows, under the same license.
 
 [MIT](LICENSE)

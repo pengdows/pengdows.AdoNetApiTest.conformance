@@ -41,6 +41,7 @@ Shared tests distinguish three kinds of expectations:
 The suite also tests **data fidelity** across native database types: parameter writes, independent reads, and full round trips, including boundary values and CLR type information. Those findings are reported separately from strict contract verdicts so database-specific storage rules are not mistaken for provider bugs.
 
 See [CONTRACT-COVERAGE.md](src/pengdows.AdoNetApiTest.conformance/CONTRACT-COVERAGE.md) for the contract classification rules and coverage inventory.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the project layers, ownership boundaries, and runner organization.
 
 ### Feed the findings back upstream
 

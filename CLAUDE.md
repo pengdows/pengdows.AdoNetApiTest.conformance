@@ -37,7 +37,7 @@ The runner defaults to `--config Release`; with `--no-build` it runs whatever Re
 code either let it build or build Release first.
 
 **Database servers come from Testcontainers.** SQL Server, MySQL and PostgreSQL provider projects need only Docker
-running: `src/pengdows.AdoNetApiTest.conformance.Databases/DatabaseServer.cs` defines `PostgreSqlServer`, `MySqlServer`
+running: `src/pengdows.AdoNetApiTest.conformance.Databases/Lifecycle/DatabaseServer.cs` defines `PostgreSqlServer`, `MySqlServer`
 and `SqlServerServer`, xUnit v3 assembly fixtures that each provider project registers in its `*DbFactoryFixture.cs`
 (`[assembly: AssemblyFixture(typeof(PostgreSqlServer))]`). Each test process gets its own container on a Docker-assigned
 host port, with data on tmpfs, so runs can overlap freely; the fixture builds its connection string from
@@ -53,7 +53,7 @@ didn't start.
 Runner exit codes: `0` PASS, `1` FAIL, `2` usage error. CI runs only the embedded providers (`Sqlite MicrosoftSqlite8`)
 and publishes the matrix without gating on it, since real providers legitimately fail Required tests.
 
-Connection strings: `DbFactoryTestBase` and `Databases/Utility.cs` prefer the `ConnectionString` environment variable
+Connection strings: `DbFactoryTestBase` and `Databases/Sql/Utility.cs` prefer the `ConnectionString` environment variable
 over the fixture's value, and when it is set the server fixtures start no container. Informix and YDB read `INFORMIX_CONNECTION_STRING` /
 `YDB_CONNECTION_STRING`. `DuckDB.Tests` and `FlatFile.Tests` reference sibling checkouts (`../../../DuckDB.NET`,
 `../../../pengdows.flatfile`); their `*NuGet.Tests` twins link the same sources against released packages.
@@ -72,18 +72,20 @@ over the fixture's value, and when it is set the server fixtures start no contai
   — never hard-code `@`, `'text'`, `"name"`, `FROM dual`, batching syntax or a provider's exception subclass in shared
   tests.
 - **`src/pengdows.AdoNetApiTest.conformance.Databases/`** — per-database setup/SQL helpers and type catalogs
-  (`SqlServerTypes`, `SqliteTypes`) used by provider fixtures.
-- **`src/pengdows.AdoNetApiTest.conformance.Runner/`** — the `run`/`report` CLI. `ProviderDiscovery` treats every
-  `tests/X.Tests/X.Tests.csproj` (except Repository/Runner) as provider `X`; `ProviderRunner` executes it with
-  `dotnet run -- -xml`; `Classifier` maps xUnit results + traits + attachments to outcomes; `Matrix*`/`ConsoleReport`
-  produce the output. Adding a provider = adding a folder; no registration needed.
+  (`SqlServerTypes`, `SqliteTypes`) used by provider fixtures. `Configuration/` owns provider JSON and configured
+  fixtures, `Lifecycle/` owns server/container startup, and `Sql/` owns reusable SQL setup and value tables.
+- **`src/pengdows.AdoNetApiTest.conformance.Runner/`** — the `run`/`report` CLI. `Execution/` discovers providers,
+  generates configured projects and launches test processes; `Matrix/` parses and classifies xUnit results and writes
+  matrix formats; `Certification/` evaluates consumer profiles; `Site/` produces console and static-site reports.
+  `ProviderDiscovery` treats every `tests/X.Tests/X.Tests.csproj` (except Repository/Runner) as provider `X`; adding a
+  provider = adding a folder; no registration needed.
 - **`tests/<Provider>.Tests/`** — a fixture plus one thin derived class per test base. Provider-specific overrides
   belong here, not in the shared library.
 - **`providers/*.json`** — a provider as a configuration (driver package and factory, docker/cloud/file target,
-  connection string, SQL-92 deviations, types to test). `ConfiguredProjects` in the runner generates a project for each in
-  `tests/obj/providers` (gitignored); `ConfiguredProvider`/`ConfiguredServer`/`ConfiguredFixture` in the Databases
+  connection string, SQL-92 deviations, types to test). `Execution/ConfiguredProjects` in the runner generates a project for each in
+  `tests/obj/providers` (gitignored); `Configuration/ConfiguredProvider`/`Lifecycle/ConfiguredServer`/`ConfiguredFixture` in the Databases
   project read it at run time. Prefer a configuration for a new driver version or server; a hand-written project only
-  when it needs custom code (a hand-written type catalog, non-SQL-92 DDL). `Sql92Dml` and `SelectValueTables` build the
+  when it needs custom code (a hand-written type catalog, non-SQL-92 DDL). `Sql/Sql92Dml` and `Sql/SelectValueTables` build the
   DML and reader tests' statements for configurations and for the `DmlFixture<T>`/`SelectValueFixture<T>` wrappers that
   hand-written projects use. `Repository.Tests/ProviderCoverageTests` fails when a provider project leaves out a test
   base with Required tests, since that provider could only ever be INCOMPLETE.

@@ -23,7 +23,7 @@ internal static class ConfiguredProjects
 	/// <summary>The test bases that use tables the fixture creates first: the select values and the DML table.</summary>
 	private static readonly string[] s_valueTestBases = { "DataReader", "Dml", "GetValueConversion" };
 
-	public static IReadOnlyList<ProviderProject> Discover(string testsDirectory)
+	public static IReadOnlyList<ProviderProject> Discover(string testsDirectory, string framework = "net10.0")
 	{
 		var root = Path.GetDirectoryName(Path.GetFullPath(testsDirectory).TrimEnd(Path.DirectorySeparatorChar))!;
 		var providers = Path.Combine(root, "providers");
@@ -34,17 +34,17 @@ internal static class ConfiguredProjects
 
 		return Directory.EnumerateFiles(providers, "*.json")
 			.OrderBy(path => path, StringComparer.Ordinal)
-			.Select(path => Generate(path, root, testsDirectory))
+			.Select(path => Generate(path, root, testsDirectory, framework))
 			.ToList();
 	}
 
-	public static ProviderProject Generate(string configPath, string root, string testsDirectory)
+	public static ProviderProject Generate(string configPath, string root, string testsDirectory, string framework = "net10.0")
 	{
 		var config = Read(configPath);
 		var directory = Path.Combine(testsDirectory, "obj", "providers", config.Name + ".Tests");
 		Directory.CreateDirectory(directory);
 		var project = Path.Combine(directory, config.Name + ".Tests.csproj");
-		WriteIfChanged(project, Project(config, root));
+		WriteIfChanged(project, Project(config, root, framework));
 		WriteIfChanged(Path.Combine(directory, "Generated.cs"), Code(config));
 		WriteIfChanged(Path.Combine(directory, "provider.json"), File.ReadAllText(configPath));
 		return new ProviderProject(config.Name, project, NotRunReason(config), config.ProcessEnvironment, Path.GetFullPath(configPath));
@@ -145,7 +145,7 @@ internal static class ConfiguredProjects
 		return false;
 	}
 
-	internal static string Project(Config config, string root)
+	internal static string Project(Config config, string root, string framework = "net10.0")
 	{
 		var src = Path.Combine(root, "src");
 		var text = new StringBuilder();
@@ -153,7 +153,7 @@ internal static class ConfiguredProjects
 		text.AppendLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
 		text.AppendLine();
 		text.AppendLine("  <PropertyGroup>");
-		text.AppendLine("    <TargetFramework>net10.0</TargetFramework>");
+		text.AppendLine($"    <TargetFramework>{SecurityElement.Escape(framework)}</TargetFramework>");
 		text.AppendLine("  </PropertyGroup>");
 		text.AppendLine();
 		text.AppendLine("  <ItemGroup>");

@@ -70,7 +70,7 @@ internal static class Program
 	{
 		var testsDirectory = options.TestsDirectory ?? FindTestsDirectory()
 			?? throw new ArgumentException("Could not find the tests folder above the current folder; pass --tests <dir>.");
-		var all = ProviderDiscovery.Discover(testsDirectory).Concat(ConfiguredProjects.Discover(testsDirectory)).ToList();
+		var all = ProviderDiscovery.Discover(testsDirectory).Concat(ConfiguredProjects.Discover(testsDirectory, options.Framework)).ToList();
 		var duplicate = all.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
 		if (duplicate is not null)
 		{

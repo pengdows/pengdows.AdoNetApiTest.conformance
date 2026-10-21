@@ -223,8 +223,9 @@ public sealed class ConfiguredServer : IAsyncLifetime
 				Directory.Delete(m_tempDirectory, recursive: true);
 			}
 		}
-		catch (IOException)
+		catch (IOException exception)
 		{
+			Console.Error.WriteLine($"[CONFORMANCE cleanup-warning] Could not remove temporary directory {m_tempDirectory}: {exception.Message}");
 		}
 	}
 

@@ -3,7 +3,7 @@
 ## Project Structure
 
 - `src/pengdows.AdoNetApiTest.conformance/` contains reusable xUnit v3 base classes and fixtures for ADO.NET behavior.
-- `src/pengdows.AdoNetApiTest.conformance.Databases/` contains database setup and SQL helpers; `src/pengdows.AdoNetApiTest.conformance.Runner/` contains the `conformance` command-line runner (`run`, `report`) that builds the results matrix.
+- `src/pengdows.AdoNetApiTest.conformance.Databases/` contains database setup and SQL helpers, organized into `Configuration/`, `Lifecycle/`, and `Sql/`; `src/pengdows.AdoNetApiTest.conformance.Runner/` contains the `conformance` command-line runner (`run`, `report`) organized into `Execution/`, `Matrix/`, `Certification/`, and `Site/`.
 - `tests/<Provider>.Tests/` contains provider-specific fixtures and derived tests (for example, `tests/Sqlite.Tests/`).
 - Server-backed provider projects start their own MySQL, PostgreSQL or SQL Server container (`DatabaseServer.cs` in the Databases project), so Docker must be running. Solution-wide settings are in `Directory.Build.props`, `global.json`, and `pengdows.AdoNetApiTest.conformance.sln`.
 

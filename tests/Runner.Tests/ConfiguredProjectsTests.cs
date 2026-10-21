@@ -64,6 +64,17 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains("public sealed class ExampleDmlTests : DmlTestBase<ValueFixture>", code);
 	}
 
+	[Fact]
+	public void The_generated_project_uses_the_requested_framework()
+	{
+		Write("Example.json", "{ \"name\": \"Example\", \"driver\": { \"package\": \"P\" } }");
+
+		var provider = Assert.Single(ConfiguredProjects.Discover(Path.Combine(m_root, "tests"), "net8.0"));
+		var project = File.ReadAllText(provider.Project);
+
+		Assert.Contains("<TargetFramework>net8.0</TargetFramework>", project);
+	}
+
 	/// <summary>
 	/// The reader tests' value tables are created before any test opens a connection: a file database that allows one
 	/// writer per folder (pengdows.flatfile) refuses them while a test holds its connection.

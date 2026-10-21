@@ -22,6 +22,11 @@ internal static class RunProvenance
 			try
 			{
 				using var document = JsonDocument.Parse(File.ReadAllText(path));
+				if (document.RootElement.ValueKind != JsonValueKind.Object)
+				{
+					throw new InvalidDataException($"Provenance file {path} must contain a JSON object.");
+				}
+
 				foreach (var property in document.RootElement.EnumerateObject())
 				{
 					if (property.Value.ValueKind == JsonValueKind.String)
@@ -30,8 +35,9 @@ internal static class RunProvenance
 					}
 				}
 			}
-			catch (JsonException)
+			catch (JsonException exception)
 			{
+				throw new InvalidDataException($"Provenance file {path} is not valid JSON.", exception);
 			}
 		}
 

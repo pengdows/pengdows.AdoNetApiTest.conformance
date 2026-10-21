@@ -78,7 +78,7 @@ one portable result for the scenario; “review” is remaining work.
 | `DbConnection` | `CreateCommand`, `CreateBatch`, `CanCreateBatch`, `BeginTransaction`, `BeginTransactionAsync` | Covered in `ConnectionTestBase`/`TransactionTestBase`; batch creation is capability-aware and default isolation is provider-defined |
 | `DbConnection` | `ChangeDatabase`, `EnlistTransaction`, `GetSchema`, `GetSchemaAsync` | Capability bases for `ChangeDatabase`/enlistment; synchronous and asynchronous schema collection shape is covered when the optional schema capability is supported |
 | `DbCommand` | `CommandText`, `CommandTimeout`, `CommandType`, `Connection`, `Transaction`, `UpdatedRowSource`, `DesignTimeVisible`, `Parameters` | Covered in `CommandTestBase`; invalid open-reader transitions are strict where the API requires them. `UpdatedRowSource` (default `Both`, undefined values rejected) is Optional for a provider whose factory creates a DataAdapter; `DesignTimeVisible` is Optional design time, which a provider opts into by making new commands `DesignTimeVisible` |
-| `DbCommand` | `Cancel`, `CreateParameter`, `Prepare`, `PrepareAsync`, `DisposeAsync` | Covered; disposal/cancellation edge cases are diagnostics (including command/connection dispose order, whether a reader outlives its disposed command, and unsetting `Connection` after execution); `Prepare` exceptions cite `IDbCommand.Prepare`, and prepared commands re-run with new values and new text as Optional |
+| `DbCommand` | `Cancel`, `CreateParameter`, `Prepare`, `PrepareAsync`, `DisposeAsync` | Covered; disposal/cancellation edge cases are diagnostics (including command/connection dispose order, whether a reader outlives its disposed command, and unsetting `Connection` after execution); `Prepare` exceptions cite `IDbCommand.Prepare`, `Prepare` on an open connection must succeed or be a no-op, and prepared commands re-run with new values and new text as Optional |
 | `DbCommand` | `ExecuteReader`, `ExecuteReaderAsync`, `ExecuteScalar`, `ExecuteScalarAsync`, `ExecuteNonQuery`, `ExecuteNonQueryAsync` | Covered for successful execution, async propagation, invalid connection state, errors, and result semantics; empty text is diagnostic, as is re-running a query after its table is recreated with another column type (`TypeFidelityTestBase`) |
 | `DbDataReader` | `Read`, `ReadAsync`, `NextResult`, `NextResultAsync`, `HasRows`, `IsClosed`, `Depth`, `FieldCount`, `VisibleFieldCount`, `RecordsAffected` | Covered; closed-state and result-navigation assertions cite the reader contract |
 | `DbDataReader` | `GetValue`, typed getters, `GetFieldValue`, `GetFieldValueAsync`, `IsDBNull`, `IsDBNullAsync` | Valid values, nulls, ordinals, closed state, and async paths covered; generated cross-type conversions are diagnostics |
@@ -145,8 +145,9 @@ clear.
 - Shared tests cover `CommandTimeout`, `UpdatedRowSource`,
   `VisibleFieldCount`, parameter property round-trips, and parameter collection
   `AddRange`/`CopyTo` ordering.
-- Prepared commands are tested for successful execution, with an explicit
-  `not-implemented` outcome when a provider reports preparation as unsupported.
+- `Prepare` on a valid command with an open connection is Required: it must
+  succeed (a no-op is allowed) and leave the command executable, since
+  `IDbCommand.Prepare` names only a closed or missing connection as an error.
 - The shared project now also targets `net10.0`, where modern
   `DbProviderFactory` batch and data-source APIs are available for capability
   agreement testing.

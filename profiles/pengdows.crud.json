@@ -767,7 +767,7 @@
       "because": "The maintenance probe sets a timeout; today a refusal is caught and the probe skipped (a workaround)."
     },
     {
-      "test": "Command.Prepare_valid_command_remains_executable_or_reports_not_supported",
+      "test": "Command.Prepare_valid_command_succeeds_when_connection_open",
       "member": "DbCommand.Prepare",
       "sites": [
         "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2043"
@@ -986,7 +986,7 @@
         "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2057"
       ],
       "tests": [
-        "Command.Prepare_valid_command_remains_executable_or_reports_not_supported",
+        "Command.Prepare_valid_command_succeeds_when_connection_open",
         "Command.Prepared_command_executes_again_with_new_parameter_values",
         "Command.Prepared_command_runs_new_CommandText"
       ]

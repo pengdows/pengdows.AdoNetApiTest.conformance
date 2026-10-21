@@ -96,6 +96,25 @@ public abstract partial class CommandTestBase<TFixture>
 		Assert.ThrowsAny<InvalidOperationException>(() => command.Prepare());
 	}
 
+	/// <summary>
+	/// With an open connection, Prepare creates a prepared (or compiled) version
+	/// of the command on the data source. The provider may implement that as a
+	/// no-op for TableDirect or StoredProcedure commands, but the call itself
+	/// should succeed and the valid command must remain executable.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare")]
+	public virtual void Prepare_valid_command_succeeds_when_connection_open()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectOneSql;
+
+		command.Prepare();
+
+		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
+	}
+
 
 	/// <summary>
 	/// Parameter binding uses the provider's advertised SQL placeholder while the

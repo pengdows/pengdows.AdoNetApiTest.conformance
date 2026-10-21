@@ -62,32 +62,6 @@ public abstract partial class CommandTestBase<TFixture>
 	}
 
 	/// <summary>
-	/// A provider that supports preparation must leave a valid command executable
-	/// after Prepare. Providers that do not support preparation may report that
-	/// explicitly with NotSupportedException.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepare.
-	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbcommand.prepare")]
-	public virtual void Prepare_valid_command_remains_executable_or_reports_not_supported()
-	{
-		using var connection = CreateOpenConnection();
-		using var command = connection.CreateCommand();
-		command.CommandText = SelectOneSql;
-
-		try
-		{
-			command.Prepare();
-		}
-		catch (NotSupportedException)
-		{
-			ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
-			return;
-		}
-
-		Assert.Equal(1, Convert.ToInt32(command.ExecuteScalar()));
-	}
-
-	/// <summary>
 	/// A prepared command is executed again with new parameter values, the reason to prepare it. MySql.Data's Prepare
 	/// against TiDB threw KeyNotFoundException, and pengdows.crud turns preparation off for several providers.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare.

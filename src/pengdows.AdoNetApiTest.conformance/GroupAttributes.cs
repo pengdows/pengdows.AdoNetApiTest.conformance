@@ -79,3 +79,15 @@ public sealed class CommonFactAttribute : ConformanceFactAttribute
 	{
 	}
 }
+
+/// <summary>
+/// Reports database-mode safety and lifecycle capabilities. These diagnostics are deliberately outside the
+/// ADO.NET conformance score: a provider can be fully conformant while requiring SingleWriter or SingleConnection.
+/// </summary>
+public sealed class ModeSafetyFactAttribute : ConformanceFactAttribute
+{
+	public ModeSafetyFactAttribute([CallerFilePath] string sourceFilePath = null, [CallerLineNumber] int sourceLineNumber = -1)
+		: base("ModeSafety", sourceFilePath, sourceLineNumber)
+	{
+	}
+}

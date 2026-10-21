@@ -109,6 +109,7 @@ exposed as the xUnit trait `Category`:
 | Required | `[RequiredFact]` | `Required/` | The documented `System.Data.Common` contract requires this of every provider that exposes the API. | Failure is a hard conformance failure. |
 | Optional | `[OptionalFact]` | `Optional/` | The behavior belongs to a capability a provider may decline. | Passes as `not-implemented` when the provider does not offer the capability; when it does, failure is a hard failure (`implemented-fail`). |
 | Common | `[CommonFact]` | `Common/` | Interoperability behavior the contract does not require, including the generated `GetValueConversionTestBase` matrix. Providers legitimately differ here. | Advisory: a difference is reported as `different`, never part of the hard result. |
+| ModeSafety | `[ModeSafetyFact]` | Provider diagnostics | Empirical database-mode capability probes such as concurrent writers, serialized writers, in-memory isolation, and keepalive lifecycle behavior. | Advisory only: mode results and failures never affect certification. |
 
 A Required test is required: nothing excuses its failure. Behavior that belongs to a capability a provider may decline
 is Optional instead, and every test of that capability asks the provider the same question first: a provider that has

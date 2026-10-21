@@ -6,6 +6,8 @@ public enum Group
 	Required,
 	Optional,
 	Common,
+	/// <summary>Advisory database-mode capability diagnostics; never certification-scoring.</summary>
+	ModeSafety,
 	Unclassified,
 }
 

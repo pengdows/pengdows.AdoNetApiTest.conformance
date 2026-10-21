@@ -119,11 +119,11 @@ internal static class Certifier
 		var certifications = new List<Certification>();
 		var mine = tests.Where(t => t.Results.ContainsKey(provider.Id)).ToList();
 		var contractFailures = mine
-			.Where(t => t.Group != Group.Common && (OutcomeInfo.EffectOf(t.Results[provider.Id].Outcome) == Effect.Fail || t.Results[provider.Id].Outcome == Outcome.NotCovered))
+			.Where(t => t.Group != Group.Common && t.Group != Group.ModeSafety && (OutcomeInfo.EffectOf(t.Results[provider.Id].Outcome) == Effect.Fail || t.Results[provider.Id].Outcome == Outcome.NotCovered))
 			.Select(t => new CertificationFailure(t.Area, t.Name, t.Results[provider.Id].Outcome, t.Results[provider.Id].Detail))
 			.ToList();
 		certifications.Add(new Certification(FullContractId, FullContractName, FullContractStatement, provider.Verdict == Verdict.Pass,
-			mine.Count(t => t.Group != Group.Common), contractFailures));
+			mine.Count(t => t.Group != Group.Common && t.Group != Group.ModeSafety), contractFailures));
 
 		var byName = tests.ToDictionary(t => t.Area + "." + t.Name, StringComparer.Ordinal);
 		foreach (var profile in profiles)

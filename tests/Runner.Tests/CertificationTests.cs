@@ -93,6 +93,21 @@ public class CertificationTests
 	}
 
 	[Fact]
+	public void Mode_safety_diagnostics_never_affect_full_contract_certification()
+	{
+		var xml = new XmlBuilder()
+			.Test("A", "Pass", "Required", XmlBuilder.Base("Command", "Required"))
+			.Test("FileBackedMode", "Fail", "ModeSafety", XmlBuilder.Base("ModeSafety", "ModeSafety"), failure: "Standard mode is unsafe");
+
+		var provider = Matrix.Build(new[] { Provider("P", xml) }).Providers.Single();
+		var full = provider.Certifications.Single(c => c.Id == Certifier.FullContractId);
+
+		Assert.True(full.Certified);
+		Assert.Equal(1, full.Checked);
+		Assert.Empty(full.Failures);
+	}
+
+	[Fact]
 	public void The_console_says_whether_each_provider_certifies()
 	{
 		var xml = new XmlBuilder()

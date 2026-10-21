@@ -130,7 +130,7 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 	protected virtual string SelectOneAsIdSql => SelectSql("1 AS id");
 
 	/// <summary>Returns one scalar with the command-test column name.</summary>
-	protected virtual string SelectOneAsValueSql => SelectSql("1 AS value");
+	protected virtual string SelectOneAsValueSql => SelectSql("1 AS conformance_value");
 
 	/// <summary>Returns one text scalar.</summary>
 	protected virtual string SelectTextSql => SelectSql(Text("test"));
@@ -151,8 +151,8 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 
 	/// <summary>Returns two known rows with the command-test value aliases.</summary>
 	protected virtual string SelectTwoRows42Sql => Fixture is ISqlDialectFixture dialect
-		? $"{dialect.SelectStatement("42 AS value")} UNION {dialect.SelectStatement("43 AS value")} ORDER BY value{dialect.StatementTerminator}"
-		: "SELECT 42 AS value UNION SELECT 43 AS value ORDER BY value;";
+		? $"{dialect.SelectStatement("42 AS conformance_value")} UNION {dialect.SelectStatement("43 AS conformance_value")} ORDER BY 1{dialect.StatementTerminator}"
+		: "SELECT 42 AS conformance_value UNION SELECT 43 AS conformance_value ORDER BY 1;";
 
 	/// <summary>Returns an empty result followed by one result row.</summary>
 	protected virtual string SelectNoRowsThenOneSql => Fixture is ISelectValueFixture select

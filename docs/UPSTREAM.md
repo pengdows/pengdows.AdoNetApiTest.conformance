@@ -55,6 +55,8 @@ The status badges come from GitHub through shields.io each time the page is view
 | Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#471](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/471), [#764](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/764) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/764?label=) | `ServerVersion` returns the server's version |
 | Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#760](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/760), [#765](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/765) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/765?label=) | `CommandBehavior.CloseConnection` closes the connection with the reader |
 | Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#761](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/761), [#766](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/766) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/766?label=) | `ParameterName` reads back as set (marked breaking upstream) |
+| MySqlConnector | [mysql-net/MySqlConnector#1676](https://github.com/mysql-net/MySqlConnector/issues/1676) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1676?label=) | `SupportsSavepoints` is `false` although the savepoint methods work |
+| MySqlConnector | [mysql-net/MySqlConnector#1677](https://github.com/mysql-net/MySqlConnector/issues/1677) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1677?label=) | SingleStore: savepoint statements succeed but do nothing, so rolled-back work is committed |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
 
 With its contract pull requests merged, DuckDB.NET passes every Required test. With #243–#251, AseClient passes
@@ -90,6 +92,10 @@ With its contract pull requests merged, DuckDB.NET passes every Required test. W
 > pengdows ADO.NET conformance suite.
 
 ### System.Data.SQLite: [SQLite forum](https://sqlite.org/forum/) (System.Data.SQLite)
+
+System.Data.SQLite takes no pull requests. Per its [contribution page](https://system.data.sqlite.org/home/doc/trunk/www/contribute.wiki),
+patches are emailed to drh@sqlite.org and are applied only with a signed Contributor Agreement on file (otherwise
+"used for reference only"); bugs go to the SQLite Forum. This draft is for the forum.
 
 > **System.Data.SQLite 1.0.119: ParameterName default, GetOrdinal, Prepare without a connection, and savepoints**
 >

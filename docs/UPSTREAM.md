@@ -61,8 +61,11 @@ The status badges come from GitHub through shields.io each time the page is view
 | MySqlConnector | [mysql-net/MySqlConnector#1677](https://github.com/mysql-net/MySqlConnector/issues/1677) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1677?label=) | SingleStore: savepoint statements succeed but do nothing, so rolled-back work is committed |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
 
-With its contract pull requests merged, DuckDB.NET passes every Required test. With #243–#251, AseClient passes
-105 of 112; the other two are ASE server behaviour and a parameter-name convention that no contract sentence covers.
+DuckDB.NET has merged every listed contract fix except [#369](https://github.com/Giorgi/DuckDB.NET/pull/369), which
+remains open and covers preserving an explicitly assigned `DbType` when `Value` is assigned later. The merged fixes are
+ready for the next provider release; certification is based on the resulting released package, not on PR state alone.
+With #243–#251, AseClient passes 105 of 112; the other two are ASE server behaviour and a parameter-name convention
+that no contract sentence covers.
 
 ## Not sent
 

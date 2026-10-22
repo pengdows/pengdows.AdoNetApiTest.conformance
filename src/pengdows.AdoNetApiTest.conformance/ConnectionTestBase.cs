@@ -75,6 +75,16 @@ public abstract partial class ConnectionTestBase<TFixture> : DbFactoryTestBase<T
 			Assert.Same(type, Assert.IsType<DataColumn>(table.Columns[name]).DataType);
 		}
 
+		void CheckEnum<TEnum>(string name) where TEnum : struct, Enum
+		{
+			Assert.True(table.Columns.Contains(name), $"{collectionName} must contain the required column {name}.");
+			var type = Assert.IsType<DataColumn>(table.Columns[name]).DataType;
+			// DataTable providers commonly expose enum-valued metadata using the enum's underlying
+			// integral CLR type. The contract requires the documented value, not a particular boxing type.
+			Assert.True(type == typeof(TEnum) || type == Enum.GetUnderlyingType(typeof(TEnum)),
+				$"{collectionName}.{name} must use {typeof(TEnum).Name} or its underlying type, but was {type.Name}.");
+		}
+
 		switch (collectionName)
 		{
 			case "DataSourceInformation":
@@ -82,18 +92,18 @@ public abstract partial class ConnectionTestBase<TFixture> : DbFactoryTestBase<T
 				Check("DataSourceProductName", typeof(string));
 				Check("DataSourceProductVersion", typeof(string));
 				Check("DataSourceProductVersionNormalized", typeof(string));
-				Check("GroupByBehavior", typeof(GroupByBehavior));
-				Check("IdentifierPattern", typeof(string));
-				Check("IdentifierCase", typeof(IdentifierCase));
+					CheckEnum<GroupByBehavior>("GroupByBehavior");
+					Check("IdentifierPattern", typeof(string));
+					CheckEnum<IdentifierCase>("IdentifierCase");
 				Check("OrderByColumnsInSelect", typeof(bool));
 				Check("ParameterMarkerFormat", typeof(string));
 				Check("ParameterNameMaxLength", typeof(int));
 				Check("ParameterNamePattern", typeof(string));
 				Check("QuotedIdentifierPattern", typeof(string));
-				Check("QuotedIdentifierCase", typeof(IdentifierCase));
+					CheckEnum<IdentifierCase>("QuotedIdentifierCase");
 				Check("StatementSeparatorPattern", typeof(string));
 				Check("StringLiteralPattern", typeof(string));
-				Check("SupportedJoinOperators", typeof(SupportedJoinOperators));
+					CheckEnum<SupportedJoinOperators>("SupportedJoinOperators");
 				break;
 			case "DataTypes":
 				Check("TypeName", typeof(string));

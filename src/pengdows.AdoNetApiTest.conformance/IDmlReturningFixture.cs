@@ -12,6 +12,12 @@ public interface IDmlReturningFixture : IDmlFixture
 
 	/// <summary>A DELETE of both setup rows that returns a result set, or null.</summary>
 	string DmlDeleteReturningSql { get; }
+
+	/// <summary>
+	/// An INSERT of exactly one row that returns a result set, with its key and text values as parameters: <c>{0}</c> stands
+	/// for the key parameter's marker and <c>{1}</c> for the text parameter's. Null when the database has no RETURNING form.
+	/// </summary>
+	string DmlInsertReturningParameterSql { get; }
 }
 
 /// <summary>
@@ -30,4 +36,18 @@ public interface IMergeFixture : IDmlFixture
 public interface IReturningDialectFixture
 {
 	string ReturningFormat { get; }
+}
+
+/// <summary>
+/// Parameterized statements over the <see cref="IDmlFixture"/> table, whose <c>V</c> column holds text, for tests of what a
+/// provider stores for a parameter value rather than what it echoes (some databases cannot type an untyped parameter in
+/// a bare <c>SELECT</c>).
+/// </summary>
+public interface IDmlParameterFixture : IDmlFixture
+{
+	/// <summary>An INSERT of one row: <c>{0}</c> stands for the key parameter's marker, <c>{1}</c> for the text parameter's.</summary>
+	string DmlInsertParameterSql { get; }
+
+	/// <summary>A SELECT of <c>V</c> for the row whose key is <c>{0}</c>, a literal integer.</summary>
+	string DmlSelectValueSql { get; }
 }

@@ -534,6 +534,37 @@ public abstract partial class ParameterTestBase<TFixture>
 	}
 
 	/// <summary>
+	/// A value that does not fit the declared <see cref="DbType"/> is refused or sent as given, never changed to fit:
+	/// System.Data.SQLite 1.0.119 sent 1.5 declared Int32 as 2.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.dbtype.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.dbtype", Because = "No page says whether a provider converts a value to its DbType or refuses it.")]
+	public virtual void Bind_does_not_round_a_value_to_its_DbType()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		var parameter = command.CreateParameter();
+		parameter.ParameterName = "Parameter";
+		parameter.DbType = DbType.Int32;
+		parameter.Value = 1.5m;
+		command.Parameters.Add(parameter);
+
+		object result;
+		try
+		{
+			result = command.ExecuteScalar();
+		}
+		catch (Exception exception) when (!(exception is Xunit.Sdk.XunitException))
+		{
+			ConformanceOutcome.Different("The provider refused a value that does not fit the declared DbType: " + exception.GetType().Name + ": " + FirstLine(exception.Message));
+			return;
+		}
+
+		Assert.Equal(1.5m, Convert.ToDecimal(result, System.Globalization.CultureInfo.InvariantCulture));
+	}
+
+	/// <summary>
 	/// Every <see cref="DbType"/> member can be assigned. ODP.NET rejects Guid, DateTime2 and Xml, IBM Db2 rejects Guid and
 	/// FirebirdClient rejects VarNumeric the moment they are assigned, which pengdows.crud works around by remapping them.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.dbtype.
@@ -808,6 +839,138 @@ public abstract partial class ParameterTestBase<TFixture>
 
 		if (differ.Count > 0)
 			ConformanceOutcome.Different("DbType inferred from Value: " + string.Join("; ", differ) + ".");
+	}
+
+	/// <summary>
+	/// A DbType set before Value stays set: DuckDB.NET 1.5.6.1 replaced Int64 with Int32 for an int and Time with Object
+	/// for a TimeSpan. pengdows.crud's dialects set DbType and then Value, so the type they chose was lost.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "the page says the type is inferred from Value or from DbType, not which wins when both are set")]
+	public virtual void Value_does_not_replace_an_explicit_DbType()
+	{
+		var cases = new (DbType DbType, object Value)[]
+		{
+			(DbType.Int64, 5), (DbType.Time, new TimeSpan(13, 45, 30)), (DbType.Decimal, 1.5d), (DbType.String, 5),
+		};
+		var differ = new List<string>();
+		foreach (var (dbType, value) in cases)
+		{
+			var parameter = Fixture.Factory.CreateParameter();
+			try
+			{
+				parameter.DbType = dbType;
+				parameter.Value = value;
+				if (parameter.DbType != dbType)
+					differ.Add($"{dbType} then {value.GetType().Name} gives {parameter.DbType}");
+			}
+			catch (Exception ex)
+			{
+				differ.Add($"{dbType} then {value.GetType().Name} throws {ex.GetType().Name}");
+			}
+		}
+
+		if (differ.Count > 0)
+			ConformanceOutcome.Different("Setting Value replaced the DbType set before it: " + string.Join("; ", differ) + ".");
+	}
+
+	/// <summary>
+	/// ResetDbType on a parameter with a Value goes back to the DbType inferred from that Value, as the type it had before
+	/// DbType was set; DuckDB.NET 1.5.6.1 went back to String for an int.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.resetdbtype.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.resetdbtype", Because = "the page says \"its original settings\" without saying whether those follow Value")]
+	public virtual void ResetDbType_infers_DbType_from_Value()
+	{
+		var parameter = Fixture.Factory.CreateParameter();
+		parameter.Value = 5;
+		var inferred = parameter.DbType;
+		parameter.DbType = DbType.Time;
+
+		parameter.ResetDbType();
+
+		if (parameter.DbType != inferred)
+			ConformanceOutcome.Different($"ResetDbType with an int Value gives {parameter.DbType}, not {inferred} as before DbType was set.");
+	}
+
+	/// <summary>
+	/// A value bound under its own DbType comes back unchanged whatever the current culture, with DbType set before or after
+	/// Value. With Value set first, DuckDB.NET 1.5.6.1 sent a decimal declared Decimal and a DateTime declared DateTime2 as
+	/// text where the statement gives the marker no type, and threw for a DateTime declared Date; System.Data.SQLite 1.0.119
+	/// sent a DateTime declared DateTime2 as text in the current culture's format. Text is accepted when it reads back
+	/// invariantly as the same value, as SQLite stores these.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "no page says a bound value may not depend on the current culture")]
+	public virtual void Bind_works_with_values_of_their_own_DbType_in_any_culture()
+	{
+		var when = new DateTime(2026, 10, 18, 13, 45, 30);
+		var cases = new (DbType DbType, object Value, Func<object, bool> Same)[]
+		{
+			(DbType.Decimal, 1.5m, r => AsDecimal(r) == 1.5m),
+			(DbType.Double, 1.5d, r => AsDecimal(r) == 1.5m),
+			(DbType.Single, 1.5f, r => AsDecimal(r) == 1.5m),
+			(DbType.Date, when.Date, r => AsDateTime(r)?.Date == when.Date),
+			(DbType.DateTime, when, r => AsDateTime(r) == when),
+			(DbType.DateTime2, when, r => AsDateTime(r) == when),
+		};
+
+		var culture = CultureInfo.CurrentCulture;
+		CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+		var lost = new List<string>();
+		try
+		{
+			using var connection = CreateOpenConnection();
+			foreach (var (dbType, value, same) in cases)
+			foreach (var valueFirst in new[] { false, true })
+			{
+				using var command = connection.CreateCommand();
+				command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+				var parameter = command.CreateParameter();
+				parameter.ParameterName = "Parameter";
+				if (valueFirst)
+					parameter.Value = value;
+				parameter.DbType = dbType;
+				parameter.Value = value;
+				command.Parameters.Add(parameter);
+				var shown = $"{value.GetType().Name} {Convert.ToString(value, CultureInfo.InvariantCulture)} as {dbType}{(valueFirst ? " (Value set first)" : "")}";
+				try
+				{
+					var result = command.ExecuteScalar();
+					if (!same(result))
+						lost.Add($"{shown} came back as {result?.GetType().Name} {Convert.ToString(result, CultureInfo.InvariantCulture)}");
+				}
+				catch (Exception ex)
+				{
+					lost.Add($"{shown}: {ex.GetType().Name}: {FirstLine(ex.Message)}");
+				}
+			}
+		}
+		finally
+		{
+			CultureInfo.CurrentCulture = culture;
+		}
+
+		if (lost.Count > 0)
+			ConformanceOutcome.Different("A value bound under its own DbType (current culture de-DE) did not come back unchanged: " + string.Join("; ", lost));
+
+		static decimal? AsDecimal(object result) => result switch
+		{
+			string text => decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) ? parsed : null,
+			IConvertible number when result is not DateTime and not bool => Convert.ToDecimal(number, CultureInfo.InvariantCulture),
+			_ => null,
+		};
+
+		static DateTime? AsDateTime(object result) => result switch
+		{
+			DateTime date => date,
+#if NET6_0_OR_GREATER
+			DateOnly date => date.ToDateTime(TimeOnly.MinValue),
+#endif
+			DateTimeOffset offset => offset.DateTime,
+			string text => DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) ? parsed : null,
+			_ => null,
+		};
 	}
 
 	private static string FirstLine(string message)

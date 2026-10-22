@@ -20,6 +20,10 @@ public class ClassifierTests
 	public void Required_fail_is_fail() => Assert.Equal(Outcome.Fail, Classify("A", "Fail", "Required", failure: "boom"));
 
 	[Fact]
+	public void Required_not_implemented_is_a_failure()
+		=> Assert.Equal(Outcome.Fail, Classify("A", "Pass", "Required", outcome: "not-implemented: provider omitted the required behavior"));
+
+	[Fact]
 	public void Optional_pass_without_a_marker_is_implemented_pass() => Assert.Equal(Outcome.ImplementedPass, Classify("A", "Pass", "Optional"));
 
 	[Fact]

@@ -29,6 +29,7 @@ The status badges come from GitHub through shields.io each time the page is view
 | Microsoft.Data.Sqlite | [dotnet/efcore#39343](https://github.com/dotnet/efcore/issues/39343), [#39353](https://github.com/dotnet/efcore/pull/39353) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39353?label=) | `GetOrdinal` throws `IndexOutOfRangeException` for an unknown name |
 | Microsoft.Data.Sqlite | [dotnet/efcore#39352](https://github.com/dotnet/efcore/issues/39352), [#39354](https://github.com/dotnet/efcore/pull/39354) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39354?label=) | `GetValues` copies only what fits in a short array |
 | Microsoft.Data.Sqlite | [dotnet/efcore#39344](https://github.com/dotnet/efcore/pull/39344) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39344?label=) | Combined `GetOrdinal`/`GetValues` fix, split into #39353 and #39354 |
+| Microsoft.Data.Sqlite | [dotnet/efcore#39376](https://github.com/dotnet/efcore/issues/39376), [#39377](https://github.com/dotnet/efcore/pull/39377) | ![status](https://img.shields.io/github/issues/detail/state/dotnet/efcore/39377?label=) | `Size = 0` sends the whole value, not an empty string or blob |
 | Microsoft.Data.SqlClient | [dotnet/SqlClient#4874](https://github.com/dotnet/SqlClient/pull/4874) | ![merged](https://img.shields.io/github/issues/detail/state/dotnet/SqlClient/4874?label=) | `ParameterCollection.RemoveAt(int)` throws `ArgumentOutOfRangeException` |
 | FirebirdClient | [FirebirdSQL/NETProvider#1276](https://github.com/FirebirdSQL/NETProvider/pull/1276) | ![closed](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1276?label=) | Provider substitutability (superseded) |
 | FirebirdClient | [FirebirdSQL/NETProvider#1282](https://github.com/FirebirdSQL/NETProvider/issues/1282), [FirebirdSQL/NETProvider#1283](https://github.com/FirebirdSQL/NETProvider/pull/1283) | ![closed](https://img.shields.io/github/issues/detail/state/FirebirdSQL/NETProvider/1283?label=) | Combined fix, split into the four below |
@@ -72,6 +73,12 @@ The status badges come from GitHub through shields.io each time the page is view
 | MySql.Data trunk | [mysql/mysql-connector-net#107](https://github.com/mysql/mysql-connector-net/pull/107), [Bug #121585](https://bugs.mysql.com/121585) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/107?label=) | Reader value access throws `InvalidOperationException` before and after rows |
 | MySql.Data trunk | [mysql/mysql-connector-net#108](https://github.com/mysql/mysql-connector-net/pull/108), [Bug #121586](https://bugs.mysql.com/121586) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/108?label=) | Undefined `UpdatedRowSource` values are rejected |
 | MySql.Data trunk | [mysql/mysql-connector-net#109](https://github.com/mysql/mysql-connector-net/pull/109), [Bug #121587](https://bugs.mysql.com/121587) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/109?label=) | Unsupported savepoints report `SupportsSavepoints = false` and throw consistently |
+| MySql.Data | [mysql/mysql-connector-net#110](https://github.com/mysql/mysql-connector-net/pull/110) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/110?label=) | Opening raises `StateChange` with `Connecting` to `Open`, not `Open` to `Open` |
+| MySql.Data 8.x | [mysql/mysql-connector-net#111](https://github.com/mysql/mysql-connector-net/pull/111) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/111?label=) | Opening raises `StateChange` with `Connecting` to `Open`, not `Open` to `Open` |
+| MySql.Data trunk | [mysql/mysql-connector-net#112](https://github.com/mysql/mysql-connector-net/pull/112) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/112?label=) | Opening raises `StateChange` with `Connecting` to `Open`, not `Open` to `Open` |
+| MySql.Data | [mysql/mysql-connector-net#113](https://github.com/mysql/mysql-connector-net/pull/113) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/113?label=) | A `char` parameter is inferred as `StringFixedLength`, not `Object` (blob) |
+| MySql.Data 8.x | [mysql/mysql-connector-net#114](https://github.com/mysql/mysql-connector-net/pull/114) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/114?label=) | A `char` parameter is inferred as `StringFixedLength`, not `Object` (blob) |
+| MySql.Data trunk | [mysql/mysql-connector-net#115](https://github.com/mysql/mysql-connector-net/pull/115) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/115?label=) | A `char` parameter is inferred as `StringFixedLength`, not `Object` (blob) |
 | MySqlConnector | [mysql-net/MySqlConnector#1676](https://github.com/mysql-net/MySqlConnector/issues/1676) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1676?label=) | `SupportsSavepoints` is `false` although the savepoint methods work |
 | MySqlConnector | [mysql-net/MySqlConnector#1677](https://github.com/mysql-net/MySqlConnector/issues/1677) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1677?label=) | SingleStore: savepoint statements succeed but do nothing, so rolled-back work is committed |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
@@ -105,9 +112,10 @@ for `8.x`, and [#105–#109](https://github.com/mysql/mysql-connector-net/pulls?
 for `trunk`. Each PR includes the required attribution:
 “found using [pengdows.AdoNetApiTest.conformance](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance)”.
 
-The released packages also reported `Connection.Open_works`, but the current Connector/NET `9.x` source already contains
-the `Closed → Connecting → Open` state transitions. That result should be retested when the next package is published,
-rather than duplicated as a source PR.
+`Connection.Open_works` also fails on the current source of every branch: `Open` sets the state to `Open` without an
+event and then raises `Open → Open`. PRs [#110–#112](https://github.com/mysql/mysql-connector-net/pulls?q=is%3Apr+author%3Aalaricd)
+fix it on `9.x`, `8.x` and `trunk`, with regression tests in `EventTests`. Built from `9.x` source with #95–#99 merged,
+MySql.Data passed 121 of 122 Required tests; `Open_works` was the one left.
 
 ### System.Data.SQLite: [System.Data.SQLite forum report](https://system.data.sqlite.org/home/info/dc14fc92ed1d5a58)
 
@@ -144,6 +152,19 @@ finding when moderation makes the post editable.
 > Found by [`ParameterName_default_is_empty_string`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/ParameterTestBase.Required.cs#L92), [`GetOrdinal_throws_when_out_of_range`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/DataReaderTestBase.Required.cs#L252) and
 > [`Prepare_throws_when_no_connection`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/CommandTestBase.Required.cs#L142) in the pengdows ADO.NET conformance suite.
 
+#### Amendment: three data findings (System.Data.SQLite 1.0.119, confirmed 2026-10-22/23)
+
+> 6. A `char` parameter with no `DbType` is stored as its code point: `'~'` is stored as the integer `126` and reads back
+>    as a number. The [type inference table](https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types)
+>    infers `DbType.StringFixedLength` for `Char`. Found by `Dml.Text_column_stores_a_char_as_that_character`.
+> 7. A `DateTime` declared `DbType.String` (or `DbType.DateTimeOffset`) is converted with the current culture:
+>    `1/2/2024 11:45:00 AM` under en-US, `02.01.2024 13:04:05` under de-DE. The same row is stored differently on two
+>    machines, and System.Data.SQLite's own reader then fails on it (`FormatException: String '1/2/2024 11:45:00 AM' was
+>    not recognized as a valid DateTime`). Converting with the invariant culture (or ISO 8601, as for a `DateTime` value
+>    with no `DbType`) would make it stable.
+> 8. A `TimeSpan` declared `DbType.Time` throws `InvalidCastException: Unable to cast object of type 'System.TimeSpan' to
+>    type 'System.IConvertible'`; with no `DbType` it is stored as `01:02:03`.
+
 ### ODP.NET (Oracle.ManagedDataAccess.Core): Oracle Support or the [ODP.NET forum](https://forums.oracle.com/ords/apexds/domain/dev-community/category/odp-dot-net)
 
 > **OracleCommand.Prepare does not throw without an open connection**
@@ -152,3 +173,19 @@ finding when moderation makes the post editable.
 > a closed one, returns normally. [IDbCommand.Prepare](https://learn.microsoft.com/dotnet/api/system.data.idbcommand.prepare)
 > documents `InvalidOperationException`: "The Connection is not set. -or- The Connection is not Open()." This is the only
 > Required test ODP.NET fails in the pengdows ADO.NET conformance suite: [`Prepare_throws_when_no_connection`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/CommandTestBase.Required.cs#L142).
+
+> **A UTC DateTime declared DbType.DateTimeOffset is stored with the session's offset**
+>
+> ODP.NET 23 (Oracle Database 23ai Free): a `DateTime` with `Kind = Utc` (2024-01-02 11:45 UTC) bound with
+> `DbType.DateTimeOffset` to a `TIMESTAMP WITH TIME ZONE` column is stored as `2024-01-02 11:45 -06:00`, the session's
+> offset attached to the UTC wall time, which is a different instant. `new DateTimeOffset(dateTime)` honours `Kind` and
+> gives `+00:00`. Found by the conformance suite's type-fidelity probe "DateTime declared DateTimeOffset".
+
+### IBM Db2 (Net.IBM.Data.Db2-lnx): IBM Support
+
+> **A TimeSpan outside a day is stored in a TIME column as another time**
+>
+> Net.IBM.Data.Db2-lnx 8.0.0.500 (IBM.Data.Db2) with Db2 LUW 11.5.8: a `TimeSpan` of `1.01:00:00` bound with
+> `DbType.Time` to a `TIME` column is stored as `01:00:00`, with no error. A TIME holds a time of day, so a value outside
+> `00:00:00`-`23:59:59` should be refused rather than wrapped. Found by the conformance suite's type-fidelity probe
+> "beyond a day".

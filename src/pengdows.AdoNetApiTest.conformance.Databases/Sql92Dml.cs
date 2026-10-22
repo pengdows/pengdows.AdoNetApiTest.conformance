@@ -37,6 +37,9 @@ public sealed class Sql92Dml
 		DeleteNoRowsSql = $"DELETE FROM {table} WHERE Id = 999";
 		InsertReturningSql = returning is null ? null : string.Format(System.Globalization.CultureInfo.InvariantCulture, returning, InsertSql);
 		DeleteReturningSql = returning is null ? null : string.Format(System.Globalization.CultureInfo.InvariantCulture, returning, $"DELETE FROM {table} WHERE Id > 0");
+		InsertParameterSql = $"INSERT INTO {table} (Id, V) VALUES ({{0}}, {{1}})";
+		SelectValueSql = $"SELECT V FROM {table} WHERE Id = {{0}}";
+		InsertReturningParameterSql = returning is null ? null : string.Format(System.Globalization.CultureInfo.InvariantCulture, returning, $"INSERT INTO {table} (Id, V) VALUES ({{0}}, {{1}})");
 		MergeSql = $"MERGE INTO {table} t USING (VALUES (1, 'Merged'), (3, 'Dave')) s (Id, V) ON (t.Id = s.Id) " +
 			"WHEN MATCHED THEN UPDATE SET V = s.V WHEN NOT MATCHED THEN INSERT (Id, V) VALUES (s.Id, s.V)";
 	}
@@ -77,6 +80,15 @@ public sealed class Sql92Dml
 	/// <summary>A DELETE of both setup rows that returns them, or null when the database has no RETURNING form.</summary>
 	public string DeleteReturningSql { get; }
 
+	/// <summary>An INSERT of one row with <c>{0}</c> and <c>{1}</c> for the markers of the parameters giving Id and V.</summary>
+	public string InsertParameterSql { get; }
+
+	/// <summary>The V of the row whose Id is <c>{0}</c>.</summary>
+	public string SelectValueSql { get; }
+
+	/// <summary>An INSERT of one row that returns it, with <c>{0}</c> and <c>{1}</c> for the markers of the parameters giving Id and V; null when the database has no RETURNING form.</summary>
+	public string InsertReturningParameterSql { get; }
+
 	/// <summary>A SQL:2003 MERGE that updates row 1 and inserts row 3.</summary>
 	public string MergeSql { get; }
 
@@ -110,7 +122,7 @@ public sealed class Sql92Dml
 /// its table SQL through <see cref="IDataTypesFidelityFixture"/> has the table created that way, and one that states a
 /// RETURNING form through <see cref="IReturningDialectFixture"/> gets the RETURNING statements.
 /// </summary>
-public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IMergeFixture, ISavepointSemanticsFixture, IDisposable
+public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IDmlParameterFixture, IMergeFixture, ISavepointSemanticsFixture, IDisposable
 	where TFactoryFixture : IDbFactoryFixture, new()
 {
 	private readonly TFactoryFixture m_inner = new();
@@ -159,6 +171,12 @@ public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IMergeFixture, 
 	public string DmlInsertReturningSql => m_dml.InsertReturningSql;
 
 	public string DmlDeleteReturningSql => m_dml.DeleteReturningSql;
+
+	public string DmlInsertReturningParameterSql => m_dml.InsertReturningParameterSql;
+
+	public string DmlInsertParameterSql => m_dml.InsertParameterSql;
+
+	public string DmlSelectValueSql => m_dml.SelectValueSql;
 
 	public string DmlMergeSql => m_dml.MergeSql;
 

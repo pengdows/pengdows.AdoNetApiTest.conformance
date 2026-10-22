@@ -9,5 +9,8 @@
   "target": {
     "kind": "file"
   },
-  "connectionString": "path=${instancedir}"
+  "connectionString": "path=${instancedir}",
+  "dialect": {
+    "parameterMarker": ":{0}"
+  }
 }

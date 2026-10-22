@@ -69,6 +69,21 @@ public class CertificationTests
 	}
 
 	[Fact]
+	public void A_required_not_implemented_test_stops_certification()
+	{
+		var xml = new XmlBuilder().Test("RequiredCapability", "Pass", "Required", XmlBuilder.Base("Command", "Required"),
+			outcome: "not-implemented: provider omitted the required behavior");
+
+		var provider = Matrix.Build(new[] { Provider("P", xml) }, profiles: [Profile(Entry("Command.RequiredCapability"))]).Providers.Single();
+
+		Assert.Equal(Verdict.Fail, provider.Verdict);
+		Assert.False(provider.Certifications.Single(c => c.Id == Certifier.FullContractId).Certified);
+		var profile = provider.Certifications.Single(c => c.Id == "consumer");
+		Assert.False(profile.Certified);
+		Assert.Equal(Outcome.Fail, profile.Failures.Single().Outcome);
+	}
+
+	[Fact]
 	public void A_profile_test_with_no_result_stops_it()
 	{
 		var xml = new XmlBuilder().Test("A", "Pass", "Required", XmlBuilder.Base("Command", "Required"));
@@ -145,6 +160,37 @@ public class CertificationTests
 		Assert.False(certification.Certified);
 		Assert.Equal("timestamp now (read)", certification.Failures.Single().Test);
 		Assert.Equal(["P"], matrix.Workarounds["consumer"].Single().NeededBy);
+	}
+
+	[Fact]
+	public void A_fidelity_criterion_can_name_the_values_it_covers()
+	{
+		var xml = new XmlBuilder()
+			.Test("Types", "Pass", "Common", XmlBuilder.Base("TypeFidelity", "Common"),
+				findings: [("time", "beyond a day", "probe", "Lossy", "stored 01:00:00"), ("time", "negative", "probe", "Exact", "refused")]);
+		var wraps = WithWorkarounds(new ProfileWorkaround("time-range", "refuses a TimeSpan outside a day", ["https://github.com/x/y/blob/z/A.cs#L1"], [],
+			[new FidelityCriterion("time", ["lossy"], ["probe"], "beyond a day|negative")]));
+		var other = WithWorkarounds(new ProfileWorkaround("offset-wall-time", "converts a DateTimeOffset to UTC", ["https://github.com/x/y/blob/z/A.cs#L2"], [],
+			[new FidelityCriterion("time", ["lossy"], ["probe"], "DateTimeOffset")]));
+
+		Assert.Equal(["P"], Matrix.Build(new[] { Provider("P", xml) }, profiles: [wraps]).Workarounds["consumer"].Single().NeededBy);
+		Assert.Empty(Matrix.Build(new[] { Provider("P", xml) }, profiles: [other]).Workarounds["consumer"].Single().NeededBy);
+	}
+
+	// A workaround written for one driver (DuckDB.NET's interval reads) is not needed by another driver's finding on a
+	// type of the same name (Npgsql's interval).
+	[Fact]
+	public void A_fidelity_criterion_can_name_the_providers_it_covers()
+	{
+		var xml = new XmlBuilder()
+			.Test("Types", "Pass", "Common", XmlBuilder.Base("TypeFidelity", "Common"),
+				findings: [("interval", "-1 month", "read", "Lossy", "read as zero")]);
+		var profile = WithWorkarounds(new ProfileWorkaround("duckdb-interval", "reads DuckDB intervals", ["https://github.com/x/y/blob/z/A.cs#L1"], [],
+			[new FidelityCriterion("interval", ["lossy"], ["read"], ProviderPattern: "^DuckDB")]));
+
+		var matrix = Matrix.Build(new[] { Provider("Npgsql8", xml), Provider("DuckDB", xml) }, profiles: [profile]);
+
+		Assert.Equal(["DuckDB"], matrix.Workarounds["consumer"].Single().NeededBy);
 	}
 
 	[Fact]

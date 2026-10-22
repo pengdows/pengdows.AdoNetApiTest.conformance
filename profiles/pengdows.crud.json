@@ -870,6 +870,74 @@
         "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2252"
       ],
       "because": "pengdows.crud works around this today: ResetDbType on a pooled parameter is wrapped in a try for providers that do not support it."
+    },
+    {
+      "test": "Connection.StateChange_is_not_raised_by_disposing_a_closed_connection",
+      "member": "DbConnection.StateChange",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L281",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L726",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L767"
+      ]
+    },
+    {
+      "test": "Connection.StateChange_reports_each_async_open_and_close_once",
+      "member": "DbConnection.StateChange",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L281",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L563",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L265"
+      ]
+    },
+    {
+      "test": "Connection.StateChange_reports_each_open_and_close_once",
+      "member": "DbConnection.StateChange",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L281",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L418",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L910",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/DatabaseContext.Initialization.cs#L265"
+      ]
+    },
+    {
+      "test": "DataReader.GetBytes_reads_nothing_at_end_of_buffer",
+      "member": "DbDataReader.GetBytes",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1230"
+      ],
+      "because": "A fixed-length binary value is read with GetBytes up to its length."
+    },
+    {
+      "test": "Dml.Prepared_INSERT_with_RETURNING_executes_again_with_new_parameter_values",
+      "member": "DbCommand.Prepare",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2043"
+      ],
+      "because": "Inserts that return generated keys are prepared and run again on pooled connections."
+    },
+    {
+      "test": "Dml.Text_column_stores_a_char_as_that_character",
+      "member": "DbParameter.Value",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2388"
+      ],
+      "because": "A char property is written to a text column."
+    },
+    {
+      "test": "Dml.Text_column_stores_the_whole_string_when_Size_is_zero",
+      "member": "DbParameter.Size",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2581"
+      ],
+      "because": "A pooled parameter is reset to Size 0 before it is reused."
+    },
+    {
+      "test": "Parameter.Bind_does_not_round_a_value_to_its_DbType",
+      "member": "DbParameter.DbType",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L640"
+      ],
+      "because": "The DbType is chosen from the value, so a provider that converts the value to it must not change it."
     }
   ],
   "excluded": [
@@ -1060,7 +1128,8 @@
             "read",
             "type",
             "typed"
-          ]
+          ],
+          "provider": "Npgsql"
         }
       ]
     },
@@ -1082,7 +1151,8 @@
             "read",
             "type",
             "typed"
-          ]
+          ],
+          "provider": "Spanner"
         }
       ]
     },
@@ -1104,7 +1174,8 @@
             "read",
             "type",
             "typed"
-          ]
+          ],
+          "provider": "Spanner"
         }
       ]
     },
@@ -1125,7 +1196,8 @@
             "read",
             "type",
             "typed"
-          ]
+          ],
+          "provider": "Snowflake"
         }
       ]
     },
@@ -1146,7 +1218,8 @@
             "read",
             "type",
             "typed"
-          ]
+          ],
+          "provider": "Oracle|Odp"
         }
       ]
     },
@@ -1167,8 +1240,287 @@
             "read",
             "type",
             "typed"
-          ]
+          ],
+          "provider": "Snowflake|Oracle|Odp"
         }
+      ]
+    },
+    {
+      "id": "offset-to-utc-wall-time",
+      "what": "A DateTimeOffset written to a column with no offset is converted to its UTC wall time first: drivers stored its local wall time, so 13:45+02:00 read back two hours off (SqlClient, FirebirdClient, IBM Db2, DuckDB.NET).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2341"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": ".",
+          "statuses": [
+            "lossy"
+          ],
+          "paths": [
+            "probe"
+          ],
+          "value": "^DateTimeOffset with offset$"
+        }
+      ]
+    },
+    {
+      "id": "declared-offset-not-null",
+      "what": "A DateTime or text declared DbType.DateTimeOffset is converted before binding: IBM Db2, Informix and Access sent it as NULL.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1371"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": ".",
+          "statuses": [
+            "lossy"
+          ],
+          "paths": [
+            "probe"
+          ],
+          "value": "^DateTime declared DateTimeOffset$"
+        }
+      ]
+    },
+    {
+      "id": "time-of-day-range",
+      "what": "A TimeSpan outside one day is refused before it reaches a TIME column: AseClient, Informix.Net.Core, IBM Db2 and pengdows.flatfile stored another time (-01:00 as 23:00, 1.01:00 as 01:00).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2445"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "time",
+          "statuses": [
+            "lossy"
+          ],
+          "paths": [
+            "probe"
+          ],
+          "value": "^(beyond a day|negative)$"
+        }
+      ]
+    },
+    {
+      "id": "char-as-string",
+      "what": "A char is bound as its one-character string: System.Data.SQLite sent '~' as the integer 126.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2388"
+      ],
+      "tests": [
+        "Dml.Text_column_stores_a_char_as_that_character"
+      ]
+    },
+    {
+      "id": "string-sized-to-fit",
+      "what": "Every string parameter is sized to its value: Microsoft.Data.Sqlite sends an empty string when Size is 0, which a reset pooled parameter has (dotnet/efcore#39377).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L2581"
+      ],
+      "tests": [
+        "Dml.Text_column_stores_the_whole_string_when_Size_is_zero"
+      ]
+    },
+    {
+      "id": "dbtype-follows-value",
+      "what": "The DbType is chosen to match the value's representation: System.Data.SQLite converts the value to the DbType, rounding 1.5 declared Int32 to 2.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L640"
+      ],
+      "tests": [
+        "Parameter.Bind_does_not_round_a_value_to_its_DbType"
+      ]
+    },
+    {
+      "id": "timestamp-as-text",
+      "what": "A timestamp is sent as invariant text where the driver truncates a typed DateTime (Sap.Data.Hana.Net to microseconds, AseClient to milliseconds).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L1323",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/HanaDialect.cs#L170",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SybaseAseDialect.cs#L107"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "timestamp|datetime",
+          "statuses": [
+            "lossy"
+          ],
+          "paths": [
+            "write",
+            "roundtrip",
+            "typed"
+          ],
+          "provider": "Hana|AseClient"
+        }
+      ]
+    },
+    {
+      "id": "ase-null-boolean",
+      "what": "A NULL bool is sent untyped on Sybase ASE: AseClient sent a NULL typed Boolean as BIT, stored as 0, so it read back as false.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SybaseAseDialect.cs#L120"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "bit|bool",
+          "statuses": [
+            "lossy",
+            "wrong-type"
+          ],
+          "paths": [
+            "roundtrip",
+            "typed"
+          ],
+          "value": "^null$",
+          "provider": "AseClient"
+        }
+      ]
+    },
+    {
+      "id": "ase-bigdatetime-text",
+      "what": "BIGDATETIME and BIGTIME are read as text: AseClient decodes BIGDATETIME a few microseconds off and cannot read BIGTIME.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SybaseAseDialect.cs#L181"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "bigdatetime|bigtime",
+          "statuses": [
+            "lossy",
+            "throws"
+          ],
+          "paths": [
+            "read",
+            "roundtrip",
+            "typed"
+          ],
+          "provider": "AseClient"
+        }
+      ]
+    },
+    {
+      "id": "decimal-overflow-null",
+      "what": "A DECIMAL beyond decimal's range read as C# null becomes an OverflowException: Informix.Net.Core returned null.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlDialect.cs#L394"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "decimal|numeric|money",
+          "statuses": [
+            "lossy",
+            "wrong-type"
+          ],
+          "paths": [
+            "read",
+            "roundtrip"
+          ],
+          "provider": "Informix"
+        }
+      ]
+    },
+    {
+      "id": "npgsql-inet-interval",
+      "what": "inet and interval are read as Npgsql's own types: GetValue drops an inet's netmask and an interval's months.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/internal/ColumnQuirkReads.cs#L114"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "^(inet|interval)",
+          "statuses": [
+            "lossy",
+            "throws"
+          ],
+          "paths": [
+            "read",
+            "roundtrip",
+            "typed"
+          ],
+          "provider": "Npgsql"
+        }
+      ]
+    },
+    {
+      "id": "duckdb-interval",
+      "what": "An INTERVAL is read from DuckDB.NET's provider-specific value: its TimeSpan conversion threw for negative values and months and dropped negative months (DuckDB.NET 1.5.6).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/DuckDbDialect.cs#L503"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "^interval",
+          "statuses": [
+            "lossy",
+            "throws"
+          ],
+          "paths": [
+            "read",
+            "roundtrip",
+            "typed"
+          ],
+          "provider": "^DuckD"
+        }
+      ]
+    },
+    {
+      "id": "firebird-none-charset",
+      "what": "FirebirdClient's NONE charset is pinned to UTF-8: text outside the system code page was stored as '?' or read back as U+FFFD.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/FirebirdDialect.cs#L85"
+      ],
+      "tests": []
+    },
+    {
+      "id": "mysqldata-backslash-escapes",
+      "what": "NO_BACKSLASH_ESCAPES is left off for MySql.Data: it substitutes backslash-escaped literals into the SQL, so O'Brien was stored as O\\'Brien (MySql.Data is now refused).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/MySqlDialect.cs#L561"
+      ],
+      "tests": [],
+      "fidelity": [
+        {
+          "type": "char|text|json",
+          "statuses": [
+            "lossy"
+          ],
+          "paths": [
+            "write",
+            "roundtrip"
+          ],
+          "provider": "MySqlData"
+        }
+      ]
+    },
+    {
+      "id": "bytes-read-to-length",
+      "what": "A BINARY(16) Guid is read with exactly its length: MySql.Data threw reading at the end of a value (COR-014).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/TypeCoercionHelper.cs#L1230"
+      ],
+      "tests": [
+        "DataReader.GetBytes_reads_nothing_at_end_of_buffer"
+      ]
+    },
+    {
+      "id": "statechange-reported",
+      "what": "Open and Close report the transition themselves when the driver raises no StateChange (Snowflake.Data), so open-connection counts and metrics stay right.",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/wrappers/TrackedConnection.cs#L289"
+      ],
+      "tests": [
+        "Connection.StateChange_reports_each_open_and_close_once",
+        "Connection.StateChange_reports_each_async_open_and_close_once"
       ]
     }
   ]

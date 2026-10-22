@@ -5,6 +5,24 @@ namespace pengdows.AdoNetApiTest.conformance.Runner;
 /// <summary>Runs a provider's test project and reads the xUnit XML it writes.</summary>
 internal static class ProviderRunner
 {
+	/// <summary>
+	/// A provider's environment value: <c>${output}</c> is its output directory and <c>${inherit}</c> the runner's own value
+	/// of the variable, so a path list can keep what the host needs. A missing value leaves no empty path entry.
+	/// </summary>
+	internal static string ExpandEnvironment(string value, string output, string? inherited)
+	{
+		var expanded = value.Replace("${output}", output, StringComparison.Ordinal);
+		if (string.IsNullOrEmpty(inherited))
+		{
+			var separator = Path.PathSeparator.ToString();
+			return expanded.Replace(separator + "${inherit}", string.Empty, StringComparison.Ordinal)
+				.Replace("${inherit}" + separator, string.Empty, StringComparison.Ordinal)
+				.Replace("${inherit}", string.Empty, StringComparison.Ordinal);
+		}
+
+		return expanded.Replace("${inherit}", inherited, StringComparison.Ordinal);
+	}
+
 	public static ProviderInput Run(ProviderProject provider, Options options, string outputDirectory)
 	{
 		if (provider.NotRunReason is not null)
@@ -28,7 +46,7 @@ internal static class ProviderRunner
 		start.Environment[Provenance.Variable] = RunProvenance.FileFor(xml);
 		foreach (var pair in provider.Environment ?? new Dictionary<string, string>())
 		{
-			start.Environment[pair.Key] = pair.Value.Replace("${output}", output, StringComparison.Ordinal);
+			start.Environment[pair.Key] = ExpandEnvironment(pair.Value, output, Environment.GetEnvironmentVariable(pair.Key));
 		}
 
 		foreach (var argument in new[] { "run", "--project", provider.Project, "-f", options.Framework, "-c", options.Configuration })

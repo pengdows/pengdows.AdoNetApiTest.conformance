@@ -3,7 +3,7 @@
   "description": "MariaDB as pengdows.crud testbed runs it (MySqlTestContainer, TestbedImageMatrix latest).",
   "driver": {
     "package": "MySqlConnector",
-    "version": "2.4.0",
+    "version": "2.6.2",
     "factory": "MySqlConnector.MySqlConnectorFactory, MySqlConnector"
   },
   "target": {

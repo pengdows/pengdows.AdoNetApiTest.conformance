@@ -32,8 +32,9 @@ internal static class CommandLine
 		  conformance report <result.xml ...>         build the matrix from xUnit -xml files that already exist
 		  conformance site [matrix.json] [--out <dir>] build the certification site from a matrix
 
-		A provider passes when every Required test ran and none failed, and no Optional test failed. "Not implemented"
-		is a pass; a Required test it has no tests for leaves it INCOMPLETE. Common differences are advisory. The exit
+		A provider passes when every Required test ran and passed, and no Optional test failed. "Not implemented" is allowed
+		only for an Optional capability explicitly handled by the consumer; a Required test marked that way fails. A Required
+		test with no result leaves the provider INCOMPLETE. Common differences are advisory. The exit
 		code is 0 for PASS and 1 for anything else (2 for a usage error).
 
 		Options:

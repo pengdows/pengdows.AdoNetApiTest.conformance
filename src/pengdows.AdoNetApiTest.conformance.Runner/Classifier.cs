@@ -32,7 +32,11 @@ internal static class Classifier
 
 	private static Cell Passed(RawResult raw, Group group) => raw.MarkerOutcome switch
 	{
-		"not-implemented" => new Cell(Outcome.NotImplemented, raw.MarkerReason),
+		// Required contract behavior cannot be omitted. Optional capability tests may use this marker;
+		// required tests must enter the same failing path as an ordinary assertion failure.
+		"not-implemented" => group == Group.Required
+			? new Cell(Outcome.Fail, raw.MarkerReason ?? "required behavior was not implemented")
+			: new Cell(Outcome.NotImplemented, raw.MarkerReason),
 		"not-applicable" => new Cell(Outcome.NotApplicable, raw.MarkerReason),
 		"different" => new Cell(Outcome.Different, raw.MarkerReason),
 		_ => new Cell(group == Group.Optional ? Outcome.ImplementedPass : Outcome.Pass, null),

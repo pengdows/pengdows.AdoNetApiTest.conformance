@@ -11,14 +11,18 @@ internal sealed record ProfileTest(string Test, string Member, IReadOnlyList<str
 
 /// <summary>
 /// The type-fidelity findings a data-mapping workaround covers: types matching a pattern, on these paths (read, type,
-/// typed, write, roundtrip; none listed means any), with these statuses.
+/// typed, write, roundtrip, probe; none listed means any), with these statuses, and optionally only the values whose
+/// label matches a pattern (the probes share one path) and only the providers whose id matches one (a workaround written
+/// for one driver).
 /// </summary>
-internal sealed record FidelityCriterion(string TypePattern, IReadOnlyList<string> Statuses, IReadOnlyList<string> Paths)
+internal sealed record FidelityCriterion(string TypePattern, IReadOnlyList<string> Statuses, IReadOnlyList<string> Paths, string? ValuePattern = null, string? ProviderPattern = null)
 {
-	public bool Matches(FidelityRow row, FidelityCell cell) =>
+	public bool Matches(string provider, FidelityRow row, FidelityCell cell) =>
+		(ProviderPattern is null || System.Text.RegularExpressions.Regex.IsMatch(provider, ProviderPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase)) &&
 		Statuses.Contains(FidelityInfo.CodeOf(cell.Status)) &&
 		(Paths.Count == 0 || Paths.Contains(row.Path)) &&
-		System.Text.RegularExpressions.Regex.IsMatch(row.Type, TypePattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+		System.Text.RegularExpressions.Regex.IsMatch(row.Type, TypePattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) &&
+		(ValuePattern is null || System.Text.RegularExpressions.Regex.IsMatch(row.Value, ValuePattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase));
 }
 
 /// <summary>
@@ -80,7 +84,8 @@ internal sealed record CertificationProfile(string Id, string Name, string State
 			element.TryGetProperty(name, out var values) ? values.EnumerateArray().Select(v => v.GetString()!).ToList() : [];
 		var workarounds = root.TryGetProperty("workarounds", out var w)
 			? w.EnumerateArray().Select(x => new ProfileWorkaround(Text(x, "id"), Text(x, "what"), Strings(x, "code"), Strings(x, "tests"),
-				x.TryGetProperty("fidelity", out var f) ? f.EnumerateArray().Select(c => new FidelityCriterion(Text(c, "type"), Strings(c, "statuses"), Strings(c, "paths"))).ToList() : [])).ToList()
+				x.TryGetProperty("fidelity", out var f) ? f.EnumerateArray().Select(c => new FidelityCriterion(Text(c, "type"), Strings(c, "statuses"), Strings(c, "paths"), c.TryGetProperty("value", out var v) ? v.GetString() : null,
+					c.TryGetProperty("provider", out var pr) ? pr.GetString() : null)).ToList() : [])).ToList()
 			: [];
 		return new CertificationProfile(Text(root, "id"), Text(root, "name"), Text(root, "statement"), Text(root, "consumer"), Text(root, "source"), Text(root, "method"), tests, excluded)
 		{
@@ -110,9 +115,9 @@ internal static class Certifier
 
 	/// <summary>
 	/// The full contract is the provider's verdict: every Required test ran and passed, and no Optional capability it
-	/// implements failed. A profile asks only for its own tests: each must pass, implement and pass, or not apply; not
-	/// implementing it is accepted for a Required test (as the verdict does) and for a capability the consumer copes
-	/// without. Anything else, a test that never ran for the provider included, keeps it from certifying.
+	/// implements failed. A profile asks only for its own tests: each must pass, implement and pass, or not apply. A
+	/// required behavior may not be marked not implemented; only an optional capability may use that marker, and only when
+	/// the profile explicitly records how its consumer copes without it.
 	/// </summary>
 	public static IReadOnlyList<Certification> Certify(ProviderSummary provider, IReadOnlyList<TestRow> tests, IReadOnlyList<CertificationProfile> profiles, IReadOnlyList<FidelityRow>? fidelity = null)
 	{
@@ -160,7 +165,7 @@ internal static class Certifier
 		(fidelity ?? [])
 			.Where(r => r.Results.ContainsKey(provider))
 			.Select(r => (Row: r, Cell: r.Results[provider]))
-			.Where(x => profile.Workarounds.SelectMany(w => w.Fidelity).Any(c => c.Matches(x.Row, x.Cell)));
+			.Where(x => profile.Workarounds.SelectMany(w => w.Fidelity).Any(c => c.Matches(provider, x.Row, x.Cell)));
 
 	/// <summary>For each workaround, the providers that ran and still fail one of its tests or show one of its findings.</summary>
 	public static IReadOnlyList<WorkaroundStatus> Workarounds(CertificationProfile profile, IReadOnlyList<ProviderSummary> providers, IReadOnlyList<FidelityRow> fidelity)
@@ -171,7 +176,7 @@ internal static class Certifier
 			{
 				var failed = p.Certifications.FirstOrDefault(c => c.Id == profile.Id)?.Failures ?? [];
 				return failed.Any(f => w.Tests.Contains(f.Area + "." + f.Test)) ||
-					fidelity.Any(r => r.Results.TryGetValue(p.Id, out var cell) && w.Fidelity.Any(c => c.Matches(r, cell)));
+					fidelity.Any(r => r.Results.TryGetValue(p.Id, out var cell) && w.Fidelity.Any(c => c.Matches(p.Id, r, cell)));
 			})
 			.Select(p => p.Id)
 			.ToList())).ToList();
@@ -180,7 +185,7 @@ internal static class Certifier
 	private static bool Accepts(Outcome outcome, Group group, ProfileTest entry) => outcome switch
 	{
 		Outcome.Pass or Outcome.ImplementedPass or Outcome.NotApplicable => true,
-		Outcome.NotImplemented => group == Group.Required || entry.IfNotImplemented is not null,
+		Outcome.NotImplemented => group != Group.Required && entry.IfNotImplemented is not null,
 		_ => false,
 	};
 }

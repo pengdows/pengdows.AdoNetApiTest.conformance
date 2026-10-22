@@ -115,6 +115,11 @@ public abstract class FidelityTestBase<TFixture> : DbFactoryTestBase<TFixture>
 				{
 					Evaluate(spec, value, paths, tally);
 				}
+
+				if (paths.HasFlag(Paths.RoundTrip))
+				{
+					Probe(spec, tally);
+				}
 			}
 			finally
 			{
@@ -302,6 +307,95 @@ public abstract class FidelityTestBase<TFixture> : DbFactoryTestBase<TFixture>
 			Record(tally, spec, value, "where", found == expectedRows
 				? new FidelityResult(FidelityStatus.Exact, null)
 				: new FidelityResult(FidelityStatus.Lossy, $"WHERE V = parameter matched {found} of {expectedRows} rows"));
+		});
+	}
+
+	/// <summary>
+	/// Values a driver must either store as given or refuse, never silently store as another value: a <c>TimeSpan</c>
+	/// outside a day in a TIME column (drivers have wrapped -01:00 to 23:00), a <c>DateTimeOffset</c> in a column with no
+	/// offset (drivers have stored its local wall time, so 13:45+02:00 read back two hours off), and a <c>DateTime</c>
+	/// declared <c>DbType.DateTimeOffset</c> (drivers have sent it as NULL). Refusing is exact; a different value or NULL is
+	/// lossy. Each runs once per type on the round-trip path.
+	/// </summary>
+	private void Probe(TypeSpec spec, Tally tally)
+	{
+		if (spec.DbType == DbType.Time && spec.ClrType == typeof(TimeSpan)
+			&& spec.Name.IndexOf("interval", StringComparison.OrdinalIgnoreCase) < 0)
+		{
+			ProbeValue(spec, tally, "beyond a day", DbType.Time, new TimeSpan(1, 1, 0, 0), stored => stored);
+			ProbeValue(spec, tally, "negative", DbType.Time, TimeSpan.FromHours(-1), stored => stored);
+		}
+
+		// A DATE column holds no time of day, so it is right to drop one; only types with a time are probed.
+		if (spec.ClrType == typeof(DateTime) && spec.DbType != DbType.Date
+			&& !(spec.Name.IndexOf("date", StringComparison.OrdinalIgnoreCase) >= 0 && spec.Name.IndexOf("time", StringComparison.OrdinalIgnoreCase) < 0))
+		{
+			var instant = new DateTimeOffset(2024, 1, 2, 13, 45, 0, TimeSpan.FromHours(2));
+			ProbeValue(spec, tally, "DateTimeOffset with offset", spec.DbType, instant, stored => AsInstant(stored, instant.UtcDateTime));
+			var utc = new DateTime(2024, 1, 2, 11, 45, 0, DateTimeKind.Utc);
+			ProbeValue(spec, tally, "DateTime declared DateTimeOffset", DbType.DateTimeOffset, utc, stored => AsInstant(stored, utc) is DateTimeOffset o
+				? (object) o.UtcDateTime
+				: stored);
+		}
+	}
+
+	/// <summary>
+	/// The instant a stored timestamp names, when it names <paramref name="utc"/>: a <c>DateTimeOffset</c> as read, a local
+	/// <c>DateTime</c> converted to UTC, and an unspecified or UTC <c>DateTime</c> taken as UTC wall time. Anything else is
+	/// returned unchanged so the finding shows it.
+	/// </summary>
+	private static object AsInstant(object stored, DateTime utc)
+	{
+		var instant = stored switch
+		{
+			DateTimeOffset o => o.UtcDateTime,
+			DateTime { Kind: DateTimeKind.Local } d => d.ToUniversalTime(),
+			DateTime d => DateTime.SpecifyKind(d, DateTimeKind.Utc),
+			_ => (DateTime?) null,
+		};
+		return instant is { } i && i.Ticks == utc.Ticks ? new DateTimeOffset(utc, TimeSpan.Zero) : stored;
+	}
+
+	private void ProbeValue(TypeSpec spec, Tally tally, string label, DbType dbType, object value, Func<object, object> normalize)
+	{
+		var probe = new TypeValue(label, null, value);
+		if (!Attempt(tally, spec.Display, label, "probe", () => Execute(Connection, $"delete from {Table}")))
+		{
+			return;
+		}
+
+		try
+		{
+			Execute(Connection, $"insert into {Table} (Id, V) values (3, {ParameterMarker("p")})", command =>
+			{
+				var parameter = command.CreateParameter();
+				parameter.ParameterName = "p";
+				parameter.DbType = dbType;
+				parameter.Value = value;
+				command.Parameters.Add(parameter);
+			});
+		}
+		catch (Exception exception) when (!(exception is Xunit.Sdk.XunitException))
+		{
+			Record(tally, spec, probe, "probe", new FidelityResult(FidelityStatus.Exact, "refused: " + FirstLine(exception.Message)));
+			return;
+		}
+
+		Attempt(tally, spec.Display, label, "probe", () =>
+		{
+			var stored = ReadScalar(Connection, $"select V from {Table} where Id = 3");
+			if (stored is null or DBNull)
+			{
+				Record(tally, spec, probe, "probe", new FidelityResult(FidelityStatus.Lossy, "the value was stored as NULL"));
+				return;
+			}
+
+			var comparable = normalize(stored);
+			Record(tally, spec, probe, "probe", Equals(comparable, value)
+				|| (comparable is DateTime d && value is DateTime v && d.Ticks == v.Ticks)
+				|| (comparable is DateTimeOffset o && value is DateTimeOffset w && o == w)
+				? new FidelityResult(FidelityStatus.Exact, null)
+				: new FidelityResult(FidelityStatus.Lossy, $"stored {FidelityComparer.Show(stored)} instead of {FidelityComparer.Show(value)}"));
 		});
 	}
 

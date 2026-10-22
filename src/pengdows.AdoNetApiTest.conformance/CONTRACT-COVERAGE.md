@@ -49,6 +49,7 @@ implements it must satisfy the associated test.
 | `DbConnection` database changes and enlistment | `ChangeDatabaseTestBase`, `EnlistmentTestBase` | Optional capability bases added |
 | `DbCommand` properties, execution, transactions, preparation, async APIs | `CommandTestBase` | Required behavior covered; remaining command behaviors under audit |
 | `DbDataReader` navigation, values, schema, disposal, async APIs | `DataReaderTestBase` | Required state/navigation covered; conversion matrix classified separately |
+| Numeric normalization for CRUD consumers | `NumericConversionPolicyTestBase` | Common advisory only; lossless widening/narrowing policy is not an ADO.NET contract |
 | `DbParameter` and `IDataParameterCollection` | `ParameterTestBase` | Universal properties and marker metadata covered; provider-specific directions remain opt-in |
 | `DbTransaction` lifecycle and async APIs | `TransactionTestBase`, `TransactionSemanticsTestBase`, `IsolationLevelTestBase` | Default lifecycle covered; completion/exception portability remains under audit |
 | `DbProviderFactory` creation and capability agreement | `DbProviderFactoryTestBase` | Core creation covered; modern and optional members are capability-aware |
@@ -112,6 +113,11 @@ enforces:
   and must not be used as a conformance requirement.
 - **COMMON BEHAVIOR TEST — NOT AN ADO.NET CONTRACT** — useful diagnostics for
   interoperability, but not a provider-conformance requirement.
+- **CRUD NUMERIC POLICY — NOT AN ADO.NET CONTRACT** — checks whether an
+  in-range numeric value can be widened or narrowed without rounding,
+  truncation, overflow, or loss of its fractional component. These checks are
+  reported as Common differences and are intended for consumers such as
+  `pengdows.crud`, not as universal provider requirements.
 - **WAS INVALID CONTRACT TEST — NOW VALID** — a changed assertion whose old
   form was invalid and whose new form is supported by the documented contract.
 

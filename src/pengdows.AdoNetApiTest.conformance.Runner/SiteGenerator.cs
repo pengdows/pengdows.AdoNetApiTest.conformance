@@ -222,6 +222,8 @@ internal static class SiteGenerator
 			.Select(x => (x.Test, Result: x.Result!.Value, Outcome: Text(x.Result!.Value, "outcome")))
 			.ToList();
 
+		AllTests(body, mine);
+
 		Section(body, "Required failures", "Each breaks a behavior the linked documentation states.",
 			mine.Where(x => Text(x.Test, "group") == "Required" && x.Outcome == "fail"), withContract: true);
 		Section(body, "Optional failures", "The provider implements this optional capability, and it failed.",
@@ -296,6 +298,46 @@ internal static class SiteGenerator
 		body.Append(Footer(root));
 		return Close(html, body);
 	}
+
+	private static void AllTests(StringBuilder body, IEnumerable<(JsonElement Test, JsonElement Result, string? Outcome)> rows)
+	{
+		var list = rows.OrderBy(x => Text(x.Test, "group"), StringComparer.Ordinal)
+			.OrderBy(x => Text(x.Test, "area"), StringComparer.Ordinal)
+			.ThenBy(x => Text(x.Test, "name"), StringComparer.Ordinal)
+			.ToList();
+		if (list.Count == 0)
+		{
+			return;
+		}
+
+		body.Append(CultureInfo.InvariantCulture, $"<section id=\"all-tests\"><h2>All tests <span class=\"count\">{list.Count}</span></h2><p class=\"note\">Every test result reported for this provider. Expand evidence for failures, differences, and other detailed outcomes.</p><div class=\"scroll\"><table><thead><tr><th>Group</th><th>Area</th><th>Test</th><th>Outcome</th><th>Evidence</th></tr></thead><tbody>");
+		foreach (var (test, result, outcome) in list)
+		{
+			var name = Text(test, "name") ?? string.Empty;
+			var contract = Text(test, "contract");
+			var nameCell = contract is not null ? $"<a href=\"{E(contract)}\">{E(name)}</a>" : E(name);
+			var detail = Text(result, "detail");
+			var target = Anchor(Text(test, "area"), name);
+			body.Append(CultureInfo.InvariantCulture, $"<tr id=\"{target}\"><td>{E(Text(test, "group"))}</td><td>{E(Text(test, "area"))}</td><td>{nameCell}</td><td><span class=\"badge {OutcomeClass(outcome)}\">{E(outcome)}</span></td><td class=\"detail\">");
+			body.Append(E(FirstLine(detail)));
+			if (!string.IsNullOrWhiteSpace(detail) && detail!.Contains('\n'))
+			{
+				body.Append("<details><summary>Show full assertion/evidence</summary><pre>").Append(E(detail)).Append("</pre></details>");
+			}
+
+			body.Append("</td></tr>");
+		}
+
+		body.Append("</tbody></table></div></section>");
+	}
+
+	private static string OutcomeClass(string? outcome) => outcome switch
+	{
+		"pass" or "implemented-pass" or "not-implemented" or "not-applicable" => "certified",
+		"fail" or "implemented-fail" or "not-run" => "failed",
+		"different" or "not-covered" => "incomplete",
+		_ => "untested",
+	};
 
 	private static void Section(StringBuilder body, string title, string note, IEnumerable<(JsonElement Test, JsonElement Result, string? Outcome)> rows, bool withContract)
 	{

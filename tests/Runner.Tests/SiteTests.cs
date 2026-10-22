@@ -20,7 +20,9 @@ public sealed class SiteTests : IDisposable
 	public void The_site_has_an_index_and_a_page_per_provider_with_its_status()
 	{
 		var certified = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"), contract: "https://learn.microsoft.com/c");
-		var failing = new XmlBuilder().Test("Connection_opens", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), contract: "https://learn.microsoft.com/c", failure: "boom\nSystem.InvalidOperationException: stack evidence");
+		var failing = new XmlBuilder()
+			.Test("Connection_opens", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), contract: "https://learn.microsoft.com/c", failure: "boom\nSystem.InvalidOperationException: stack evidence")
+			.Test("Connection_closes", "Pass", "Required", XmlBuilder.Base("Connection", "Required"));
 		var matrix = Matrix.Build(new[]
 		{
 			new ProviderInput("Good", "Good.Tests", XunitXml.Parse(certified.ToString()), null)
@@ -45,6 +47,9 @@ public sealed class SiteTests : IDisposable
 		Assert.Contains("Bad.html#required-failures", index);
 		var bad = File.ReadAllText(Path.Combine(m_directory, "site", "Bad.html"));
 		Assert.Contains("Required failures", bad);
+		Assert.Contains("All tests", bad);
+		Assert.Contains("Connection_closes", bad);
+		Assert.Contains("pass", bad);
 		Assert.Contains("https://learn.microsoft.com/c", bad);
 		Assert.Contains("boom", bad);
 		Assert.Contains("stack evidence", bad);

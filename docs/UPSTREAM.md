@@ -62,6 +62,16 @@ The status badges come from GitHub through shields.io each time the page is view
 | MySql.Data | [mysql/mysql-connector-net#97](https://github.com/mysql/mysql-connector-net/pull/97) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/97?label=) | Reader value access throws `InvalidOperationException` before and after rows |
 | MySql.Data | [mysql/mysql-connector-net#98](https://github.com/mysql/mysql-connector-net/pull/98) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/98?label=) | Undefined `UpdatedRowSource` values are rejected |
 | MySql.Data | [mysql/mysql-connector-net#99](https://github.com/mysql/mysql-connector-net/pull/99) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/99?label=) | Unsupported savepoints report `SupportsSavepoints = false` and throw consistently |
+| MySql.Data 8.x | [mysql/mysql-connector-net#100](https://github.com/mysql/mysql-connector-net/pull/100) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/100?label=) | `GetOrdinal` performs exact-case lookup before case-insensitive fallback |
+| MySql.Data 8.x | [mysql/mysql-connector-net#101](https://github.com/mysql/mysql-connector-net/pull/101) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/101?label=) | `ParameterName` defaults to `""` and `SourceVersion` to `Current` |
+| MySql.Data 8.x | [mysql/mysql-connector-net#102](https://github.com/mysql/mysql-connector-net/pull/102) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/102?label=) | Reader value access throws `InvalidOperationException` before and after rows |
+| MySql.Data 8.x | [mysql/mysql-connector-net#103](https://github.com/mysql/mysql-connector-net/pull/103) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/103?label=) | Undefined `UpdatedRowSource` values are rejected |
+| MySql.Data 8.x | [mysql/mysql-connector-net#104](https://github.com/mysql/mysql-connector-net/pull/104) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/104?label=) | Unsupported savepoints report `SupportsSavepoints = false` and throw consistently |
+| MySql.Data trunk | [mysql/mysql-connector-net#105](https://github.com/mysql/mysql-connector-net/pull/105) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/105?label=) | `GetOrdinal` performs exact-case lookup before case-insensitive fallback |
+| MySql.Data trunk | [mysql/mysql-connector-net#106](https://github.com/mysql/mysql-connector-net/pull/106) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/106?label=) | `ParameterName` defaults to `""` and `SourceVersion` to `Current` |
+| MySql.Data trunk | [mysql/mysql-connector-net#107](https://github.com/mysql/mysql-connector-net/pull/107) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/107?label=) | Reader value access throws `InvalidOperationException` before and after rows |
+| MySql.Data trunk | [mysql/mysql-connector-net#108](https://github.com/mysql/mysql-connector-net/pull/108) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/108?label=) | Undefined `UpdatedRowSource` values are rejected |
+| MySql.Data trunk | [mysql/mysql-connector-net#109](https://github.com/mysql/mysql-connector-net/pull/109) | ![status](https://img.shields.io/github/issues/detail/state/mysql/mysql-connector-net/109?label=) | Unsupported savepoints report `SupportsSavepoints = false` and throw consistently |
 | MySqlConnector | [mysql-net/MySqlConnector#1676](https://github.com/mysql-net/MySqlConnector/issues/1676) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1676?label=) | `SupportsSavepoints` is `false` although the savepoint methods work |
 | MySqlConnector | [mysql-net/MySqlConnector#1677](https://github.com/mysql-net/MySqlConnector/issues/1677) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1677?label=) | SingleStore: savepoint statements succeed but do nothing, so rolled-back work is committed |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
@@ -89,8 +99,10 @@ that no contract sentence covers.
 
 ### MySql.Data: remaining release retest
 
-The current released packages still show the findings addressed by [MySQL Connector/NET PR #95](https://github.com/mysql/mysql-connector-net/pull/95)
-through [PR #99](https://github.com/mysql/mysql-connector-net/pull/99). Each PR includes the required attribution:
+The current released packages still show the findings addressed by MySQL Connector/NET PRs [#95–#99](https://github.com/mysql/mysql-connector-net/pulls?q=is%3Apr+author%3Aalaricd)
+for `9.x`, [#100–#104](https://github.com/mysql/mysql-connector-net/pulls?q=is%3Apr+author%3Aalaricd)
+for `8.x`, and [#105–#109](https://github.com/mysql/mysql-connector-net/pulls?q=is%3Apr+author%3Aalaricd)
+for `trunk`. Each PR includes the required attribution:
 “found using [pengdows.AdoNetApiTest.conformance](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance)”.
 
 The released packages also reported `Connection.Open_works`, but the current Connector/NET `9.x` source already contains

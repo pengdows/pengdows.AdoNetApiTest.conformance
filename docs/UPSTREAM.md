@@ -115,6 +115,14 @@ System.Data.SQLite takes no pull requests. Per its [contribution page](https://s
 patches are emailed to drh@sqlite.org and are applied only with a signed Contributor Agreement on file (otherwise
 "used for reference only"); bugs go to the SQLite Forum. The consolidated report is [System.Data.SQLite ADO.NET contract findings](https://sqlite.org/forum/forumpost/ab60628938).
 
+`GetSchema()` and `GetSchemaAsync()` are also required for certification. The current Microsoft.Data.Sqlite run fails all
+three connection-level schema checks because the base implementation throws `NotSupportedException`; pengdows.crud can
+work around that limitation, but the workaround does not make the provider conformant. System.Data.SQLite passes these
+schema checks in the current run. The corresponding Microsoft.Data.Sqlite work demonstrates that this is actionable provider work:
+[dotnet/efcore#39188](https://github.com/dotnet/efcore/pull/39188) and
+[dotnet/efcore#39219](https://github.com/dotnet/efcore/pull/39219). The pending forum report should be amended with this
+finding when moderation makes the post editable.
+
 > **System.Data.SQLite 1.0.119: ParameterName default, GetOrdinal, Prepare without a connection, and savepoints**
 >
 > 1. `new SQLiteParameter().ParameterName` is `null`. [DbParameter.ParameterName](https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.parametername):

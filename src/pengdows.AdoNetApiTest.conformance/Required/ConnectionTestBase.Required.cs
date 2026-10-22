@@ -48,6 +48,40 @@ public abstract partial class ConnectionTestBase<TFixture>
 		Assert.NotEmpty(connection.ServerVersion);
 	}
 
+	/// <summary>
+	/// Certification requires usable metadata collections. A provider may have
+	/// an application-level workaround for missing schema metadata, but that
+	/// workaround does not make the provider ADO.NET-conformant.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschema.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschema")]
+	public virtual void GetSchema_parameterless_returns_proper_MetaDataCollections()
+	{
+		using var connection = CreateOpenConnection();
+		CheckMetaDataCollectionsSchema(connection.GetSchema());
+	}
+
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschema")]
+	public virtual void GetSchema_returns_proper_MetaDataCollections()
+	{
+		using var connection = CreateOpenConnection();
+		CheckMetaDataCollectionsSchema(connection.GetSchema("MetaDataCollections"));
+	}
+
+#if NET10_0_OR_GREATER
+	/// <summary>
+	/// Asynchronous schema metadata is required for certification and must
+	/// preserve the metadata shape of the synchronous API.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschemaasync.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschemaasync")]
+	public virtual async Task GetSchemaAsync_returns_metadata()
+	{
+		using var connection = CreateOpenConnection();
+		CheckMetaDataCollectionsSchema(await connection.GetSchemaAsync().ConfigureAwait(false));
+	}
+#endif
+
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection")]
 	public virtual void State_closed_by_default()
 	{

@@ -35,61 +35,6 @@ public abstract partial class ConnectionTestBase<TFixture>
 	}
 #endif
 
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschema", Because = "providers may report schema metadata as unsupported")]
-	public virtual void GetSchema_parameterless_returns_proper_MetaDataCollections_or_throws()
-	{
-		using var connection = CreateOpenConnection();
-		try
-		{
-			var table = connection.GetSchema();
-			CheckMetaDataCollectionsSchema(table);
-		}
-		catch (NotSupportedException)
-		{
-			ConformanceOutcome.NotImplemented("The provider does not support GetSchema metadata collections.");
-			return;
-		}
-	}
-
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschema", Because = "providers may report schema metadata as unsupported")]
-	public virtual void GetSchema_returns_proper_MetaDataCollections_or_throws()
-	{
-		using var connection = CreateOpenConnection();
-		try
-		{
-			var table = connection.GetSchema("MetaDataCollections");
-			CheckMetaDataCollectionsSchema(table);
-		}
-		catch (NotSupportedException)
-		{
-			ConformanceOutcome.NotImplemented("The provider does not support named GetSchema metadata collections.");
-			return;
-		}
-	}
-
-#if NET10_0_OR_GREATER
-	/// <summary>
-	/// GetSchemaAsync must preserve the metadata shape of the synchronous schema
-	/// API for providers that expose schema collections.
-	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschemaasync.
-	/// </summary>
-	[OptionalFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschemaasync")]
-	public virtual async Task GetSchemaAsync_returns_metadata_when_supported()
-	{
-		using var connection = CreateOpenConnection();
-		try
-		{
-			var table = await connection.GetSchemaAsync().ConfigureAwait(false);
-			CheckMetaDataCollectionsSchema(table);
-		}
-		catch (NotSupportedException)
-		{
-			ConformanceOutcome.NotImplemented("The provider does not support asynchronous schema metadata.");
-			return;
-		}
-	}
-#endif
-
 	/// <summary>
 	/// DataSourceInformation is the provider-neutral source for parameter marker
 	/// syntax. This diagnostic makes malformed or incomplete metadata visible;

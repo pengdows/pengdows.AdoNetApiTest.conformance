@@ -62,6 +62,7 @@ public sealed class ConfiguredProjectsTests : IDisposable
 		Assert.Contains("public sealed class ExampleDataReaderTests : DataReaderTestBase<ValueFixture>", code);
 		Assert.Contains("public sealed class ExampleGetValueConversionTests : GetValueConversionTestBase<ValueFixture>", code);
 		Assert.Contains("public sealed class ExampleDmlTests : DmlTestBase<ValueFixture>", code);
+		Assert.Contains("public sealed class ExampleTransactionTests : TransactionTestBase<ValueFixture>", code);
 	}
 
 	/// <summary>

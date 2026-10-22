@@ -289,7 +289,9 @@ References: [`DbParameter`](https://learn.microsoft.com/dotnet/api/system.data.c
 - Savepoint methods and their asynchronous counterparts now verify the
   documented `SupportsSavepoints` agreement: unsupported providers must throw
   `NotSupportedException`, while providers advertising support must complete
-  save, rollback-to-savepoint, and release operations.
+  save, rollback-to-savepoint, and release operations. Fixtures that provide
+  transactional table SQL also verify the semantics: a write before a
+  savepoint survives rollback to it, while a write after the savepoint does not.
 - Test disposed and completed transaction behavior without requiring a specific
   provider exception subclass unless the API documents one.
 - Preserve the disposed `IDbTransaction.Connection` test where the explicit

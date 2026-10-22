@@ -21,7 +21,7 @@ internal static class ConfiguredProjects
 	};
 
 	/// <summary>The test bases that use tables the fixture creates first: the select values and the DML table.</summary>
-	private static readonly string[] s_valueTestBases = { "DataReader", "Dml", "GetValueConversion" };
+	private static readonly string[] s_valueTestBases = { "DataReader", "Dml", "GetValueConversion", "Transaction" };
 
 	public static IReadOnlyList<ProviderProject> Discover(string testsDirectory)
 		=> Discover(testsDirectory, Path.GetDirectoryName(Path.GetFullPath(testsDirectory).TrimEnd(Path.DirectorySeparatorChar))!, packageMode: false, packageVersion: null);

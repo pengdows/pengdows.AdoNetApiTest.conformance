@@ -24,6 +24,11 @@ public sealed class Sql92Dml
 			$"INSERT INTO {table} (Id, V) VALUES (2, 'Bob')",
 		};
 		CleanupSql = new[] { $"DELETE FROM {table}" };
+		SavepointSetupSql = new[] { $"DELETE FROM {table}" };
+		SavepointCleanupSql = new[] { $"DELETE FROM {table}" };
+		SavepointFirstInsertSql = $"INSERT INTO {table} (Id, V) VALUES (1, 'SavepointBefore')";
+		SavepointSecondInsertSql = $"INSERT INTO {table} (Id, V) VALUES (2, 'SavepointAfter')";
+		SavepointRowCountSql = $"SELECT COUNT(*) FROM {table}";
 		InsertSql = $"INSERT INTO {table} (Id, V) VALUES (3, 'Carol')";
 		MultiRowUpdateSql = $"UPDATE {table} SET V = 'Updated' WHERE Id > 0";
 		UpdateSql = $"UPDATE {table} SET V = 'Alicia' WHERE Id = 1";
@@ -43,6 +48,16 @@ public sealed class Sql92Dml
 	public IReadOnlyList<string> SetupSql { get; }
 
 	public IReadOnlyList<string> CleanupSql { get; }
+
+	public IReadOnlyList<string> SavepointSetupSql { get; }
+
+	public IReadOnlyList<string> SavepointCleanupSql { get; }
+
+	public string SavepointFirstInsertSql { get; }
+
+	public string SavepointSecondInsertSql { get; }
+
+	public string SavepointRowCountSql { get; }
 
 	public string InsertSql { get; }
 
@@ -95,7 +110,7 @@ public sealed class Sql92Dml
 /// its table SQL through <see cref="IDataTypesFidelityFixture"/> has the table created that way, and one that states a
 /// RETURNING form through <see cref="IReturningDialectFixture"/> gets the RETURNING statements.
 /// </summary>
-public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IMergeFixture, IDisposable
+public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IMergeFixture, ISavepointSemanticsFixture, IDisposable
 	where TFactoryFixture : IDbFactoryFixture, new()
 {
 	private readonly TFactoryFixture m_inner = new();
@@ -118,6 +133,16 @@ public class DmlFixture<TFactoryFixture> : IDmlReturningFixture, IMergeFixture, 
 	public IReadOnlyList<string> DmlSetupSql => m_dml.SetupSql;
 
 	public IReadOnlyList<string> DmlCleanupSql => m_dml.CleanupSql;
+
+	public IReadOnlyList<string> SavepointSetupSql => m_dml.SavepointSetupSql;
+
+	public IReadOnlyList<string> SavepointCleanupSql => m_dml.SavepointCleanupSql;
+
+	public string SavepointFirstInsertSql => m_dml.SavepointFirstInsertSql;
+
+	public string SavepointSecondInsertSql => m_dml.SavepointSecondInsertSql;
+
+	public string SavepointRowCountSql => m_dml.SavepointRowCountSql;
 
 	public string DmlInsertSql => m_dml.InsertSql;
 

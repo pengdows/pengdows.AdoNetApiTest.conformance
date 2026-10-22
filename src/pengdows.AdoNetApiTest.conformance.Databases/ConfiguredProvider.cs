@@ -274,7 +274,7 @@ public sealed class ConfiguredServer : IAsyncLifetime
 
 /// <summary>The fixture a generated test project's classes share, built from <see cref="ConfiguredProvider.Config"/>.</summary>
 public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture,
-	IDmlReturningFixture, IMergeFixture, ISelectValueFixture, IDeleteFixture, IDisposable
+	IDmlReturningFixture, IMergeFixture, ISavepointSemanticsFixture, ISelectValueFixture, IDeleteFixture, IDisposable
 {
 	private readonly Sql92Dml m_dml;
 	private readonly SelectValueTables m_values;
@@ -327,6 +327,16 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 	public IReadOnlyList<string> DmlSetupSql => m_dml.SetupSql;
 
 	public IReadOnlyList<string> DmlCleanupSql => m_dml.CleanupSql;
+
+	public IReadOnlyList<string> SavepointSetupSql => m_dml.SavepointSetupSql;
+
+	public IReadOnlyList<string> SavepointCleanupSql => m_dml.SavepointCleanupSql;
+
+	public string SavepointFirstInsertSql => m_dml.SavepointFirstInsertSql;
+
+	public string SavepointSecondInsertSql => m_dml.SavepointSecondInsertSql;
+
+	public string SavepointRowCountSql => m_dml.SavepointRowCountSql;
 
 	public string DmlInsertSql => m_dml.InsertSql;
 

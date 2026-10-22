@@ -109,11 +109,11 @@ The released packages also reported `Connection.Open_works`, but the current Con
 the `Closed → Connecting → Open` state transitions. That result should be retested when the next package is published,
 rather than duplicated as a source PR.
 
-### System.Data.SQLite: [SQLite forum report](https://sqlite.org/forum/forumpost/ab60628938) (awaiting moderator approval)
+### System.Data.SQLite: [System.Data.SQLite forum report](https://system.data.sqlite.org/home/info/dc14fc92ed1d5a58)
 
 System.Data.SQLite takes no pull requests. Per its [contribution page](https://system.data.sqlite.org/home/doc/trunk/www/contribute.wiki),
 patches are emailed to drh@sqlite.org and are applied only with a signed Contributor Agreement on file (otherwise
-"used for reference only"); bugs go to the SQLite Forum. The consolidated report is [System.Data.SQLite ADO.NET contract findings](https://sqlite.org/forum/forumpost/ab60628938).
+"used for reference only"); bugs go to the System.Data.SQLite forum. The consolidated report is [System.Data.SQLite ADO.NET contract findings](https://system.data.sqlite.org/home/info/dc14fc92ed1d5a58).
 
 `GetSchema()` and `GetSchemaAsync()` are also required for certification. The current Microsoft.Data.Sqlite run fails all
 three connection-level schema checks because the base implementation throws `NotSupportedException`; pengdows.crud can

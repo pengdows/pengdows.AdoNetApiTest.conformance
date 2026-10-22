@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -31,5 +32,102 @@ public abstract partial class ConnectionTestBase<TFixture> : DbFactoryTestBase<T
 		Assert.Same(typeof(string), Assert.IsType<DataColumn>(table.Columns["CollectionName"]).DataType);
 		Assert.Same(typeof(int), Assert.IsType<DataColumn>(table.Columns["NumberOfRestrictions"]).DataType);
 		Assert.Same(typeof(int), Assert.IsType<DataColumn>(table.Columns["NumberOfIdentifierParts"]).DataType);
+	}
+
+	/// <summary>
+	/// The ADO.NET common-schema documentation defines these five collections
+	/// for managed providers. Providers may add columns, but they must retain
+	/// the documented required columns and CLR types.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/common-schema-collections.
+	/// </summary>
+	protected virtual void CheckCommonSchemaCollections(DbConnection connection, DataTable metadataCollections)
+	{
+		CheckMetaDataCollectionsSchema(metadataCollections);
+
+		var advertised = new HashSet<string>(metadataCollections.Rows.Cast<DataRow>()
+			.Select(row => row["CollectionName"] as string)
+			.Where(name => !string.IsNullOrWhiteSpace(name))
+			, StringComparer.OrdinalIgnoreCase);
+
+		var common = new[]
+		{
+			"MetaDataCollections",
+			"DataSourceInformation",
+			"DataTypes",
+			"Restrictions",
+			"ReservedWords"
+		};
+
+		foreach (var collectionName in common)
+		{
+			Assert.Contains(collectionName, advertised);
+			var table = connection.GetSchema(collectionName);
+			Assert.Equal(collectionName, table.TableName);
+			CheckRequiredColumns(table, collectionName);
+		}
+	}
+
+	private static void CheckRequiredColumns(DataTable table, string collectionName)
+	{
+		void Check(string name, Type type)
+		{
+			Assert.True(table.Columns.Contains(name), $"{collectionName} must contain the required column {name}.");
+			Assert.Same(type, Assert.IsType<DataColumn>(table.Columns[name]).DataType);
+		}
+
+		switch (collectionName)
+		{
+			case "DataSourceInformation":
+				Check("CompositeIdentifierSeparatorPattern", typeof(string));
+				Check("DataSourceProductName", typeof(string));
+				Check("DataSourceProductVersion", typeof(string));
+				Check("DataSourceProductVersionNormalized", typeof(string));
+				Check("GroupByBehavior", typeof(GroupByBehavior));
+				Check("IdentifierPattern", typeof(string));
+				Check("IdentifierCase", typeof(IdentifierCase));
+				Check("OrderByColumnsInSelect", typeof(bool));
+				Check("ParameterMarkerFormat", typeof(string));
+				Check("ParameterNameMaxLength", typeof(int));
+				Check("ParameterNamePattern", typeof(string));
+				Check("QuotedIdentifierPattern", typeof(string));
+				Check("QuotedIdentifierCase", typeof(IdentifierCase));
+				Check("StatementSeparatorPattern", typeof(string));
+				Check("StringLiteralPattern", typeof(string));
+				Check("SupportedJoinOperators", typeof(SupportedJoinOperators));
+				break;
+			case "DataTypes":
+				Check("TypeName", typeof(string));
+				Check("ProviderDbType", typeof(int));
+				Check("ColumnSize", typeof(long));
+				Check("CreateFormat", typeof(string));
+				Check("CreateParameters", typeof(string));
+				Check("DataType", typeof(string));
+				Check("IsAutoincrementable", typeof(bool));
+				Check("IsBestMatch", typeof(bool));
+				Check("IsCaseSensitive", typeof(bool));
+				Check("IsFixedLength", typeof(bool));
+				Check("IsFixedPrecisionScale", typeof(bool));
+				Check("IsLong", typeof(bool));
+				Check("IsNullable", typeof(bool));
+				Check("IsSearchable", typeof(bool));
+				Check("IsSearchableWithLike", typeof(bool));
+				Check("IsUnsigned", typeof(bool));
+				Check("MaximumScale", typeof(short));
+				Check("MinimumScale", typeof(short));
+				Check("IsConcurrencyType", typeof(bool));
+				Check("IsLiteralSupported", typeof(bool));
+				Check("LiteralPrefix", typeof(string));
+				Check("LiteralSuffix", typeof(string));
+				break;
+			case "Restrictions":
+				Check("CollectionName", typeof(string));
+				Check("RestrictionName", typeof(string));
+				Check("RestrictionDefault", typeof(string));
+				Check("RestrictionNumber", typeof(int));
+				break;
+			case "ReservedWords":
+				Check("ReservedWord", typeof(string));
+				break;
+		}
 	}
 }

@@ -273,10 +273,10 @@ Findings are advisory (the tests are in the Common group) and do not change a pr
 prints `Types N exact, N lossy, N wrong type, N throws` per provider and writes every finding into the matrix, with the
 detail that shows what changed.
 
-If the provider lists `DataTypes` among its schema collections (`GetSchema("MetaDataCollections")`), the Optional test
-`Advertised_data_types_match_the_catalog` also checks that each type's advertised `DataType` is the CLR type the provider
-really returns and that every supported type is listed. Many providers do not offer `DataTypes` (Microsoft.Data.Sqlite,
-DuckDB.NET and pengdows.flatfile do not), which is why the catalog, not the metadata, is the source of the types.
+Certification requires the five documented common schema collections, including `DataTypes`, with their required columns.
+The separate Optional test `Advertised_data_types_match_the_catalog` checks that each advertised type's `DataType` is the
+CLR type the provider really returns and that every supported type is listed; that is type-fidelity analysis, not a waiver
+for missing schema metadata. The catalog remains the source of types for providers whose `DataTypes` rows are incomplete.
 
 Catalogs exist for SQL Server (`SqlServerTypes`, 24 types; Microsoft.Data.SqlClient 2 to 5 and System.Data.SqlClient) and
 for both SQLite clients (`SqliteTypes`). SQLite has no column types, only four storage classes and a declared name, so what

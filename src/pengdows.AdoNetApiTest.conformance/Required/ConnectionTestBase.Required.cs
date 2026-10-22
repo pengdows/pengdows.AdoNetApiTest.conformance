@@ -58,14 +58,14 @@ public abstract partial class ConnectionTestBase<TFixture>
 	public virtual void GetSchema_parameterless_returns_proper_MetaDataCollections()
 	{
 		using var connection = CreateOpenConnection();
-		CheckMetaDataCollectionsSchema(connection.GetSchema());
+		CheckCommonSchemaCollections(connection, connection.GetSchema());
 	}
 
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbconnection.getschema")]
 	public virtual void GetSchema_returns_proper_MetaDataCollections()
 	{
 		using var connection = CreateOpenConnection();
-		CheckMetaDataCollectionsSchema(connection.GetSchema("MetaDataCollections"));
+		CheckCommonSchemaCollections(connection, connection.GetSchema("MetaDataCollections"));
 	}
 
 #if NET10_0_OR_GREATER
@@ -78,7 +78,7 @@ public abstract partial class ConnectionTestBase<TFixture>
 	public virtual async Task GetSchemaAsync_returns_metadata()
 	{
 		using var connection = CreateOpenConnection();
-		CheckMetaDataCollectionsSchema(await connection.GetSchemaAsync().ConfigureAwait(false));
+		CheckCommonSchemaCollections(connection, await connection.GetSchemaAsync().ConfigureAwait(false));
 	}
 #endif
 

@@ -20,7 +20,7 @@ public sealed class SiteTests : IDisposable
 	public void The_site_has_an_index_and_a_page_per_provider_with_its_status()
 	{
 		var certified = new XmlBuilder().Test("Connection_opens", "Pass", "Required", XmlBuilder.Base("Connection", "Required"), contract: "https://learn.microsoft.com/c");
-		var failing = new XmlBuilder().Test("Connection_opens", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), contract: "https://learn.microsoft.com/c", failure: "boom");
+		var failing = new XmlBuilder().Test("Connection_opens", "Fail", "Required", XmlBuilder.Base("Connection", "Required"), contract: "https://learn.microsoft.com/c", failure: "boom\nSystem.InvalidOperationException: stack evidence");
 		var matrix = Matrix.Build(new[]
 		{
 			new ProviderInput("Good", "Good.Tests", XunitXml.Parse(certified.ToString()), null)
@@ -42,10 +42,13 @@ public sealed class SiteTests : IDisposable
 		Assert.Contains("needs windows", index);
 		Assert.Contains("Good.Data 1.2.3", index);
 		Assert.Contains("postgres:17", index);
+		Assert.Contains("Bad.html#required-failures", index);
 		var bad = File.ReadAllText(Path.Combine(m_directory, "site", "Bad.html"));
 		Assert.Contains("Required failures", bad);
 		Assert.Contains("https://learn.microsoft.com/c", bad);
 		Assert.Contains("boom", bad);
+		Assert.Contains("stack evidence", bad);
+		Assert.Contains("<details>", bad);
 		Assert.True(File.Exists(Path.Combine(m_directory, "site", "Down.html")));
 	}
 

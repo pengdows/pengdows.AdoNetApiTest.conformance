@@ -125,9 +125,19 @@ internal static class SiteGenerator
 				body.Append(CultureInfo.InvariantCulture, $"<td>{E(Driver(provenance))}</td>");
 				body.Append(CultureInfo.InvariantCulture, $"<td>{E(Server(provenance))}</td>");
 				body.Append(CultureInfo.InvariantCulture, $"<td class=\"required\">{Bar(required)}<span class=\"fraction\">{passed}/{total}</span></td>");
-				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{Number(required, "failed")}</td>");
+				var requiredFailed = Number(required, "failed");
+				var requiredNotRun = Number(required, "not-run");
+				var requiredLink = requiredFailed == 0 ? "0" : $"<a href=\"{FileName(id)}#required-failures\">{requiredFailed}</a>";
+				if (requiredNotRun > 0)
+				{
+					requiredLink += $" <a href=\"{FileName(id)}#required-not-run\">({requiredNotRun} not run)</a>";
+				}
+
+				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{requiredLink}</td>");
 				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{Number(required, "not-covered")}</td>");
-				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{Number(counts2, "implemented-fail")}</td>");
+				var optionalFailed = Number(counts2, "implemented-fail");
+				var optionalLink = optionalFailed == 0 ? string.Empty : $"<a href=\"{FileName(id)}#optional-failures\">{optionalFailed}</a>";
+				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{optionalLink}</td>");
 				body.Append(CultureInfo.InvariantCulture, $"<td class=\"num\">{(checkedTypes == 0 ? "—" : $"{Number(types, "exact")}/{checkedTypes}")}</td>");
 				var certified = Certifications(provider).Where(c => c.TryGetProperty("certified", out var v) && v.GetBoolean()).ToList();
 				body.Append("<td>").Append(certified.Count == 0 ? "—" : string.Join(" ", certified.Select(c => $"<span class=\"badge certified\">{E(Text(c, "name"))}</span>"))).Append("</td>");
@@ -178,7 +188,8 @@ internal static class SiteGenerator
 					body.Append(CultureInfo.InvariantCulture, $": {failures.Count} of {Number(certification, "checked")} tests<ul>");
 					foreach (var failure in failures)
 					{
-						body.Append(CultureInfo.InvariantCulture, $"<li><code>{E(Text(failure, "area"))}.{E(Text(failure, "test"))}</code> {E(Text(failure, "outcome"))}</li>");
+					var target = Anchor(Text(failure, "area"), Text(failure, "test"));
+					body.Append(CultureInfo.InvariantCulture, $"<li><a href=\"#{target}\"><code>{E(Text(failure, "area"))}.{E(Text(failure, "test"))}</code></a> {E(Text(failure, "outcome"))}</li>");
 					}
 
 					body.Append("</ul>");
@@ -294,14 +305,22 @@ internal static class SiteGenerator
 			return;
 		}
 
-		body.Append(CultureInfo.InvariantCulture, $"<section><h2>{E(title)} <span class=\"count\">{list.Count}</span></h2><p class=\"note\">{E(note)}</p><div class=\"scroll\"><table><thead><tr><th>Area</th><th>Test</th><th>Result</th></tr></thead><tbody>");
+		body.Append(CultureInfo.InvariantCulture, $"<section id=\"{SectionAnchor(title)}\"><h2>{E(title)} <span class=\"count\">{list.Count}</span></h2><p class=\"note\">{E(note)}</p><div class=\"scroll\"><table><thead><tr><th>Area</th><th>Test</th><th>Result</th></tr></thead><tbody>");
 		foreach (var (test, result, _) in list)
 		{
 			var name = Text(test, "name") ?? string.Empty;
 			var contract = Text(test, "contract");
 			var nameCell = withContract && contract is not null ? $"<a href=\"{E(contract)}\">{E(name)}</a>" : E(name);
-			body.Append(CultureInfo.InvariantCulture, $"<tr><td>{E(Text(test, "area"))}</td><td>{nameCell}</td>");
-			body.Append(CultureInfo.InvariantCulture, $"<td class=\"detail\">{E(FirstLine(Text(result, "detail")))}</td></tr>");
+			var detail = Text(result, "detail");
+			var target = Anchor(Text(test, "area"), name);
+			body.Append(CultureInfo.InvariantCulture, $"<tr id=\"{target}\"><td>{E(Text(test, "area"))}</td><td>{nameCell}</td>");
+			body.Append("<td class=\"detail\">").Append(E(FirstLine(detail)));
+			if (!string.IsNullOrWhiteSpace(detail) && detail!.Contains('\n'))
+			{
+				body.Append("<details><summary>Show full assertion/evidence</summary><pre>").Append(E(detail)).Append("</pre></details>");
+			}
+
+			body.Append("</td></tr>");
 		}
 
 		body.Append("</tbody></table></div></section>");
@@ -464,6 +483,20 @@ internal static class SiteGenerator
 		return line.Length > 300 ? line[..300] + "…" : line;
 	}
 
+	private static string SectionAnchor(string title) => title switch
+	{
+		"Required failures" => "required-failures",
+		"Optional failures" => "optional-failures",
+		"Required tests that did not run" => "required-not-run",
+		_ => Anchor(null, title),
+	};
+
+	private static string Anchor(string? area, string? test)
+	{
+		var value = string.Join('-', new[] { area, test }.Where(x => !string.IsNullOrWhiteSpace(x)));
+		return "failure-" + new string(value.ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray()).Trim('-');
+	}
+
 	private static string E(string? text) => WebUtility.HtmlEncode(text ?? string.Empty);
 
 	private const string Css = """
@@ -494,7 +527,7 @@ internal static class SiteGenerator
 		.bar{display:inline-flex;width:120px;height:8px;border-radius:4px;overflow:hidden;background:var(--seg-uncovered);vertical-align:middle;margin-right:8px}
 		.seg{display:block;height:100%}.seg.passed{background:var(--seg-pass)}.seg.failed{background:var(--seg-fail)}.seg.uncovered{background:var(--seg-uncovered)}
 		.fraction{font-variant-numeric:tabular-nums;white-space:nowrap}td.required{white-space:nowrap}.summary{font-size:16px}.count{color:var(--muted);font-weight:400}
-		.areas{margin:0;padding-left:20px}details summary{cursor:pointer;margin:0 0 12px}
+		.areas{margin:0;padding-left:20px}details{margin-top:8px}details summary{cursor:pointer;margin:0 0 8px}pre{white-space:pre-wrap;overflow:auto;margin:8px 0 0;padding:10px;border-radius:6px;background:var(--na-bg);font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
 		footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 		@media (max-width:640px){h1{font-size:23px}.key dl{grid-template-columns:1fr}.bar{width:72px}}
 		""";

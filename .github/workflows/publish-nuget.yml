@@ -19,6 +19,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: nuget
     if: github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
     steps:
       - name: Checkout

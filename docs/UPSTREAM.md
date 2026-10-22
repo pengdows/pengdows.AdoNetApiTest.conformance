@@ -57,6 +57,11 @@ The status badges come from GitHub through shields.io each time the page is view
 | Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#760](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/760), [#765](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/765) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/765?label=) | `CommandBehavior.CloseConnection` closes the connection with the reader |
 | Ydb.Sdk | [ydb-platform/ydb-dotnet-sdk#761](https://github.com/ydb-platform/ydb-dotnet-sdk/issues/761), [#766](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/766) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/766?label=) | `ParameterName` reads back as set (marked breaking upstream) |
 | Ydb.Sdk | [ydb-platform/ydb-api-protos#84](https://github.com/ydb-platform/ydb-api-protos/pull/84) → [ydb-platform/ydb-dotnet-genproto#29](https://github.com/ydb-platform/ydb-dotnet-genproto/pull/29) → [ydb-platform/ydb-dotnet-sdk#768](https://github.com/ydb-platform/ydb-dotnet-sdk/pull/768) | ![status](https://img.shields.io/github/issues/detail/state/ydb-platform/ydb-dotnet-sdk/768?label=) | Expose affected row counts so `ExecuteNonQuery` and `RecordsAffected` report DML rows |
+| MySql.Data | [pengdows/mysql-connector-net#1](https://github.com/pengdows/mysql-connector-net/pull/1) | ![status](https://img.shields.io/github/issues/detail/state/pengdows/mysql-connector-net/1?label=) | `GetOrdinal` performs exact-case lookup before case-insensitive fallback |
+| MySql.Data | [pengdows/mysql-connector-net#2](https://github.com/pengdows/mysql-connector-net/pull/2) | ![status](https://img.shields.io/github/issues/detail/state/pengdows/mysql-connector-net/2?label=) | `ParameterName` defaults to `""` and `SourceVersion` to `Current` |
+| MySql.Data | [pengdows/mysql-connector-net#3](https://github.com/pengdows/mysql-connector-net/pull/3) | ![status](https://img.shields.io/github/issues/detail/state/pengdows/mysql-connector-net/3?label=) | Reader value access throws `InvalidOperationException` before and after rows |
+| MySql.Data | [pengdows/mysql-connector-net#4](https://github.com/pengdows/mysql-connector-net/pull/4) | ![status](https://img.shields.io/github/issues/detail/state/pengdows/mysql-connector-net/4?label=) | Undefined `UpdatedRowSource` values are rejected |
+| MySql.Data | [pengdows/mysql-connector-net#5](https://github.com/pengdows/mysql-connector-net/pull/5) | ![status](https://img.shields.io/github/issues/detail/state/pengdows/mysql-connector-net/5?label=) | Unsupported savepoints report `SupportsSavepoints = false` and throw consistently |
 | MySqlConnector | [mysql-net/MySqlConnector#1676](https://github.com/mysql-net/MySqlConnector/issues/1676) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1676?label=) | `SupportsSavepoints` is `false` although the savepoint methods work |
 | MySqlConnector | [mysql-net/MySqlConnector#1677](https://github.com/mysql-net/MySqlConnector/issues/1677) (issue) | ![status](https://img.shields.io/github/issues/detail/state/mysql-net/MySqlConnector/1677?label=) | SingleStore: savepoint statements succeed but do nothing, so rolled-back work is committed |
 | TiDB (server) | [pingcap/tidb#72091](https://github.com/pingcap/tidb/pull/72091) | ![open](https://img.shields.io/github/issues/detail/state/pingcap/tidb/72091?label=) | `VALUES()` of a BIT(57..64) column read byte-reversed in `ON DUPLICATE KEY UPDATE` |
@@ -82,22 +87,15 @@ that no contract sentence covers.
 
 ## Drafts for trackers without pull requests
 
-### MySql.Data: [bugs.mysql.com](https://bugs.mysql.com/) (Connector / NET)
+### MySql.Data: remaining release retest
 
-> **MySqlParameter.ParameterName defaults to null; MySqlDataReader throws MySqlException instead of InvalidOperationException**
->
-> Connector/NET 9.7.0 and 26.7.0 (MySQL 8.4.11):
->
-> 1. `new MySqlParameter().ParameterName` is `null`. [DbParameter.ParameterName](https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.parametername):
->    "The default is an empty string ("")."
-> 2. `reader.GetValue(0)` or `reader.GetFieldValue<int>(0)` before `Read()` throws `MySqlException` ("Invalid attempt to
->    access a field before calling Read()"), and after `Read()` returned false it returns a value without throwing.
->    [DbDataReader.GetFieldValue](https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue)
->    documents `InvalidOperationException` when "There is no data ready to be read (for example, the first Read()
->    hasn't been called, or it returned false)." MySqlConnector throws `InvalidOperationException` in both cases.
->
-> Found by [`ParameterName_default_is_empty_string`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/ParameterTestBase.Required.cs#L92) and [`GetFieldValue_throws_before_read`](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance/blob/5d2276130647c1cd65f679d909a25352133c050a/src/pengdows.AdoNetApiTest.conformance/Required/DataReaderTestBase.Required.cs#L118) in the
-> pengdows ADO.NET conformance suite.
+The current released packages still show the findings addressed by [PR #1](https://github.com/pengdows/mysql-connector-net/pull/1)
+through [PR #5](https://github.com/pengdows/mysql-connector-net/pull/5). Each PR includes the required attribution:
+“found using [pengdows.AdoNetApiTest.conformance](https://github.com/pengdows/pengdows.AdoNetApiTest.conformance)”.
+
+The released packages also reported `Connection.Open_works`, but the current Connector/NET `9.x` source already contains
+the `Closed → Connecting → Open` state transitions. That result should be retested when the next package is published,
+rather than duplicated as a source PR.
 
 ### System.Data.SQLite: [SQLite forum](https://sqlite.org/forum/) (System.Data.SQLite)
 

@@ -109,11 +109,11 @@ The released packages also reported `Connection.Open_works`, but the current Con
 the `Closed → Connecting → Open` state transitions. That result should be retested when the next package is published,
 rather than duplicated as a source PR.
 
-### System.Data.SQLite: [SQLite forum](https://sqlite.org/forum/) (System.Data.SQLite)
+### System.Data.SQLite: [SQLite forum report](https://sqlite.org/forum/forumpost/ab60628938) (awaiting moderator approval)
 
 System.Data.SQLite takes no pull requests. Per its [contribution page](https://system.data.sqlite.org/home/doc/trunk/www/contribute.wiki),
 patches are emailed to drh@sqlite.org and are applied only with a signed Contributor Agreement on file (otherwise
-"used for reference only"); bugs go to the SQLite Forum. This draft is for the forum.
+"used for reference only"); bugs go to the SQLite Forum. The consolidated report is [System.Data.SQLite ADO.NET contract findings](https://sqlite.org/forum/forumpost/ab60628938).
 
 > **System.Data.SQLite 1.0.119: ParameterName default, GetOrdinal, Prepare without a connection, and savepoints**
 >

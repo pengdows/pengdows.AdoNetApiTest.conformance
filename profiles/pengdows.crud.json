@@ -938,6 +938,15 @@
         "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqliteDialect.cs#L640"
       ],
       "because": "The DbType is chosen from the value, so a provider that converts the value to it must not change it."
+    },
+    {
+      "test": "Dml.Prepared_insert_stores_NULL_for_every_DbType",
+      "member": "DbCommand.Prepare",
+      "sites": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L2043",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/SqlContainer.cs#L659"
+      ],
+      "because": "Commands are prepared, and a NULL is sent as DBNull.Value with the column's declared DbType, including Object."
     }
   ],
   "excluded": [
@@ -1521,6 +1530,17 @@
       "tests": [
         "Connection.StateChange_reports_each_open_and_close_once",
         "Connection.StateChange_reports_each_async_open_and_close_once"
+      ]
+    },
+    {
+      "id": "typed-null",
+      "what": "A NULL is bound with a concrete type rather than DbType.Object where the provider cannot send an untyped NULL: SqlClient sends it as sql_variant (SQL Server will not convert that to varchar), ODP.NET refuses it (ORA-50028), and MySqlConnector 2.5.0-2.6.2 send it as VECTOR, which MySQL 8.4 rejects (mysql-net/MySqlConnector#1679; no workaround in pengdows.crud yet).",
+      "code": [
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/SqlServerDialect.cs#L325",
+        "https://github.com/pengdows/pengdows.crud/blob/046e1a17dcaaedeec62f70abed3e468dabdf4569/pengdows.crud/dialects/OracleDialect.cs#L507"
+      ],
+      "tests": [
+        "Dml.Prepared_insert_stores_NULL_for_every_DbType"
       ]
     }
   ]

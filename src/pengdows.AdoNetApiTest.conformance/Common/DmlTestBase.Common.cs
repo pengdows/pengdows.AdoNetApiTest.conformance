@@ -94,6 +94,94 @@ public abstract partial class DmlTestBase<TFixture>
 	}
 
 	/// <summary>
+	/// "When you send a null value as a Parameter value in a command to the database, you cannot use null ... Instead you
+	/// need to use DBNull.Value." A prepared INSERT stores that NULL whatever DbType the parameter declares. MySqlConnector
+	/// 2.5.0 through 2.6.2 map DbType.Object to VECTOR and send a prepared NULL as that type, which MySQL 8.4 rejects with
+	/// "Incorrect arguments to mysqld_stmt_execute" (mysql-net/MySqlConnector#1679); unprepared, the same NULL is accepted.
+	/// A DbType the provider refuses to assign is left to <c>DbType_accepts_every_DbType_value</c>.
+	/// See https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types.
+	/// </summary>
+	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types", Because = "Prepare is optional, and no page says a prepared NULL must be accepted for every DbType.")]
+	public virtual void Prepared_insert_stores_NULL_for_every_DbType()
+	{
+		if (Fixture is not IDmlParameterFixture parameters)
+		{
+			ConformanceOutcome.NotApplicable("the fixture states no parameterized DML for its table");
+			return;
+		}
+
+		WithDmlState(connection =>
+		{
+			var failures = new System.Collections.Generic.List<string>();
+			var id = 100;
+			foreach (DbType dbType in Enum.GetValues(typeof(DbType)))
+			{
+				id++;
+				using var command = connection.CreateCommand();
+				var key = command.CreateParameter();
+				key.ParameterName = "id";
+				key.DbType = DbType.Int32;
+				key.Value = id;
+				var value = command.CreateParameter();
+				value.ParameterName = "v";
+				try
+				{
+					value.DbType = dbType;
+				}
+				catch (Exception exception) when (!(exception is Xunit.Sdk.XunitException))
+				{
+					continue;
+				}
+
+				value.Value = DBNull.Value;
+				// SqlClient's Prepare requires an explicit Size on variable-length parameters and Precision and Scale on decimals;
+				// none of them changes a NULL.
+				value.Size = 1;
+				((IDbDataParameter)value).Precision = 1;
+				((IDbDataParameter)value).Scale = 0;
+				command.Parameters.Add(key);
+				command.Parameters.Add(value);
+				command.CommandText = string.Format(System.Globalization.CultureInfo.InvariantCulture, parameters.DmlInsertParameterSql,
+					MakeParameterName(connection, key), MakeParameterName(connection, value));
+				try
+				{
+					command.Prepare();
+				}
+				catch (NotSupportedException)
+				{
+					ConformanceOutcome.NotImplemented("The provider does not support prepared commands.");
+					return;
+				}
+				catch (Exception exception) when (!(exception is Xunit.Sdk.XunitException))
+				{
+					// The provider's own rule for preparing this parameter shape, not a NULL it failed to store.
+					continue;
+				}
+
+				try
+				{
+					command.ExecuteNonQuery();
+				}
+				catch (Exception exception) when (!(exception is Xunit.Sdk.XunitException))
+				{
+					failures.Add($"{dbType}: {exception.GetType().Name}: {exception.Message.Split('\n')[0]}");
+					continue;
+				}
+
+				using var select = connection.CreateCommand();
+				select.CommandText = string.Format(System.Globalization.CultureInfo.InvariantCulture, parameters.DmlSelectValueSql, id);
+				var stored = select.ExecuteScalar();
+				if (stored is not null and not DBNull)
+				{
+					failures.Add($"{dbType}: stored {stored} instead of NULL");
+				}
+			}
+
+			Assert.True(failures.Count == 0, "A prepared NULL was not stored for: " + string.Join("; ", failures));
+		});
+	}
+
+	/// <summary>
 	/// Inserts one row whose text column is a parameter set by <paramref name="set"/>, then hands the stored text to
 	/// <paramref name="check"/>. A provider that refuses the value reports it through <paramref name="refused"/>, or as a
 	/// difference; a fixture without parameterized DML makes the test not applicable.

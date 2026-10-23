@@ -148,6 +148,10 @@ clear.
   `DBNull.Value`) is Optional, like the prepared SELECT: each execution returns
   its row and the connection stays usable. MySqlConnector 2.3.0 through 2.6.0
   on MariaDB fail the second execution and close the connection.
+- A prepared INSERT of `DBNull.Value` is Common-tested for every `DbType` the
+  provider accepts: each must store NULL. MySqlConnector 2.5.0–2.6.2 send a
+  NULL declared `DbType.Object` as VECTOR, which MySQL 8.4 rejects
+  (mysql-net/MySqlConnector#1679).
 - MERGE counts are Common: ExecuteNonQuery names only INSERT, UPDATE and
   DELETE and gives -1 for other statements, while RecordsAffected counts rows
   changed, inserted, or deleted. A provider reporting -1 is a difference; a

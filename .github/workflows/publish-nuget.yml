@@ -28,43 +28,51 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Read version
+      - name: Determine next version
         id: version
         run: |
           set -euo pipefail
-          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)
-          if [[ -z "$version" ]]; then
+          base_version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)
+          if [[ -z "$base_version" ]]; then
             echo "No <Version> in Directory.Build.props." >&2
             exit 1
           fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Check whether this version is already published
-        id: nuget_check
-        run: |
-          set -euo pipefail
-          version="${{ steps.version.outputs.version }}"
-          published=0
-          for id in pengdows.AdoNetApiTest.conformance pengdows.AdoNetApiTest.conformance.Databases pengdows.AdoNetApiTest.conformance.Runner; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' \
-              "https://api.nuget.org/v3-flatcontainer/${id,,}/${version}/${id,,}.${version}.nupkg")
-            echo "${id} ${version}: HTTP ${status}"
-            if [[ "$status" == "200" ]]; then
-              published=$((published + 1))
-            fi
-          done
-          if (( published == 3 )); then
-            echo "Version ${version} is already fully published; skipping."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          elif (( published > 0 )); then
-            echo "Version ${version} is only partly published; resolve NuGet state before retrying." >&2
-            exit 1
+          if [[ "$base_version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-beta\.([0-9]+)$ ]]; then
+            release_prefix="${BASH_REMATCH[1]}"
+            beta_number="${BASH_REMATCH[2]}"
           else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Expected a beta version such as 3.0.0-beta.2, got ${base_version}." >&2
+            exit 1
           fi
 
+          version="$base_version"
+          while :; do
+            published=0
+            for id in pengdows.AdoNetApiTest.conformance pengdows.AdoNetApiTest.conformance.Databases pengdows.AdoNetApiTest.conformance.Runner; do
+              status=$(curl -s -o /dev/null -w '%{http_code}' \
+                "https://api.nuget.org/v3-flatcontainer/${id,,}/${version}/${id,,}.${version}.nupkg")
+              echo "${id} ${version}: HTTP ${status}"
+              if [[ "$status" == "200" ]]; then
+                published=$((published + 1))
+              fi
+            done
+
+            if (( published == 0 )); then
+              break
+            elif (( published != 3 )); then
+              echo "Version ${version} is only partly published; resolve NuGet state before retrying." >&2
+              exit 1
+            fi
+
+            beta_number=$((beta_number + 1))
+            version="${release_prefix}-beta.${beta_number}"
+          done
+
+          echo "Selected version ${version}."
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Check release tag
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           set -euo pipefail
           tag="v${{ steps.version.outputs.version }}"
@@ -77,35 +85,29 @@ jobs:
           fi
 
       - name: Set up .NET
-        if: steps.nuget_check.outputs.skip != 'true'
         uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
       - name: Restore
-        if: steps.nuget_check.outputs.skip != 'true'
         run: dotnet restore pengdows.AdoNetApiTest.conformance.sln
 
       - name: Build
-        if: steps.nuget_check.outputs.skip != 'true'
-        run: dotnet build pengdows.AdoNetApiTest.conformance.sln --configuration Release --no-restore
+        run: dotnet build pengdows.AdoNetApiTest.conformance.sln --configuration Release --no-restore -p:Version="${{ steps.version.outputs.version }}"
 
       - name: Test packaging and runner behavior
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           dotnet test tests/Runner.Tests/Runner.Tests.csproj --configuration Release --no-build
           dotnet test tests/Repository.Tests/Repository.Tests.csproj --configuration Release --no-build
 
       - name: Pack
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           mkdir -p artifacts/packages
-          dotnet pack src/pengdows.AdoNetApiTest.conformance/pengdows.AdoNetApiTest.conformance.csproj --configuration Release --no-build --output artifacts/packages
-          dotnet pack src/pengdows.AdoNetApiTest.conformance.Databases/pengdows.AdoNetApiTest.conformance.Databases.csproj --configuration Release --no-build --output artifacts/packages
-          dotnet pack src/pengdows.AdoNetApiTest.conformance.Runner/pengdows.AdoNetApiTest.conformance.Runner.csproj --configuration Release --no-build --output artifacts/packages
+          dotnet pack src/pengdows.AdoNetApiTest.conformance/pengdows.AdoNetApiTest.conformance.csproj --configuration Release --no-build --output artifacts/packages -p:Version="${{ steps.version.outputs.version }}"
+          dotnet pack src/pengdows.AdoNetApiTest.conformance.Databases/pengdows.AdoNetApiTest.conformance.Databases.csproj --configuration Release --no-build --output artifacts/packages -p:Version="${{ steps.version.outputs.version }}"
+          dotnet pack src/pengdows.AdoNetApiTest.conformance.Runner/pengdows.AdoNetApiTest.conformance.Runner.csproj --configuration Release --no-build --output artifacts/packages -p:Version="${{ steps.version.outputs.version }}"
 
       - name: Verify packages
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
@@ -114,14 +116,12 @@ jobs:
           done
 
       - name: Log in to NuGet (Trusted Publishing)
-        if: steps.nuget_check.outputs.skip != 'true'
         id: nuget_login
         uses: NuGet/login@v1
         with:
           user: pengdows
 
       - name: Push packages
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
@@ -134,13 +134,11 @@ jobs:
           NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY }}
 
       - name: Configure git identity
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Tag release
-        if: steps.nuget_check.outputs.skip != 'true'
         run: |
           set -euo pipefail
           tag="v${{ steps.version.outputs.version }}"

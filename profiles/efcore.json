@@ -594,6 +594,35 @@
       ]
     },
     {
+      "test": "DbProviderFactory.DbProviderFactory_CreateConnection_is_not_null",
+      "member": "DbProviderFactory.CreateConnection",
+      "sites": [
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalConnection.cs#L50",
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/AdoNetDbContextOptionsBuilderExtensions.cs#L62"
+      ],
+      "because": "The provider creates context connections through the configured DbProviderFactory."
+    },
+    {
+      "test": "Transaction.Savepoint_methods_match_support_flag",
+      "member": "DbTransaction.Save",
+      "sites": [
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalTransaction.cs#L34",
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalTransaction.cs#L48",
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalTransaction.cs#L62"
+      ],
+      "because": "The provider forwards EF savepoints to DbTransaction.Save, Rollback(string), and Release."
+    },
+    {
+      "test": "Transaction.Savepoint_async_methods_match_support_flag",
+      "member": "DbTransaction.SaveAsync",
+      "sites": [
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalTransaction.cs#L41",
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalTransaction.cs#L55",
+        "https://github.com/pengdows/pengdows.efcore.adonet/blob/main/src/pengdows.efcore.adonet/Storage/AdoNetRelationalTransaction.cs#L69"
+      ],
+      "because": "The provider forwards EF asynchronous savepoints to DbTransaction.SaveAsync, RollbackAsync, and ReleaseAsync."
+    },
+    {
       "test": "Parameter.Bind_accepts_DBNull_value",
       "member": "DbParameter.Value",
       "sites": [

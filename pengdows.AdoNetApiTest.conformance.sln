@@ -59,8 +59,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository.Tests", "tests\R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Tests", "tests\Runner.Tests\Runner.Tests.csproj", "{1F1B1055-BFCA-41F8-8F58-E336F11D788C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatFileNuGet.Tests", "tests\FlatFileNuGet.Tests\FlatFileNuGet.Tests.csproj", "{FB5C0B79-4DAA-4253-8D82-1A3470D8F82A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuckDBNuGet.Tests", "tests\DuckDBNuGet.Tests\DuckDBNuGet.Tests.csproj", "{9899FE66-1CB8-4EC0-83BF-B5B5698DBEFA}"
@@ -76,6 +74,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiDbMySqlData.Tests", "tests\TiDbMySqlData.Tests\TiDbMySqlData.Tests.csproj", "{48B6055C-C961-403F-8403-81135F05BE00}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiDbMySqlConnector.Tests", "tests\TiDbMySqlConnector.Tests\TiDbMySqlConnector.Tests.csproj", "{A91E5AE9-8C37-4D5D-8BD5-F4DE8D74E4CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Tests", "tests\Dapper.Tests\Dapper.Tests.csproj", "{072F4A50-192D-4C38-9599-957BE48A4061}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -519,6 +519,18 @@ Global
 		{A91E5AE9-8C37-4D5D-8BD5-F4DE8D74E4CB}.Release|x64.Build.0 = Release|Any CPU
 		{A91E5AE9-8C37-4D5D-8BD5-F4DE8D74E4CB}.Release|x86.ActiveCfg = Release|Any CPU
 		{A91E5AE9-8C37-4D5D-8BD5-F4DE8D74E4CB}.Release|x86.Build.0 = Release|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Debug|x64.Build.0 = Debug|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Debug|x86.Build.0 = Debug|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Release|Any CPU.Build.0 = Release|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Release|x64.ActiveCfg = Release|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Release|x64.Build.0 = Release|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Release|x86.ActiveCfg = Release|Any CPU
+		{072F4A50-192D-4C38-9599-957BE48A4061}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -534,6 +546,7 @@ Global
 		{B988E10B-A639-4957-A348-E3D3D93F86F4} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{48B6055C-C961-403F-8403-81135F05BE00} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{A91E5AE9-8C37-4D5D-8BD5-F4DE8D74E4CB} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{072F4A50-192D-4C38-9599-957BE48A4061} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EB2F5AD9-64ED-4BAC-969D-ECA048E79E20}

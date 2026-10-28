@@ -74,6 +74,24 @@ public partial class DataReaderTestBase<TFixture>
 		Assert.Equal(new byte[] { 0x7E, 0x57 }, buffer);
 	}
 
+	/// <summary>
+	/// A binary value must be available through the generic typed-value API as
+	/// the requested byte array, rather than as the provider's streaming value.
+	/// This is the path used by consumers such as Dapper for materialized blobs.
+	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue.
+	/// </summary>
+	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue")]
+	public virtual void GetFieldValue_byte_array_reads_binary_value()
+	{
+		using var connection = CreateOpenConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = Fixture.CreateSelectSql(new byte[] { 0x7E, 0x57 });
+		using var reader = command.ExecuteReader();
+
+		Assert.True(reader.Read());
+		Assert.Equal(new byte[] { 0x7E, 0x57 }, reader.GetFieldValue<byte[]>(0));
+	}
+
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.idatarecord.getchars")]
 	public virtual void GetChars_works()
 	{

@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\pengdows.AdoNetApiTest.conformance\pengdows.AdoNetApiTest.conformance.csproj" />
-    <PackageReference Include="pengdows.flatfile" Version="0.2.1-preview.5" />
+    <PackageReference Include="pengdows.flatfile" Version="0.2.1-preview.7" />
   </ItemGroup>
 
 </Project>

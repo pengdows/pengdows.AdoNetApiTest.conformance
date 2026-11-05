@@ -119,6 +119,15 @@ public sealed class TargetConfig
 	/// <summary>The port the server listens on in the container; Docker chooses the host port.</summary>
 	public int Port { get; set; }
 
+	/// <summary>The emulator's REST port, when an additional Spanner emulator endpoint is needed.</summary>
+	public int RestPort { get; set; }
+
+	/// <summary>Instance to create through the Spanner emulator REST API before running tests.</summary>
+	public string SpannerInstance { get; set; }
+
+	/// <summary>Database to create through the Spanner emulator REST API before running tests.</summary>
+	public string SpannerDatabase { get; set; }
+
 	public Dictionary<string, string> Env { get; set; } = new();
 
 	/// <summary>The container's command, when the image needs arguments.</summary>
@@ -207,6 +216,9 @@ public sealed class DialectConfig
 	/// <summary>The parameter as written in SQL with <c>{0}</c> for its name, when DataSourceInformation does not say (<c>@{0}</c>, <c>?</c>).</summary>
 	public string ParameterMarker { get; set; }
 
+	/// <summary>Quoted identifier format with <c>{0}</c> for the identifier, such as <c>`{0}`</c>.</summary>
+	public string QuotedIdentifier { get; set; }
+
 	/// <summary>SQL that renders a stored value as text, with <c>{0}</c> for the column.</summary>
 	public string RenderAsText { get; set; } = "CAST({0} AS VARCHAR(4000))";
 
@@ -220,6 +232,9 @@ public sealed class DialectConfig
 
 	/// <summary>DML that returns rows, with <c>{0}</c> for the statement (<c>{0} RETURNING Id</c>); unset when the database has none.</summary>
 	public string Returning { get; set; }
+
+	/// <summary>The DML fixture's text column type, when the SQL-92 default is not accepted.</summary>
+	public string DmlColumnType { get; set; }
 
 	/// <summary>
 	/// Column types for the reader tests' values, by <c>DbType</c> name, where the SQL-92 ones do not fit (<c>"Binary":

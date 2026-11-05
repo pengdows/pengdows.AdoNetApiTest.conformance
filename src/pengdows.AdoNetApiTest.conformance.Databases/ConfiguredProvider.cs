@@ -110,6 +110,10 @@ public sealed class ConfiguredServer : IAsyncLifetime
 			var builder = new ContainerBuilder(target.Image ?? throw new InvalidOperationException($"{config.Name}: target.image is required for a docker target."))
 				.WithPortBinding(target.Port, assignRandomHostPort: true)
 				.WithPrivileged(target.Privileged);
+			if (target.RestPort > 0)
+			{
+				builder = builder.WithPortBinding(target.RestPort, assignRandomHostPort: true);
+			}
 			if (m_network is not null)
 			{
 				builder = builder.WithNetwork(m_network);
@@ -169,6 +173,15 @@ public sealed class ConfiguredServer : IAsyncLifetime
 			// Read after any restart: Docker may map the port anew.
 			ConfiguredProvider.Values["host"] = m_container.Hostname;
 			ConfiguredProvider.Values["port"] = m_container.GetMappedPublicPort((ushort) target.Port).ToString(System.Globalization.CultureInfo.InvariantCulture);
+			foreach (var pair in config.Environment)
+			{
+				System.Environment.SetEnvironmentVariable(pair.Key, ProviderConfig.Expand(pair.Value, ConfiguredProvider.Values));
+			}
+
+			if (!string.IsNullOrEmpty(target.SpannerInstance) && !string.IsNullOrEmpty(target.SpannerDatabase))
+			{
+				await CreateSpannerDatabaseAsync(target).ConfigureAwait(false);
+			}
 		}
 
 		// Written once the container is up, so their text can name its host and port (Informix's sqlhosts entry).
@@ -270,11 +283,39 @@ public sealed class ConfiguredServer : IAsyncLifetime
 			}
 		}
 	}
+
+	private async Task CreateSpannerDatabaseAsync(TargetConfig target)
+	{
+		using var client = new System.Net.Http.HttpClient { BaseAddress = new Uri($"http://{m_container.Hostname}:{m_container.GetMappedPublicPort((ushort)target.RestPort)}") };
+		var project = "test-project";
+		var instancePath = $"projects/{project}/instances/{target.SpannerInstance}";
+		await RetryAsync(target.ReadySeconds, async () =>
+		{
+			using var response = await client.PostAsync($"/v1/projects/{project}/instances", new System.Net.Http.StringContent(
+				System.Text.Json.JsonSerializer.Serialize(new { instanceId = target.SpannerInstance, instance = new { config = $"projects/{project}/instanceConfigs/emulator-config", displayName = target.SpannerInstance, nodeCount = 1 } }),
+				System.Text.Encoding.UTF8, "application/json")).ConfigureAwait(false);
+			if (!response.IsSuccessStatusCode && (int)response.StatusCode != 409)
+			{
+				throw new InvalidOperationException($"Creating Spanner emulator instance failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+			}
+		}).ConfigureAwait(false);
+
+		await RetryAsync(target.ReadySeconds, async () =>
+		{
+			using var response = await client.PostAsync($"/v1/{instancePath}/databases", new System.Net.Http.StringContent(
+				System.Text.Json.JsonSerializer.Serialize(new { createStatement = $"CREATE DATABASE `{target.SpannerDatabase}`" }),
+				System.Text.Encoding.UTF8, "application/json")).ConfigureAwait(false);
+			if (!response.IsSuccessStatusCode && (int)response.StatusCode != 409)
+			{
+				throw new InvalidOperationException($"Creating Spanner emulator database failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+			}
+		}).ConfigureAwait(false);
+	}
 }
 
 /// <summary>The fixture a generated test project's classes share, built from <see cref="ConfiguredProvider.Config"/>.</summary>
 public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture,
-	IDmlReturningFixture, IDmlParameterFixture, IMergeFixture, ISavepointSemanticsFixture, ISelectValueFixture, IDeleteFixture, IDisposable
+	IDmlReturningFixture, IDmlParameterFixture, IMergeFixture, ISavepointSemanticsFixture, ISelectValueFixture, IDeleteFixture, ISqlLiteralFixture, IDisposable
 {
 	private readonly Sql92Dml m_dml;
 	private readonly SelectValueTables m_values;
@@ -283,7 +324,7 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 
 	public ConfiguredFixture()
 	{
-		m_dml = new Sql92Dml(Sql92Dml.UniqueName("dml_"), CreateTableSql, DropTableSql, Dialect.Returning);
+		m_dml = new Sql92Dml(Sql92Dml.UniqueName("dml_"), CreateTableSql, DropTableSql, Dialect.Returning, Dialect.DmlColumnType ?? "varchar(100)");
 		m_values = new SelectValueTables(Sql92Dml.UniqueName("sv_"), SelectValueTables.WithOverrides(Dialect.ValueTypes), CreateTableSql, DropTableSql,
 			SelectStatement, Dialect.BinaryLiteral);
 		m_supported = new Lazy<IReadOnlyCollection<DbType>>(() => m_values.Create(this));
@@ -317,6 +358,12 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 	public string DropTableSql(string table) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.DropTable, table);
 
 	public string RenderAsText => Dialect.RenderAsText;
+
+	public string TextLiteral(string text) => SqlLiterals.Text(this, text);
+
+	public string QuotedIdentifier(string name) => Dialect.QuotedIdentifier is { } format
+		? string.Format(System.Globalization.CultureInfo.InvariantCulture, format, name.Replace("`", "``"))
+		: "`" + name.Replace("`", "``") + "`";
 
 	public string ServerTypesSql => ConfiguredProvider.Config.Types.Query;
 

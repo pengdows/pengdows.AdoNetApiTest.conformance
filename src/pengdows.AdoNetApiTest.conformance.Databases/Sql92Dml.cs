@@ -13,9 +13,9 @@ namespace pengdows.AdoNetApiTest.conformance.Databases;
 public sealed class Sql92Dml
 {
 	/// <param name="returning">The form of DML that returns rows, <c>{0}</c> being the statement; null when the database has none.</param>
-	public Sql92Dml(string table, Func<string, string, string> createTable, Func<string, string> dropTable, string returning = null)
+	public Sql92Dml(string table, Func<string, string, string> createTable, Func<string, string> dropTable, string returning = null, string columnType = "varchar(100)")
 	{
-		CreateTableSql = createTable(table, "varchar(100)");
+		CreateTableSql = createTable(table, columnType);
 		DropTableSql = dropTable(table);
 		SetupSql = new[]
 		{

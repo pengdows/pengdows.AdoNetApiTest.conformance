@@ -359,7 +359,7 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 
 	public string RenderAsText => Dialect.RenderAsText;
 
-	public string TextLiteral(string text) => SqlLiterals.Text(this, text);
+	public string TextLiteral(string text) => "'" + text.Replace("'", "''") + "'";
 
 	public string QuotedIdentifier(string name) => Dialect.QuotedIdentifier is { } format
 		? string.Format(System.Globalization.CultureInfo.InvariantCulture, format, name.Replace("`", "``"))

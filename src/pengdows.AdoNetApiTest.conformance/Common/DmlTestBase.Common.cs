@@ -65,6 +65,14 @@ public abstract partial class DmlTestBase<TFixture>
 	[CommonFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbparameter.dbtype", Because = "No page says how a provider converts a value to its DbType.")]
 	public virtual void Text_column_stores_converted_text_independently_of_the_current_culture()
 	{
+		// Checked once, before the loop: a test records one outcome, and an unapplicable fixture would otherwise be
+		// recorded once per culture, which the second record refuses ("attachment with an existing name").
+		if (Fixture is not IDmlParameterFixture)
+		{
+			ConformanceOutcome.NotApplicable("the fixture states no parameterized DML for its table");
+			return;
+		}
+
 		var stored = new System.Collections.Generic.List<string>();
 		foreach (var culture in new[] { "en-US", "de-DE", "ar-SA" })
 		{

@@ -44,7 +44,7 @@ public partial class TransactionTestBase<TFixture>
 #if NET10_0_OR_GREATER
 	/// <summary>
 	/// SupportsSavepoints is the capability agreement for the synchronous
-	/// savepoint methods. A provider that reports false must reject each method;
+	/// savepoint methods. A provider that reports false must reject Save and Rollback(string);
 	/// a provider that reports true must implement the complete savepoint surface.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.supportssavepoints
 	/// and https://learn.microsoft.com/dotnet/api/system.data.common.dbtransaction.save.
@@ -61,7 +61,9 @@ public partial class TransactionTestBase<TFixture>
 			{
 				Assert.ThrowsAny<NotSupportedException>(() => transaction.Save(savepoint));
 				Assert.ThrowsAny<NotSupportedException>(() => transaction.Rollback(savepoint));
-				Assert.ThrowsAny<NotSupportedException>(() => transaction.Release(savepoint));
+
+				// Release is not asserted: DbTransaction.Release is a no-op by design (dotnet/runtime#33397), so the
+				// SupportsSavepoints sentence that lists it is not what the base class does (dotnet/runtime#137040).
 				return;
 			}
 
@@ -94,7 +96,8 @@ public partial class TransactionTestBase<TFixture>
 			{
 				await Assert.ThrowsAnyAsync<NotSupportedException>(() => transaction.SaveAsync(savepoint)).ConfigureAwait(false);
 				await Assert.ThrowsAnyAsync<NotSupportedException>(() => transaction.RollbackAsync(savepoint)).ConfigureAwait(false);
-				await Assert.ThrowsAnyAsync<NotSupportedException>(() => transaction.ReleaseAsync(savepoint)).ConfigureAwait(false);
+
+				// ReleaseAsync is not asserted, for the reason given on the synchronous test.
 				return;
 			}
 

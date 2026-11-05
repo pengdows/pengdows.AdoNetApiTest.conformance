@@ -1,6 +1,6 @@
 {
   "name": "OleDb8Access",
-  "description": "Microsoft Access through OLE DB, Windows only as in pengdows.crud testbed; ACCESS_DATABASE names an existing .accdb (testbed creates one with ADOX).",
+  "description": "Microsoft Access through OLE DB, Windows only as in pengdows.crud testbed; ACCESS_DATABASE names an existing .accdb (testbed creates one with ADOX). It must be a new, empty file for each run: setup creates the one-row table conformance_one that Access needs because it has no table-less SELECT.",
   "driver": {
     "package": "System.Data.OleDb",
     "version": "8.0.1",
@@ -13,13 +13,24 @@
     ]
   },
   "target": {
-    "kind": "file"
+    "kind": "file",
+    "setup": [
+      "CREATE TABLE conformance_one (id INTEGER)",
+      "INSERT INTO conformance_one (id) VALUES (1)"
+    ],
+    "readySeconds": 15
   },
   "connectionString": "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=${ACCESS_DATABASE}",
   "dialect": {
     "terminator": "",
     "parameterProjection": "CVar({0})",
     "parameterMarker": "?",
-    "renderAsText": "CStr({0})"
+    "renderAsText": "CStr({0})",
+    "select": "SELECT TOP 1 {0} FROM conformance_one",
+    "valueTypes": {
+      "Binary": ""
+    },
+    "binaryLiteral": "",
+    "binaryColumnType": "LONGBINARY"
   }
 }

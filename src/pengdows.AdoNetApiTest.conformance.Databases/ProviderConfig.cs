@@ -233,6 +233,12 @@ public sealed class DialectConfig
 	/// <summary>A binary value as written in SQL, with <c>{0}</c> for its hexadecimal digits (<c>0x{0}</c>, <c>hextoraw('{0}')</c>).</summary>
 	public string BinaryLiteral { get; set; } = SelectValueTables.DefaultBinaryLiteral;
 
+	/// <summary>
+	/// The column type that holds bytes, when <see cref="BinaryLiteral"/> is empty because the database has no binary
+	/// literal (Access): the bytes are then inserted as a bound parameter and selected back.
+	/// </summary>
+	public string BinaryColumnType { get; set; }
+
 	/// <summary>DML that returns rows, with <c>{0}</c> for the statement (<c>{0} RETURNING Id</c>); unset when the database has none.</summary>
 	public string Returning { get; set; }
 

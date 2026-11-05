@@ -99,6 +99,58 @@ package yet (26.10.0); any backport to `9.x` or `8.x` is Oracle's decision, so w
 With #243–#251, AseClient passes 105 of 112; the other two are ASE server behaviour and a parameter-name convention
 that no contract sentence covers.
 
+## Google.Cloud.Spanner.Data: submitted, not accepted as proposed, not supported
+
+pengdows does not support `Google.Cloud.Spanner.Data`. Spanner is supported through its PostgreSQL interface, over
+Npgsql or PGAdapter. The provider's config (`providers/GoogleCloudSpannerData.json`) has been removed, so the matrix no
+longer generates or runs it.
+
+What was submitted to [googleapis/google-cloud-dotnet](https://github.com/googleapis/google-cloud-dotnet):
+
+- [#16037](https://github.com/googleapis/google-cloud-dotnet/pull/16037): one PR bundling reader and parameter fixes. Closed
+  2026-10-29. The maintainer asked for one issue per change, each with Microsoft documentation as evidence and an analysis
+  of whether it could break existing users.
+- Issues [#16041](https://github.com/googleapis/google-cloud-dotnet/issues/16041),
+  [#16042](https://github.com/googleapis/google-cloud-dotnet/issues/16042),
+  [#16043](https://github.com/googleapis/google-cloud-dotnet/issues/16043),
+  [#16047](https://github.com/googleapis/google-cloud-dotnet/issues/16047),
+  [#16049](https://github.com/googleapis/google-cloud-dotnet/issues/16049),
+  [#16051](https://github.com/googleapis/google-cloud-dotnet/issues/16051),
+  [#16053](https://github.com/googleapis/google-cloud-dotnet/issues/16053) and
+  [#16055](https://github.com/googleapis/google-cloud-dotnet/issues/16055), each with its PR
+  ([#16044](https://github.com/googleapis/google-cloud-dotnet/pull/16044),
+  [#16045](https://github.com/googleapis/google-cloud-dotnet/pull/16045),
+  [#16046](https://github.com/googleapis/google-cloud-dotnet/pull/16046),
+  [#16048](https://github.com/googleapis/google-cloud-dotnet/pull/16048),
+  [#16050](https://github.com/googleapis/google-cloud-dotnet/pull/16050),
+  [#16052](https://github.com/googleapis/google-cloud-dotnet/pull/16052),
+  [#16054](https://github.com/googleapis/google-cloud-dotnet/pull/16054) and
+  [#16056](https://github.com/googleapis/google-cloud-dotnet/pull/16056)). Open at the time of writing.
+
+The maintainer's position, from [#16041](https://github.com/googleapis/google-cloud-dotnet/issues/16041) on 2026-10-29:
+
+- The library does not conform to the third-party AdoNetApiTest suite and does not aim to.
+- Changes to paths that have been stable in production need a high bar, because existing code may depend on current behavior.
+- Some of the fixes are large and add maintenance burden.
+- They want a minimal reproduction against the production Cloud Spanner service. Problems that reproduce only on the
+  emulator are low priority and should go to the emulator project.
+- For some of the reported cases, ADO.NET is underspecified and Spanner's behavior is a deliberate choice, so she does not
+  accept them as contract violations. Her second comment says the bar for accepting any of them is high.
+
+The Google CLA is signed, and `cla/google` passes on every PR. The bot's "failed" comment on each PR is stale. Nothing
+merges yet because each PR needs a review from a Google maintainer under the repository's multi-approver rule, and that
+check has not passed.
+
+Why pengdows does not support the provider:
+
+- We read each defect as a departure from a Microsoft-documented sentence that pengdows.crud and pengdows.efcore.adonet
+  rely on. Working around them would mean provider-specific code in both libraries, which pengdows avoids on principle.
+- The maintainer disputes that reading for some of the cases. For all of them she asks for production evidence before a
+  change is accepted. Until the fixes are accepted, or the defects are reproduced against production, there is nothing
+  to verify against.
+
+Support will be reconsidered when the fixes are merged and verified against production Spanner, not the emulator.
+
 ## Not sent
 
 - **Microsoft.Data.SqlClient `Prepare`**: [SqlCommand.Prepare](https://learn.microsoft.com/dotnet/api/microsoft.data.sqlclient.sqlcommand.prepare)

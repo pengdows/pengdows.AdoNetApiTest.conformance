@@ -77,7 +77,7 @@ public partial class DataReaderTestBase<TFixture>
 	/// <summary>
 	/// A binary value must be available through the generic typed-value API as
 	/// the requested byte array, rather than as the provider's streaming value.
-	/// This is the path used by consumers such as Dapper for materialized blobs.
+	/// This is the typed-value path that materializes a blob as a byte array.
 	/// See https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue.
 	/// </summary>
 	[RequiredFact(Contract = "https://learn.microsoft.com/dotnet/api/system.data.common.dbdatareader.getfieldvalue")]

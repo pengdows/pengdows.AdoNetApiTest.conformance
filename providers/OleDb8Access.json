@@ -18,6 +18,7 @@
   "connectionString": "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=${ACCESS_DATABASE}",
   "dialect": {
     "terminator": "",
+    "parameterProjection": "CVar({0})",
     "parameterMarker": "?",
     "renderAsText": "CStr({0})"
   }

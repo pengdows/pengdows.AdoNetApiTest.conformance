@@ -71,7 +71,7 @@ public abstract partial class CommandTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.DbType = DbType.Int32;

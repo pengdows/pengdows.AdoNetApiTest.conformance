@@ -314,7 +314,7 @@ public sealed class ConfiguredServer : IAsyncLifetime
 }
 
 /// <summary>The fixture a generated test project's classes share, built from <see cref="ConfiguredProvider.Config"/>.</summary>
-public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture,
+public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, ISqlParameterProjectionFixture, IDataTypesFidelityFixture, IServerTypesFixture,
 	IDmlReturningFixture, IDmlParameterFixture, IMergeFixture, ISavepointSemanticsFixture, ISelectValueFixture, IDeleteFixture, ISqlLiteralFixture, IDisposable
 {
 	private readonly Sql92Dml m_dml;
@@ -350,6 +350,8 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 	private static DialectConfig Dialect => ConfiguredProvider.Config.Dialect;
 
 	public string SelectStatement(string projection) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.Select, projection);
+
+	public string ParameterProjection(string marker) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.ParameterProjection, marker);
 
 	public string StatementTerminator => Dialect.Terminator ?? string.Empty;
 

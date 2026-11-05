@@ -97,7 +97,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.Value = 1;
 		command.Parameters.Add(parameter);
@@ -128,7 +128,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.DbType = DbType.String;
@@ -151,7 +151,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		command.Parameters.Add(parameter);
@@ -202,7 +202,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = new object();
@@ -238,7 +238,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = "test";
@@ -259,7 +259,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.Value = new byte[] { 1, 2, 3, 4 };
@@ -285,7 +285,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
@@ -543,7 +543,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.DbType = DbType.Int32;
@@ -602,7 +602,7 @@ public abstract partial class ParameterTestBase<TFixture>
 		foreach (DbType type in Enum.GetValues(typeof(DbType)))
 		{
 			using var command = connection.CreateCommand();
-			command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+			command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 			var parameter = command.CreateParameter();
 			parameter.ParameterName = "Parameter";
 			try
@@ -646,7 +646,7 @@ public abstract partial class ParameterTestBase<TFixture>
 		foreach (var prepare in new[] { false, true })
 		{
 			using var command = connection.CreateCommand();
-			command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+			command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 			var parameter = command.CreateParameter();
 			parameter.ParameterName = "Parameter";
 			parameter.DbType = DbType.Decimal;
@@ -699,7 +699,7 @@ public abstract partial class ParameterTestBase<TFixture>
 		foreach (var value in new[] { 1e200, -1e200, double.MaxValue, double.Epsilon })
 		{
 			using var command = connection.CreateCommand();
-			command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+			command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 			var parameter = command.CreateParameter();
 			parameter.ParameterName = "Parameter";
 			parameter.DbType = DbType.Double;
@@ -733,7 +733,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.DbType = DbType.DateTimeOffset;
@@ -775,7 +775,7 @@ public abstract partial class ParameterTestBase<TFixture>
 	{
 		using var connection = CreateOpenConnection();
 		using var command = connection.CreateCommand();
-		command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+		command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 		var parameter = command.CreateParameter();
 		parameter.ParameterName = "Parameter";
 		parameter.DbType = DbType.Time;
@@ -925,7 +925,7 @@ public abstract partial class ParameterTestBase<TFixture>
 			foreach (var valueFirst in new[] { false, true })
 			{
 				using var command = connection.CreateCommand();
-				command.CommandText = SelectSql(MakeParameterName(connection, "Parameter"));
+				command.CommandText = SelectParameterSql(MakeParameterName(connection, "Parameter"));
 				var parameter = command.CreateParameter();
 				parameter.ParameterName = "Parameter";
 				if (valueFirst)

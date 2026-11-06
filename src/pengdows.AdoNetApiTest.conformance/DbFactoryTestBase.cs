@@ -117,6 +117,14 @@ public abstract class DbFactoryTestBase<TFixture> : IAsyncLifetime, IDisposable,
 		? dialect.SelectStatement(projection) + dialect.StatementTerminator
 		: $"SELECT {projection};";
 
+	/// <summary>
+	/// A query that selects one bound parameter, written as <paramref name="marker"/>. A provider that cannot select a
+	/// bare marker states its spelling with <see cref="ISqlParameterProjectionFixture"/>.
+	/// </summary>
+	protected virtual string SelectParameterSql(string marker) => SelectSql(Fixture is ISqlParameterProjectionFixture projection
+		? projection.ParameterProjection(marker)
+		: marker);
+
 	/// <summary>A text literal in the fixture's spelling (<see cref="ISqlLiteralFixture"/>), SQL-92 <c>'text'</c> by default.</summary>
 	protected string Text(string text) => SqlLiterals.Text(Fixture, text);
 

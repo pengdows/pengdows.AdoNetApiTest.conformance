@@ -23,6 +23,9 @@ internal static class ProviderRunner
 		return expanded.Replace("${inherit}", inherited, StringComparison.Ordinal);
 	}
 
+	/// <summary>Most crashes one run survives; each one excludes the test that caused it and starts the provider again.</summary>
+	private const int MaxCrashes = 25;
+
 	public static ProviderInput Run(ProviderProject provider, Options options, string outputDirectory)
 	{
 		if (provider.NotRunReason is not null)
@@ -35,7 +38,49 @@ internal static class ProviderRunner
 		var log = Path.GetFullPath(Path.Combine(outputDirectory, provider.Id + ".log"));
 		File.Delete(xml);
 		File.Delete(RunProvenance.FileFor(xml));
+		File.Delete(log);
 
+		// A driver that faults in native code (an access violation, a stack overflow) takes the whole in-process test
+		// run with it, and no result file is written. The crashing test is read from the log, excluded, and the run
+		// repeated; the test is then reported as a failure of its own, so one crash costs one test, not the provider.
+		var crashed = new List<CrashedTest>();
+		while (true)
+		{
+			var attempt = RunOnce(provider, options, xml, log, crashed.Select(c => c.Method).ToList());
+			if (attempt.Error is not null)
+			{
+				return new ProviderInput(provider.Id, provider.Project, null, attempt.Error);
+			}
+
+			if (!File.Exists(xml))
+			{
+				var test = crashed.Count < MaxCrashes ? CrashDiagnosis.FindCrashedTest(log) : null;
+				if (test is not null && crashed.All(c => c.Method != test.Method))
+				{
+					crashed.Add(test);
+					continue;
+				}
+
+				return new ProviderInput(provider.Id, provider.Project, null, $"no result file (exit code {attempt.ExitCode}); see {log}");
+			}
+
+			try
+			{
+				var results = XunitXml.Parse(File.ReadAllText(xml)).Concat(crashed.Select(c => c.AsResult())).ToList();
+				return new ProviderInput(provider.Id, provider.Project, results, null)
+				{
+					Provenance = RunProvenance.Read(xml, provider.ConfigPath),
+				};
+			}
+			catch (Exception exception) when (exception is System.Xml.XmlException or IOException)
+			{
+				return new ProviderInput(provider.Id, provider.Project, null, $"unreadable result file: {exception.Message}");
+			}
+		}
+	}
+
+	private static (int ExitCode, string? Error) RunOnce(ProviderProject provider, Options options, string xml, string log, IReadOnlyList<string> excludedMethods)
+	{
 		var start = new ProcessStartInfo("dotnet")
 		{
 			RedirectStandardOutput = true,
@@ -54,7 +99,8 @@ internal static class ProviderRunner
 			start.ArgumentList.Add(argument);
 		}
 
-		if (options.NoBuild)
+		// Only the first attempt builds; a repeat after a crash runs what that one built.
+		if (options.NoBuild || excludedMethods.Count > 0)
 		{
 			start.ArgumentList.Add("--no-build");
 		}
@@ -64,7 +110,18 @@ internal static class ProviderRunner
 			start.ArgumentList.Add(argument);
 		}
 
-		using var writer = new StreamWriter(log);
+		foreach (var method in excludedMethods)
+		{
+			start.ArgumentList.Add("-method-");
+			start.ArgumentList.Add("*." + method);
+		}
+
+		using var writer = new StreamWriter(log, append: true);
+		if (excludedMethods.Count > 0)
+		{
+			writer.WriteLine($"=== run repeated without the crashing test(s): {string.Join(", ", excludedMethods)} ===");
+		}
+
 		using var process = new Process { StartInfo = start };
 		var gate = new object();
 		void Write(string? line)
@@ -86,7 +143,7 @@ internal static class ProviderRunner
 		}
 		catch (Exception exception)
 		{
-			return new ProviderInput(provider.Id, provider.Project, null, $"could not start dotnet: {exception.Message}");
+			return (-1, $"could not start dotnet: {exception.Message}");
 		}
 
 		process.BeginOutputReadLine();
@@ -95,25 +152,10 @@ internal static class ProviderRunner
 		{
 			process.Kill(entireProcessTree: true);
 			process.WaitForExit();
-			return new ProviderInput(provider.Id, provider.Project, null, $"timed out after {options.Timeout.TotalMinutes:0.#} minutes; see {log}");
+			return (-1, $"timed out after {options.Timeout.TotalMinutes:0.#} minutes; see {log}");
 		}
 
 		process.WaitForExit();
-		if (!File.Exists(xml))
-		{
-			return new ProviderInput(provider.Id, provider.Project, null, $"no result file (exit code {process.ExitCode}); see {log}");
-		}
-
-		try
-		{
-			return new ProviderInput(provider.Id, provider.Project, XunitXml.Parse(File.ReadAllText(xml)), null)
-			{
-				Provenance = RunProvenance.Read(xml, provider.ConfigPath),
-			};
-		}
-		catch (Exception exception) when (exception is System.Xml.XmlException or IOException)
-		{
-			return new ProviderInput(provider.Id, provider.Project, null, $"unreadable result file: {exception.Message}");
-		}
+		return (process.ExitCode, null);
 	}
 }

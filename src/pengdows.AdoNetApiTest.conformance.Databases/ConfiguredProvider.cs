@@ -314,7 +314,7 @@ public sealed class ConfiguredServer : IAsyncLifetime
 }
 
 /// <summary>The fixture a generated test project's classes share, built from <see cref="ConfiguredProvider.Config"/>.</summary>
-public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTypesFidelityFixture, IServerTypesFixture,
+public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, ISqlParameterProjectionFixture, IDataTypesFidelityFixture, IServerTypesFixture,
 	IDmlReturningFixture, IDmlParameterFixture, IMergeFixture, ISavepointSemanticsFixture, ISelectValueFixture, IDeleteFixture, ISqlLiteralFixture, IDisposable
 {
 	private readonly Sql92Dml m_dml;
@@ -351,6 +351,8 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 
 	public string SelectStatement(string projection) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.Select, projection);
 
+	public string ParameterProjection(string marker) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.ParameterProjection, marker);
+
 	public string StatementTerminator => Dialect.Terminator ?? string.Empty;
 
 	public string CreateTableSql(string table, string columnSql) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.CreateTable, table, columnSql);
@@ -359,7 +361,7 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 
 	public string RenderAsText => Dialect.RenderAsText;
 
-	public string TextLiteral(string text) => SqlLiterals.Text(this, text);
+	public string TextLiteral(string text) => "'" + text.Replace("'", "''") + "'";
 
 	public string QuotedIdentifier(string name) => Dialect.QuotedIdentifier is { } format
 		? string.Format(System.Globalization.CultureInfo.InvariantCulture, format, name.Replace("`", "``"))
@@ -418,6 +420,10 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 		_ = m_supported.Value;
 		m_dml.Create(this);
 		m_dmlCreated = true;
+		if (Dialect.BinaryLiteral.Length == 0)
+		{
+			EnsureBytesTable();
+		}
 	}
 
 	/// <summary>The types whose value table the server created; created on first use, since most test classes need none.</summary>
@@ -429,7 +435,57 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 		return m_values.SelectSql(dbType, kind);
 	}
 
-	public string CreateSelectSql(byte[] value) => m_values.SelectSql(value);
+	public string CreateSelectSql(byte[] value) => Dialect.BinaryLiteral.Length == 0 ? SelectBoundBytes(value) : m_values.SelectSql(value);
+
+	private DbConnection OpenConnection()
+	{
+		var connection = ConfiguredProvider.Factory.CreateConnection();
+		connection.ConnectionString = ConnectionString;
+		connection.Open();
+		return connection;
+	}
+
+	private string m_bytesTable;
+	private int m_bytesRows;
+
+	/// <summary>Created with the other value tables, before a test holds a connection that could not yet see it (Access).</summary>
+	private void EnsureBytesTable()
+	{
+		if (m_bytesTable is not null)
+		{
+			return;
+		}
+
+		var table = Sql92Dml.UniqueName("by_");
+		using var create = OpenConnection();
+		using var command = create.CreateCommand();
+		command.CommandText = CreateTableSql(table, Dialect.BinaryColumnType);
+		command.ExecuteNonQuery();
+		m_bytesTable = table;
+	}
+
+	/// <summary>For a database with no binary literal: the bytes go in through a bound parameter and the statement selects them back.</summary>
+	private string SelectBoundBytes(byte[] value)
+	{
+		EnsureBytesTable();
+		var id = ++m_bytesRows;
+		using var connection = OpenConnection();
+		using var insert = connection.CreateCommand();
+		insert.CommandText = $"INSERT INTO {m_bytesTable} (Id, V) VALUES ({ParameterMarkerFor("Id")}, {ParameterMarkerFor("V")})";
+		var key = insert.CreateParameter();
+		key.ParameterName = "Id";
+		key.Value = id;
+		insert.Parameters.Add(key);
+		var bytes = insert.CreateParameter();
+		bytes.ParameterName = "V";
+		bytes.DbType = DbType.Binary;
+		bytes.Value = value;
+		insert.Parameters.Add(bytes);
+		insert.ExecuteNonQuery();
+		return $"SELECT V FROM {m_bytesTable} WHERE Id = {id}";
+	}
+
+	private static string ParameterMarkerFor(string name) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Dialect.ParameterMarker ?? "@{0}", name);
 
 	public string SelectNoRows
 	{
@@ -461,6 +517,14 @@ public class ConfiguredFixture : IDbFactoryFixture, ISqlDialectFixture, IDataTyp
 		if (m_dmlCreated)
 		{
 			m_dml.Drop(this);
+		}
+
+		if (m_bytesTable is not null)
+		{
+			using var connection = OpenConnection();
+			using var command = connection.CreateCommand();
+			command.CommandText = DropTableSql(m_bytesTable);
+			command.ExecuteNonQuery();
 		}
 	}
 }

@@ -12,3 +12,14 @@ public interface ISqlDialectFixture
 	/// <summary>The text that ends a statement: <c>;</c>, or empty for a database that rejects it.</summary>
 	string StatementTerminator { get; }
 }
+
+/// <summary>
+/// A provider that cannot select a bare parameter marker (<c>SELECT ?</c>) states how to write one. The ACE OLE DB
+/// provider faults in native code on it and needs a conversion around the marker, <c>CVar(?)</c>. Without it the
+/// shared tests select the marker itself.
+/// </summary>
+public interface ISqlParameterProjectionFixture
+{
+	/// <summary>The projection that selects the parameter written as <paramref name="marker"/>.</summary>
+	string ParameterProjection(string marker);
+}
